@@ -77,7 +77,7 @@ function renderBranch(){let b=db.branches.find(x=>x.id===session.branchId);landi
 function refreshBranch(){let q=(document.getElementById("bs")?.value||"").toLowerCase(),id=session.branchId;let r=db.staff.filter(s=>s.branchId===id&&s.status==="Active"&&[s.nameEn,s.nameBn,s.employeeId,s.designation].join(" ").toLowerCase().includes(q));bt.innerHTML=table(r,{actions:true})}
 
 function renderAdmin(){landing.classList.add("hidden");app.classList.remove("hidden");app.innerHTML=`${bar("Central Admin Control")}<main class="main"><div class="topline"><div><span class="eyebrow">MASTER ADMIN</span><h1 style="margin:8px 0">Staff Control Center</h1><p style="color:var(--muted)">Full access: staff, branches, approvals, histories, fields and reports.</p></div><div class="actions"><button class="btn primary" onclick="openStaff()">+ Add Staff</button><button class="btn" onclick="openBranch()">+ New Branch</button><button class="btn" onclick="openField()">+ Add Field</button></div></div><div class="stats"><div class="stat"><small>Branches</small><b>${db.branches.length}</b></div><div class="stat"><small>Active</small><b>${db.staff.filter(s=>s.status==="Active").length}</b></div><div class="stat"><small>Resigned</small><b>${db.staff.filter(s=>s.status==="Resigned").length}</b></div><div class="stat"><small>Pending Transfers</small><b>${db.transferRequests.filter(x=>x.status==="Pending").length}</b></div></div>
-<div class="tabs"><button class="tab active" onclick="adminTab(this,'staff')">All Staff</button><button class="tab" onclick="adminTab(this,'resign')">Resign History</button><button class="tab" onclick="adminTab(this,'transfer')">Transfer History</button><button class="tab" onclick="adminTab(this,'pending')">Pending Approvals</button><button class="tab" onclick="adminTab(this,'branches')">Branches & Access</button><button class="tab" onclick="adminTab(this,'fields')">Custom Fields</button></div><div id="adminContent"></div></main>`;adminTab(document.querySelector(".tab"),"staff")}
+<div class="tabs"><button class="tab active" onclick="adminTab(this,'staff')">All Staff</button><button class="tab" onclick="adminTab(this,'resign')">Resign History</button><button class="tab" onclick="adminTab(this,'transfer')">Transfer History</button><button class="tab pendingTab" onclick="adminTab(this,'pending')">Pending Approvals <span id="pendingApprovalBadge" class="badge"></span></button><button class="tab" onclick="adminTab(this,'branches')">Branches & Access</button><button class="tab" onclick="adminTab(this,'fields')">Custom Fields</button></div><div id="adminContent"></div></main>`;adminTab(document.querySelector(".tab"),"staff")}
 function bar(title){return `<div class="appbar"><div class="brand"><div class="logo">T</div><div>${esc(title)}<small style="display:block;color:#78859a">TMSS Staff Info</small></div></div><div class="actions"><button class="btn red" onclick="logout()">Sign out</button></div></div>`}
 function adminTab(el,type){document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));el?.classList.add("active");let c=document.getElementById("adminContent");if(type==="staff")c.innerHTML=`<div class="toolbar"><select id="af" onchange="refreshAdmin()"><option value="">All branches</option>${db.branches.map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join("")}</select><select id="ast" onchange="refreshAdmin()"><option value="Active">Active</option><option value="">All statuses</option><option value="Resigned">Resigned</option></select><input id="aq" placeholder="Search…"><button class="btn" onclick="refreshAdmin()">Search</button><button class="btn" onclick="downloadCSV('ALL')">Download Compiled CSV</button></div><div id="at"></div>`;else if(type==="resign")c.innerHTML=resignPanel();else if(type==="transfer")c.innerHTML=historyPanel("Transfer");else if(type==="pending")c.innerHTML=pendingPanel();else if(type==="branches")c.innerHTML=branchesPanel();else c.innerHTML=fieldsPanel();if(type==="staff")refreshAdmin()}
 function refreshAdmin(){let q=(document.getElementById("aq")?.value||"").toLowerCase(),bid=document.getElementById("af")?.value||"",st=document.getElementById("ast")?.value||"";let r=db.staff.filter(s=>(!bid||s.branchId===bid)&&(!st||s.status===st)&&[s.nameEn,s.nameBn,s.employeeId,s.designation,bname(s.branchId)].join(" ").toLowerCase().includes(q));at.innerHTML=table(r,{actions:true})}
@@ -114,8 +114,31 @@ function downloadCSV(branchId){let rows=db.staff.filter(s=>s.status==="Active"&&
 function deleteStaff(id){if(session.role!=="admin")return;if(confirm("Delete this staff record permanently?")){db.staff=db.staff.filter(s=>s.id!==id);save();toast("Deleted.");renderAdmin()}}
 window.addEventListener("beforeunload",save);
 </script><style>
-.badge{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:#e12632;color:#fff;font-size:11px;font-weight:900;margin-left:5px;box-shadow:0 0 0 3px #ffe2e4}.requestSent{display:inline-block;padding:5px 8px;border-radius:8px;background:#e9faf4;color:#087858;font-size:10px;font-weight:900}.noticeBoard{position:fixed;top:78px;right:20px;z-index:30;max-width:340px;background:#fff;border:1px solid #dce5f3;border-radius:14px;padding:10px 15px;box-shadow:0 15px 40px #1b31501c;overflow:hidden}.noticeBoard .ticker{white-space:nowrap;animation:noticeMove 11s linear infinite}@keyframes noticeMove{0%{transform:translateX(100%)}100%{transform:translateX(-120%)}}.insightGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:11px;margin:15px 0}.insight{background:linear-gradient(145deg,#fff,#f7f9ff);border:1px solid #e4e9f3;border-radius:16px;padding:16px;box-shadow:0 12px 30px #263d6510}.insight b{font-size:25px;display:block;margin-top:6px}.insight small{color:var(--muted);font-weight:700}
+.pendingTab .badge{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:#e12632;color:#fff;font-size:11px;font-weight:900;margin-left:4px;box-shadow:0 0 0 3px #ffe2e4;vertical-align:middle}.pendingTab{white-space:nowrap}.badge{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:#e12632;color:#fff;font-size:11px;font-weight:900;margin-left:5px;box-shadow:0 0 0 3px #ffe2e4}.requestSent{display:inline-block;padding:5px 8px;border-radius:8px;background:#e9faf4;color:#087858;font-size:10px;font-weight:900}.noticeBoard{position:fixed;top:78px;right:20px;z-index:30;max-width:340px;background:#fff;border:1px solid #dce5f3;border-radius:14px;padding:10px 15px;box-shadow:0 15px 40px #1b31501c;overflow:hidden}.noticeBoard .ticker{white-space:nowrap;animation:noticeMove 11s linear infinite}@keyframes noticeMove{0%{transform:translateX(100%)}100%{transform:translateX(-120%)}}.insightGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:11px;margin:15px 0}.insight{background:linear-gradient(145deg,#fff,#f7f9ff);border:1px solid #e4e9f3;border-radius:16px;padding:16px;box-shadow:0 12px 30px #263d6510}.insight b{font-size:25px;display:block;margin-top:6px}.insight small{color:var(--muted);font-weight:700}
 </style><script>
+/* TMSS Pending Approval notifier fix — ONLY pending badge behavior */
+(function(){
+  function refreshPendingApprovalBadge(){
+    const n=(Array.isArray(db.transferRequests)?db.transferRequests:[]).filter(x=>x.status==='Pending').length+
+            (Array.isArray(db.resignRequests)?db.resignRequests:[]).filter(x=>x.status==='Pending').length;
+    const b=document.getElementById('pendingApprovalBadge');
+    if(b){b.textContent=n?String(n):'';b.style.display=n?'inline-grid':'none';}
+  }
+  const _oldSavePendingFix=window.save;
+  window.save=function(){
+    const r=_oldSavePendingFix.apply(this,arguments);
+    setTimeout(refreshPendingApprovalBadge,0);
+    return r;
+  };
+  const _oldRenderAdminPendingFix=window.renderAdmin;
+  window.renderAdmin=function(){
+    const r=_oldRenderAdminPendingFix.apply(this,arguments);
+    setTimeout(refreshPendingApprovalBadge,0);
+    return r;
+  };
+  window.refreshPendingApprovalBadge=refreshPendingApprovalBadge;
+})();
+
 /* TMSS v3 corrections */
 db.resignRequests=db.resignRequests||[];db.loginHistory=db.loginHistory||[];db.notice=db.notice||{enabled:false,text:""};db.extraModules=db.extraModules||[];save();
 function pendingCount(){return db.transferRequests.filter(x=>x.status==="Pending").length+db.resignRequests.filter(x=>x.status==="Pending").length}
@@ -943,7 +966,7 @@ function saveBranch(id){
 
   // ---------- Admin render: import/export + designation manager + chat ----------
   const oldRenderAdmin=window.renderAdmin;
-  window.renderAdmin=function(){landing.classList.add('hidden');app.classList.remove('hidden');app.innerHTML=`${bar('Central Admin Control')}<main class="main"><div class="topline"><div><span class="eyebrow">MASTER ADMIN</span><h1 style="margin:8px 0">Staff Control Center</h1><p style="color:var(--muted)">Full access to staff, branches, approvals, histories, designations, CSV and chat.</p></div><div class="actions"><button class="btn primary" onclick="openStaff()">+ Add Staff</button><button class="btn" onclick="openBranch()">+ New Branch</button></div></div><div class="stats"><div class="stat"><small>Branches</small><b>${db.branches.length}</b></div><div class="stat"><small>Designations</small><b>${designs().length}</b></div><div class="stat"><small>Active</small><b>${db.staff.filter(s=>s.status==='Active').length}</b></div><div class="stat"><small>Pending</small><b>${pendingCount?pendingCount():0}</b></div></div><div class="tabs"><button class="tab active" onclick="adminTab(this,'staff')">All Staff</button><button class="tab" onclick="adminTab(this,'resign')">Resign History</button><button class="tab" onclick="adminTab(this,'transfer')">Transfer History</button><button class="tab" onclick="adminTab(this,'pending')">Pending Approvals</button><button class="tab" onclick="adminTab(this,'branches')">Branches & Access</button><button class="tab" onclick="adminTab(this,'fields')">Custom Fields</button><button class="tab" onclick="adminTab(this,'designations')">Designation Order</button><button class="tab" onclick="adminTab(this,'chat')">💬 Chat</button></div><div id="adminContent"></div></main>`;adminTab(document.querySelector('.tab'),'staff')};
+  window.renderAdmin=function(){landing.classList.add('hidden');app.classList.remove('hidden');app.innerHTML=`${bar('Central Admin Control')}<main class="main"><div class="topline"><div><span class="eyebrow">MASTER ADMIN</span><h1 style="margin:8px 0">Staff Control Center</h1><p style="color:var(--muted)">Full access to staff, branches, approvals, histories, designations, CSV and chat.</p></div><div class="actions"><button class="btn primary" onclick="openStaff()">+ Add Staff</button><button class="btn" onclick="openBranch()">+ New Branch</button></div></div><div class="stats"><div class="stat"><small>Branches</small><b>${db.branches.length}</b></div><div class="stat"><small>Designations</small><b>${designs().length}</b></div><div class="stat"><small>Active</small><b>${db.staff.filter(s=>s.status==='Active').length}</b></div><div class="stat"><small>Pending</small><b>${pendingCount?pendingCount():0}</b></div></div><div class="tabs"><button class="tab active" onclick="adminTab(this,'staff')">All Staff</button><button class="tab" onclick="adminTab(this,'resign')">Resign History</button><button class="tab" onclick="adminTab(this,'transfer')">Transfer History</button><button class="tab pendingTab" onclick="adminTab(this,'pending')">Pending Approvals <span id="pendingApprovalBadge" class="badge"></span></button><button class="tab" onclick="adminTab(this,'branches')">Branches & Access</button><button class="tab" onclick="adminTab(this,'fields')">Custom Fields</button><button class="tab" onclick="adminTab(this,'designations')">Designation Order</button><button class="tab" onclick="adminTab(this,'chat')">💬 Chat</button></div><div id="adminContent"></div></main>`;adminTab(document.querySelector('.tab'),'staff')};
   const oldAdminTab=window.adminTab;
   window.adminTab=function(el,type){if(type!=='designations'&&type!=='chat')return oldAdminTab(el,type);document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));el?.classList.add('active');const c=document.getElementById('adminContent');if(type==='designations'){c.innerHTML=designationPanel()}else c.innerHTML=chatPanel('admin');};
   window.designationPanel=function(){const list=designs();return `<div class="card"><h3 style="margin-top:0">Designation Master & Listing Order</h3><p style="color:var(--muted);font-size:12px">All standard designations remain available. Add any new company designation and set its position so staff listing never loses the correct senior-to-junior order.</p><div class="designation-tools"><div class="field"><label>New designation</label><input id="newDes" placeholder="e.g. Senior Officer"></div><div class="field"><label>Position</label><select id="newPos"><option value="top">Highest — above SBM</option><option value="after">After another designation</option><option value="bottom">Lowest — below all</option></select></div><div class="field"><button class="btn primary" onclick="addMasterDesignation()">Add Designation</button></div></div><div class="field" id="afterDesWrap" style="display:none"><label>Place after</label><select id="afterDes">${list.map(d=>`<option>${esc(d.name)}</option>`).join('')}</select></div><div class="designation-list">${list.map((d,i)=>`<div class="designation-row"><div class="designation-rank">${i+1}</div><div><b>${esc(d.name)}</b><small style="display:block;color:var(--muted)">${i<9?'Standard designation':'Custom designation'}</small></div><button class="smallBtn red" onclick="removeMasterDesignation(${i})">Remove</button></div>`).join('')}</div></div>`}
@@ -969,5 +992,35 @@ function saveBranch(id){
   window.refreshChat=function(){const box=document.getElementById('chatMessages');if(!box)return;const arr=chats().filter(x=>(x.from===meId()&&x.to===chatPeer)||(x.from===chatPeer&&x.to===meId()));box.innerHTML=arr.map(x=>`<div class="chatMsg ${x.from===meId()?'mine':'theirs'}"><div>${esc(x.text)}</div><div class="chatMeta">${new Date(x.at).toLocaleString()}</div></div>`).join('')||'<div style="text-align:center;color:#8a96aa;font-size:12px;margin-top:120px">No messages yet.</div>';box.scrollTop=box.scrollHeight}
   window.addEventListener('storage',e=>{if(e.key===CHATKEY)refreshChat()});
   if('BroadcastChannel' in window){try{const bc=new BroadcastChannel('tmss_chat_live');bc.onmessage=()=>refreshChat();window.tmssChatBroadcast=bc;const oldSend=window.sendChatMessage;window.sendChatMessage=function(){oldSend();try{bc.postMessage({t:Date.now()})}catch(e){}}}catch(e){}}
+})();
+</script>
+
+<script>
+/* FINAL — Pending Approvals red notifier only. No other UI/data behavior changed. */
+(function(){
+  function countPending(source){
+    const d=source||window.db||{};
+    const tr=Array.isArray(d.transferRequests)?d.transferRequests:[];
+    const rr=Array.isArray(d.resignRequests)?d.resignRequests:[];
+    return tr.filter(x=>x&&x.status==='Pending').length+rr.filter(x=>x&&x.status==='Pending').length;
+  }
+  function paint(n){
+    const b=document.getElementById('pendingApprovalBadge');
+    if(!b)return;
+    b.textContent=n>0?String(n):'';
+    b.style.display=n>0?'inline-grid':'none';
+  }
+  function refresh(){
+    let d=window.db;
+    try{const raw=localStorage.getItem('tmss_db_v2');if(raw)d=JSON.parse(raw);}catch(e){}
+    paint(countPending(d));
+  }
+  const _renderAdmin=window.renderAdmin;
+  if(typeof _renderAdmin==='function'){
+    window.renderAdmin=function(){const r=_renderAdmin.apply(this,arguments);setTimeout(refresh,20);return r;};
+  }
+  window.addEventListener('storage',function(e){if(e.key==='tmss_db_v2')refresh();});
+  setInterval(function(){if(document.getElementById('pendingApprovalBadge'))refresh();},1000);
+  setTimeout(refresh,50);
 })();
 </script>
