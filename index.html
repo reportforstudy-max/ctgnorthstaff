@@ -1024,3 +1024,30 @@ function saveBranch(id){
   setTimeout(refresh,50);
 })();
 </script>
+
+<script>
+/* Admin Branch Access Credential Edit — only adds username/password editing. */
+(function(){
+  const _openBranchCredFix=window.openBranch;
+  window.openBranch=function(id=''){
+    const b=db.branches.find(x=>x.id===id)||{name:'',region:REGIONS[0]||'Pahartoli Region',code:'',username:'',password:''};
+    modal(id?'Edit Branch':'Add New Branch',`<div class="grid">
+      <div class="field"><label>Branch name *</label><input id="bn" value="${esc(b.name)}" placeholder="Branch name"></div>
+      <div class="field"><label>Branch code *</label><input id="bc" value="${esc(b.code||'')}" placeholder="0485"></div>
+      <div class="field"><label>Region *</label><select id="br">${REGIONS.map(x=>`<option value="${esc(x)}" ${x===b.region?'selected':''}>${esc(x)}</option>`).join('')}</select></div>
+      <div class="field"><label>Branch Username *</label><input id="bu" value="${esc(b.username||'')}" placeholder="Branch login username" autocomplete="off"></div>
+      <div class="field"><label>Branch Password *</label><input id="bp" value="${esc(b.password||'')}" placeholder="Branch login password" autocomplete="new-password"></div>
+    </div><div class="notice">Admin can change this branch's login username and password whenever needed.</div><div id="bErr" class="err"></div><div class="modalActions"><button class="btn" onclick="closeTemp()">Cancel</button><button class="btn primary" onclick="saveBranch('${id}')">${id?'Save Changes':'Create Branch'}</button></div>`);
+  };
+  window.saveBranch=function(id){
+    const name=(document.getElementById('bn')?.value||'').trim(), code=(document.getElementById('bc')?.value||'').trim(), reg=(document.getElementById('br')?.value||'').trim(), username=(document.getElementById('bu')?.value||'').trim(), password=document.getElementById('bp')?.value||'';
+    const err=document.getElementById('bErr'); if(err)err.textContent='';
+    if(!name||!code||!reg||!username||!password){if(err)err.textContent='Branch name, code, region, username and password are mandatory.';return;}
+    if(db.branches.some(b=>b.id!==id&&String(b.name||'').trim().toLowerCase()===name.toLowerCase())){if(err)err.textContent='This branch already exists.';return;}
+    if(db.branches.some(b=>b.id!==id&&String(b.username||'').trim().toLowerCase()===username.toLowerCase())){if(err)err.textContent='This username is already in use. Please choose another username.';return;}
+    if(id){const b=db.branches.find(x=>x.id===id);if(!b){if(err)err.textContent='Branch not found.';return;}b.name=name;b.code=code;b.region=reg;b.username=username;b.password=password;}
+    else{const nums=db.branches.map(b=>parseInt(String(b.id||'').replace(/\D/g,''),10)).filter(Number.isFinite);const n=(nums.length?Math.max(...nums):0)+1;db.branches.push({id:'B'+String(n).padStart(2,'0'),name,code,region:reg,username,password});}
+    save();closeTemp();toast(id?'Branch access updated successfully.':'New branch created successfully.');renderAdmin();
+  };
+})();
+</script>
