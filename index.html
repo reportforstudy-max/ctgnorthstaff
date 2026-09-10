@@ -1,0 +1,973 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TMSS Staff Info — CTG North Zone</title>
+<style>
+:root{--p:#2457ff;--p2:#7c3aed;--ink:#14213d;--muted:#718097;--line:#e5eaf2;--bg:#f5f7fb;--card:#fff;--danger:#d83b42;--ok:#0b8d69;--shadow:0 18px 50px rgba(26,43,77,.1)}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--ink);background:linear-gradient(135deg,#f6f9ff,#faf7ff)}button,input,select{font:inherit}button{cursor:pointer;border:0}.hidden{display:none!important}
+.nav{height:72px;padding:0 5vw;display:flex;justify-content:space-between;align-items:center;background:#fffffff2;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}.brand{display:flex;gap:12px;align-items:center;font-weight:800}.logo{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;display:grid;place-items:center;box-shadow:0 9px 22px #5366ff30}.actions{display:flex;gap:9px}.btn{padding:10px 15px;border-radius:11px;background:#edf1ff;color:#2948ad;font-weight:750}.btn.primary{background:linear-gradient(135deg,var(--p),var(--p2));color:#fff}.btn.red{background:#fff0f1;color:#bd3037}
+.hero{max-width:1180px;margin:auto;padding:75px 24px 55px;display:grid;grid-template-columns:1.15fr .85fr;gap:45px;align-items:center}.eyebrow{display:inline-block;padding:7px 11px;border-radius:30px;background:#eaf0ff;color:#3654c8;font-weight:800;font-size:12px}.hero h1{font-size:clamp(42px,6vw,72px);line-height:.98;margin:18px 0}.hero h1 span{color:var(--p)}.hero p{color:var(--muted);font-size:18px;line-height:1.7}.heroCard{background:linear-gradient(145deg,#17295b,#3559c5);color:#fff;padding:28px;border-radius:30px;box-shadow:0 30px 70px #304ba640}.metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px}.metrics div{background:#ffffff13;border:1px solid #ffffff22;border-radius:15px;padding:16px}.metrics b{display:block;font-size:27px}.section{max-width:1180px;margin:auto;padding:20px 24px 70px}.features{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}.card{background:var(--card);border:1px solid var(--line);border-radius:19px;padding:20px;box-shadow:var(--shadow)}.card p{color:var(--muted);line-height:1.55;font-size:14px}.footer{text-align:center;padding:32px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+.overlay{position:fixed;inset:0;background:#07132e99;backdrop-filter:blur(7px);display:grid;place-items:center;z-index:100;padding:15px}.modal{width:min(760px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:23px;padding:25px;box-shadow:0 30px 90px #00133d40}.modal h2{margin:0 0 5px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.field{margin:10px 0}.field label{display:block;font-size:12px;font-weight:800;margin-bottom:6px}.field input,.field select{width:100%;padding:10px 11px;border:1px solid #dce3ee;border-radius:10px;outline:none;background:#fff}.field input:focus,.field select:focus{border-color:#6075ff;box-shadow:0 0 0 3px #6075ff15}.hint{font-size:11px;color:var(--muted);margin-top:4px}.err{color:var(--danger);font-size:12px;min-height:17px}.modalActions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.app{min-height:100vh;background:var(--bg)}.appbar{height:68px;background:#fff;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;padding:0 3vw;position:sticky;top:0;z-index:15}.main{padding:25px 3vw}.topline{display:flex;justify-content:space-between;align-items:end;gap:15px;flex-wrap:wrap}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin:18px 0}.stat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:17px}.stat small{color:var(--muted)}.stat b{display:block;font-size:25px;margin-top:5px}.toolbar{display:flex;flex-wrap:wrap;gap:9px;margin:15px 0}.toolbar input,.toolbar select{padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}.tablewrap{overflow:auto;background:#fff;border:1px solid var(--line);border-radius:17px}.table{width:100%;border-collapse:collapse;min-width:1250px}.table th,.table td{padding:11px 10px;border-bottom:1px solid #edf0f5;text-align:left;font-size:12px;vertical-align:top}.table th{font-size:11px;text-transform:uppercase;color:#66748b;background:#fafbfe}.pill{padding:4px 8px;border-radius:20px;background:#eaf2ff;color:#2e54b7;font-size:10px;font-weight:800}.pill.red{background:#fff0f0;color:#bb343b}.smallBtn{padding:6px 8px;border-radius:8px;background:#edf1ff;color:#2d4fb0;font-size:11px}.smallBtn.red{background:#fff0f0;color:#bb343b}.tabs{display:flex;gap:7px;overflow:auto;margin:12px 0}.tab{padding:9px 13px;border-radius:10px;background:#fff;border:1px solid var(--line);font-weight:750;color:#53627a;white-space:nowrap}.tab.active{background:#1f4fff;color:#fff}.branchGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}.branchBox{padding:14px;background:#fff;border:1px solid var(--line);border-radius:14px}.branchBox b{display:block}.branchBox small{color:var(--muted)}.notice{padding:11px 13px;background:#fff8df;border:1px solid #f2e2a6;border-radius:11px;font-size:12px;color:#6f5a1c;margin:10px 0}.readonly td{user-select:text}
+.toast{position:fixed;right:20px;bottom:20px;background:#17233f;color:#fff;padding:12px 16px;border-radius:11px;z-index:200;box-shadow:0 15px 40px #0003}
+@media(max-width:900px){.hero{grid-template-columns:1fr}.features{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr 1fr}.stats{grid-template-columns:1fr 1fr}}@media(max-width:560px){.features,.grid,.stats{grid-template-columns:1fr}.hero{padding-top:45px}.nav{padding:10px 12px;height:auto;min-height:72px;gap:8px;align-items:center}.nav .actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:5px}.nav .actions .btn{padding:8px 9px;font-size:11px;white-space:nowrap}.nav .actions .btn:first-child{display:block}.hero .actions{flex-wrap:wrap}.hero .actions .btn{font-size:12px;padding:9px 11px}.appbar{padding:0 15px}.main{padding:18px 15px}.modal{padding:18px;border-radius:18px}.tablewrap{border-radius:12px}.table{min-width:1180px}.toolbar{gap:7px}.toolbar .btn,.toolbar input,.toolbar select{max-width:100%}}
+</style></head><body>
+<div id="landing"><div class="nav"><div class="brand"><div class="logo">T</div><div>TMSS Staff Info<small style="display:block;color:#7a879b">CTG North Zone</small></div></div><div class="actions"><button class="btn" onclick="loginOpen('branch')">Branch Sign In</button><button class="btn primary" onclick="loginOpen('admin')">Admin Panel</button><button class="btn" onclick="loginOpen('viewer')">View Only</button></div></div>
+<section class="hero"><div><span class="eyebrow">21 BRANCHES • CENTRAL STAFF DIRECTORY</span><h1>One platform for <span>every staff record.</span></h1><p>Branch-wise staff management with controlled access, transfers, resignations, regional mapping, CSV reporting and a read-only information panel.</p><div class="actions"><button class="btn primary" onclick="loginOpen('branch')">Enter Branch Portal →</button><button class="btn" onclick="loginOpen('viewer')">Open View Only</button></div></div><div class="heroCard"><b>TMSS • CTG NORTH ZONE</b><h2>Clean data. Controlled access.</h2><div style="opacity:.8;line-height:1.6">Branch users manage their own staff. Transfers wait for admin approval. Admin retains complete control.</div><div class="metrics"><div><small>Branches</small><b id="heroBranches">21</b></div><div><small>Designation</small><b>9</b></div><div><small>Domain</small><b>Op-05</b></div><div><small>Zone</small><b>Ctg North</b></div></div></div></section>
+<section class="section"><div class="features"><div class="card"><b>👥 Staff Directory</b><p>Bangla address, NID-based bilingual name, designation and complete employment fields.</p></div><div class="card"><b>🔄 Approval Transfer</b><p>Branch transfer requests stay pending until Admin approves them.</p></div><div class="card"><b>📊 CSV Reports</b><p>Branch-wise CSV and one compiled all-branch CSV using the exact requested column order.</p></div><div class="card"><b>🔐 Role Separation</b><p>Branch, Admin and read-only View Panel have separate access levels.</p></div></div></section><footer class="footer">TMSS Staff Info • CTG North Zone</footer></div>
+
+<div id="login" class="overlay hidden"><div class="modal" style="max-width:440px"><div style="display:flex;justify-content:space-between"><div><h2 id="loginTitle">Sign in</h2><div id="loginSub" class="hint">Authorized access only.</div></div><button class="btn" onclick="closeLogin()">✕</button></div><div class="field"><label>Username</label><input id="lu" autocomplete="username"></div><div class="field"><label>Password</label><input id="lp" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div><label style="font-size:12px"><input id="remember" type="checkbox"> Remember login on this device</label><div id="loginErr" class="err"></div><div class="modalActions"><button class="btn" onclick="closeLogin()">Cancel</button><button class="btn primary" onclick="doLogin()">Sign in</button></div></div></div>
+<div id="modalHost"></div><div id="app" class="app hidden"></div><div id="toast" class="toast hidden"></div>
+
+<script>
+const INITIAL_BRANCHES=[{"id": "B01", "name": "Pahartoli", "region": "Pahartoli Region", "code": "", "username": "tmss_pahartoli", "password": "TMSS@012026"}, {"id": "B02", "name": "Katgor", "region": "Pahartoli Region", "code": "", "username": "tmss_katgor", "password": "TMSS@022026"}, {"id": "B03", "name": "Bandartila", "region": "Pahartoli Region", "code": "", "username": "tmss_bandartila", "password": "TMSS@032026"}, {"id": "B04", "name": "Halishahar", "region": "Pahartoli Region", "code": "", "username": "tmss_halishahar", "password": "TMSS@042026"}, {"id": "B05", "name": "Boropole", "region": "Pahartoli Region", "code": "", "username": "tmss_boropole", "password": "TMSS@052026"}, {"id": "B06", "name": "Foujdarhat", "region": "Pahartoli Region", "code": "", "username": "tmss_foujdarhat", "password": "TMSS@062026"}, {"id": "B07", "name": "Kotwali", "region": "Kotwali Region", "code": "", "username": "tmss_kotwali", "password": "TMSS@072026"}, {"id": "B08", "name": "Patharghata", "region": "Kotwali Region", "code": "", "username": "tmss_patharghata", "password": "TMSS@082026"}, {"id": "B09", "name": "Chawkbazar", "region": "Kotwali Region", "code": "", "username": "tmss_chawkbazar", "password": "TMSS@092026"}, {"id": "B10", "name": "Chittagong", "region": "Kotwali Region", "code": "", "username": "tmss_chittagong", "password": "TMSS@102026"}, {"id": "B11", "name": "Khulshi", "region": "Kotwali Region", "code": "", "username": "tmss_khulshi", "password": "TMSS@112026"}, {"id": "B12", "name": "Banglabajar 3", "region": "Kotwali Region", "code": "", "username": "tmss_banglabajar3", "password": "TMSS@122026"}, {"id": "B13", "name": "Kumira", "region": "Sandwip Region", "code": "", "username": "tmss_kumira", "password": "TMSS@132026"}, {"id": "B14", "name": "Enamnahar", "region": "Sandwip Region", "code": "", "username": "tmss_enamnahar", "password": "TMSS@142026"}, {"id": "B15", "name": "Shiberhat", "region": "Sandwip Region", "code": "", "username": "tmss_shiberhat", "password": "TMSS@152026"}, {"id": "B16", "name": "Sandwip", "region": "Sandwip Region", "code": "", "username": "tmss_sandwip", "password": "TMSS@162026"}, {"id": "B17", "name": "Mirsarai", "region": "Mirsarai Region", "code": "", "username": "tmss_mirsarai", "password": "TMSS@172026"}, {"id": "B18", "name": "Barayerhat", "region": "Mirsarai Region", "code": "", "username": "tmss_barayerhat", "password": "TMSS@182026"}, {"id": "B19", "name": "Borodarogarhat", "region": "Mirsarai Region", "code": "", "username": "tmss_borodarogarhat", "password": "TMSS@192026"}, {"id": "B20", "name": "Abu Torab", "region": "Mirsarai Region", "code": "", "username": "tmss_abutorab", "password": "TMSS@202026"}, {"id": "B21", "name": "Sitakunda", "region": "Mirsarai Region", "code": "", "username": "tmss_sitakunda", "password": "TMSS@212026"}], DESIGNATIONS=["SBM", "DSBM", "BM", "ABM", "SS", "DSS", "FS", "AFS", "AYA"], REGIONS=["Pahartoli Region", "Kotwali Region", "Sandwip Region", "Mirsarai Region"], CSV_COLUMNS=["SL", "Employee ID", "Name", "Designation", "Grade", "Domain name", "Department", "Project", "Zone", "Region name", "Branch name", "Joining date (Tmss)", "Joining Date (Branch)"];
+const ADMIN={username:"admin",password:"TMSS#Admin2026"};
+const VIEWER={username:"viewer",password:"TMSS#Viewer2026"};
+let db=JSON.parse(localStorage.getItem("tmss_db_v2")||"null");
+if(!db)db={branches:INITIAL_BRANCHES,staff:[],movements:[],transferRequests:[],resignHistory:[],customFields:[]};
+let session=null,mode="branch",editingId=null;
+
+function save(){localStorage.setItem("tmss_db_v2",JSON.stringify(db))}
+function esc(x){return String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function bname(id){return db.branches.find(b=>b.id===id)?.name||"—"} function region(id){return db.branches.find(b=>b.id===id)?.region||"—"}
+function toast(x){let t=document.getElementById("toast");t.textContent=x;t.classList.remove("hidden");setTimeout(()=>t.classList.add("hidden"),2300)}
+function loginOpen(m){mode=m;document.getElementById("login").classList.remove("hidden");document.getElementById("loginTitle").textContent=m==="admin"?"Admin Panel":m==="viewer"?"View Only Panel":"Branch Sign In";document.getElementById("loginSub").textContent=m==="viewer"?"Read-only: no edit, delete or change access.":m==="admin"?"Full access.":"Your branch only.";document.getElementById("loginErr").textContent="";document.getElementById("lu").value="";document.getElementById("lp").value="";document.getElementById("remember").checked=false;setTimeout(()=>document.getElementById("lu").focus(),30)}
+function closeLogin(){document.getElementById("login").classList.add("hidden")}
+function doLogin(){let u=lu.value.trim(),p=lp.value,ok=null;if(mode==="admin"&&u===ADMIN.username&&p===ADMIN.password)ok={role:"admin"};else if(mode==="viewer"&&u===VIEWER.username&&p===VIEWER.password)ok={role:"viewer"};else {let b=db.branches.find(x=>x.username===u&&x.password===p);if(b&&mode==="branch")ok={role:"branch",branchId:b.id}}
+if(!ok){loginErr.textContent="Invalid username or password.";return}session=ok;if(remember.checked)localStorage.setItem("tmss_saved_login",JSON.stringify({u,p,mode}));closeLogin();session.role==="admin"?renderAdmin():session.role==="viewer"?renderViewer():renderBranch()}
+(function(){let x=JSON.parse(localStorage.getItem("tmss_saved_login")||"null");if(x){mode=x.mode;document.getElementById("lu").value=x.u;document.getElementById("lp").value=x.p}})();
+function logout(){session=null;app.classList.add("hidden");landing.classList.remove("hidden")}
+function modal(title,body){document.getElementById("modalHost").innerHTML=`<div id="temp" class="overlay"><div class="modal"><div style="display:flex;justify-content:space-between;align-items:start"><div><h2>${title}</h2></div><button class="btn" onclick="closeTemp()">✕</button></div>${body}</div></div>`}
+function closeTemp(){document.getElementById("temp")?.remove()}
+function val(id){return document.getElementById(id)?.value?.trim()||""}
+
+function staffForm(s={},allowBranch=true){
+let branchId=s.branchId||((session?.role==="branch")?session.branchId:(db.branches[0]?.id||""));
+return `<div class="notice">Name must be exactly as per NID card. Enter the name in both English and Bangla. Address fields must be completed in Bangla.</div>
+<div class="grid">
+<div class="field"><label>Name — English (As per NID card) *</label><input id="f_en" value="${esc(s.nameEn)}"></div>
+<div class="field"><label>নাম — বাংলা (NID অনুযায়ী) *</label><input id="f_bn" value="${esc(s.nameBn)}"></div>
+<div class="field"><label>Personal Phone Only *</label><input id="f_phone" value="${esc(s.phone)}"><div class="hint">Only personal mobile number. Do not enter official/office number.</div></div>
+<div class="field"><label>Employee ID *</label><input id="f_emp" value="${esc(s.employeeId||s.staffId)}"></div>
+<div class="field"><label>Designation *</label><select id="f_des">${DESIGNATIONS.map(x=>`<option ${x==s.designation?"selected":""}>${x}</option>`).join("")}</select></div>
+<div class="field"><label>Grade</label><input id="f_grade" value="${esc(s.grade)}"></div>
+<div class="field"><label>Department</label><input id="f_dept" value="${esc(s.department)}"></div>
+<div class="field"><label>Project</label><input id="f_project" value="${esc(s.project)}"></div>
+<div class="field"><label>Joining date (TMSS) *</label><input id="f_tmss" type="date" value="${esc(s.tmssJoin)}"></div>
+<div class="field"><label>Joining Date (Branch) *</label><input id="f_branchdate" type="date" value="${esc(s.branchJoin)}"></div>
+<div class="field"><label>Domain name</label><input value="Op-05" disabled></div>
+<div class="field"><label>Zone</label><input value="Ctg North" disabled></div>
+<div class="field"><label>Region name *</label><select id="f_region" disabled>${REGIONS.map(x=>`<option ${x===region(branchId)?"selected":""}>${x}</option>`).join("")}</select></div>
+<div class="field"><label>Branch *</label><select id="f_branchsel" ${session?.role==="branch"?"disabled":""} onchange="syncRegion()">${db.branches.map(b=>`<option value="${b.id}" ${b.id===branchId?"selected":""}>${esc(b.name)}${b.code?` (${esc(b.code)})`:""}</option>`).join("")}</select></div>
+<div class="field"><label>Village (বাংলায়) *</label><input id="f_village" value="${esc(s.village)}"></div>
+<div class="field"><label>Post (বাংলায়) *</label><input id="f_post" value="${esc(s.post)}"></div>
+<div class="field"><label>Thana / Upazila (বাংলায়) *</label><input id="f_thana" value="${esc(s.thana||s.upazila)}"></div>
+<div class="field"><label>District (বাংলায়) *</label><input id="f_dist" value="${esc(s.district)}"></div>
+${db.customFields.map(c=>`<div class="field"><label>${esc(c.label)}${c.required?" *":""}</label>${c.type==="select"?`<select id="cf_${esc(c.id)}"><option value="">Select</option>${c.options.map(o=>`<option ${s.custom?.[c.id]===o?"selected":""}>${esc(o)}</option>`).join("")}</select>`:`<input id="cf_${esc(c.id)}" value="${esc(s.custom?.[c.id]||"")} >`}</div>`).join("")}
+</div><div id="formErr" class="err"></div><div class="modalActions"><button class="btn" onclick="closeTemp()">Cancel</button><button class="btn primary" onclick="saveStaff()">Save Staff</button></div>`}
+function syncRegion(){let r=region(document.getElementById("f_branchsel").value);document.getElementById("f_region").value=r}
+function openStaff(id=""){editingId=id;let s=db.staff.find(x=>x.id===id)||{};modal(id?"Edit Staff":"Add New Staff",staffForm(s))}
+function saveStaff(){let branchId=document.getElementById("f_branchsel").value;let d={nameEn:val("f_en"),nameBn:val("f_bn"),phone:val("f_phone"),employeeId:val("f_emp"),designation:val("f_des"),grade:val("f_grade"),department:val("f_dept"),project:val("f_project"),tmssJoin:val("f_tmss"),branchJoin:val("f_branchdate"),domain:"Op-05",zone:"Ctg North",region:region(branchId),branchId,village:val("f_village"),post:val("f_post"),thana:val("f_thana"),district:val("f_dist"),status:"Active",custom:{}};
+if(!d.nameEn||!d.nameBn||!d.phone||!d.employeeId||!d.tmssJoin||!d.branchJoin||!d.village||!d.post||!d.thana||!d.district){formErr.textContent="Please complete all required fields.";return}
+if(db.staff.some(x=>x.employeeId===d.employeeId&&x.id!==editingId)){formErr.textContent="Employee ID already exists.";return}
+db.customFields.forEach(c=>d.custom[c.id]=val("cf_"+c.id));if(editingId)Object.assign(db.staff.find(x=>x.id===editingId),d);else db.staff.push({id:crypto.randomUUID(),...d});
+save();closeTemp();toast(editingId?"Staff updated":"Staff added");session.role==="admin"?renderAdmin():renderBranch()}
+
+function table(rows,opts={}){if(!rows.length)return `<div class="card" style="text-align:center;color:var(--muted)">No records found.</div>`;return `<div class="tablewrap"><table class="table ${opts.readonly?"readonly":""}"><thead><tr><th>SL</th><th>Employee ID</th><th>Name</th><th>Designation</th><th>Grade</th><th>Domain</th><th>Department</th><th>Project</th><th>Zone</th><th>Region</th><th>Branch</th><th>Joining (TMSS)</th><th>Joining (Branch)</th>${opts.actions?"<th>Actions</th>":""}</tr></thead><tbody>${rows.map((s,i)=>`<tr><td>${i+1}</td><td>${esc(s.employeeId)}</td><td><b>${esc(s.nameEn)}</b><br>${esc(s.nameBn)}</td><td>${esc(s.designation)}</td><td>${esc(s.grade)}</td><td>Op-05</td><td>${esc(s.department)}</td><td>${esc(s.project)}</td><td>Ctg North</td><td>${esc(region(s.branchId))}</td><td>${esc(bname(s.branchId))}${s.status!=="Active"?`<br><span class="pill red">${esc(s.status)}</span>`:""}</td><td>${esc(s.tmssJoin)}</td><td>${esc(s.branchJoin)}</td>${opts.actions?`<td><div class="actions"><button class="smallBtn" onclick="openStaff('${s.id}')">Edit</button>${s.status==="Active"?`<button class="smallBtn" onclick="requestTransfer('${s.id}')">Transfer</button><button class="smallBtn red" onclick="openResign('${s.id}')">Resign</button>`:""}<button class="smallBtn red" onclick="deleteStaff('${s.id}')">Delete</button></div></td>`:""}</tr>`).join("")}</tbody></table></div>`}
+
+function renderBranch(){let b=db.branches.find(x=>x.id===session.branchId);landing.classList.add("hidden");app.classList.remove("hidden");app.innerHTML=`${bar(b.name+" Branch Portal")}<main class="main"><div class="topline"><div><span class="eyebrow">PRIVATE BRANCH</span><h1 style="margin:8px 0">Staff Directory</h1><p style="color:var(--muted)">Only your branch records are accessible.</p></div><button class="btn primary" onclick="openStaff()">+ Add Staff</button></div><div class="stats"><div class="stat"><small>Active staff</small><b>${db.staff.filter(s=>s.branchId===b.id&&s.status==="Active").length}</b></div><div class="stat"><small>Branch code</small><b>${b.code||"—"}</b></div><div class="stat"><small>Region</small><b style="font-size:15px">${esc(b.region)}</b></div><div class="stat"><small>Access</small><b>Private</b></div></div><div class="toolbar"><input id="bs" placeholder="Search staff / ID / designation…" oninput="refreshBranch()"><button class="btn" onclick="downloadCSV(session.branchId)">Download CSV</button></div><div id="bt"></div></main>`;refreshBranch()}
+function refreshBranch(){let q=(document.getElementById("bs")?.value||"").toLowerCase(),id=session.branchId;let r=db.staff.filter(s=>s.branchId===id&&s.status==="Active"&&[s.nameEn,s.nameBn,s.employeeId,s.designation].join(" ").toLowerCase().includes(q));bt.innerHTML=table(r,{actions:true})}
+
+function renderAdmin(){landing.classList.add("hidden");app.classList.remove("hidden");app.innerHTML=`${bar("Central Admin Control")}<main class="main"><div class="topline"><div><span class="eyebrow">MASTER ADMIN</span><h1 style="margin:8px 0">Staff Control Center</h1><p style="color:var(--muted)">Full access: staff, branches, approvals, histories, fields and reports.</p></div><div class="actions"><button class="btn primary" onclick="openStaff()">+ Add Staff</button><button class="btn" onclick="openBranch()">+ New Branch</button><button class="btn" onclick="openField()">+ Add Field</button></div></div><div class="stats"><div class="stat"><small>Branches</small><b>${db.branches.length}</b></div><div class="stat"><small>Active</small><b>${db.staff.filter(s=>s.status==="Active").length}</b></div><div class="stat"><small>Resigned</small><b>${db.staff.filter(s=>s.status==="Resigned").length}</b></div><div class="stat"><small>Pending Transfers</small><b>${db.transferRequests.filter(x=>x.status==="Pending").length}</b></div></div>
+<div class="tabs"><button class="tab active" onclick="adminTab(this,'staff')">All Staff</button><button class="tab" onclick="adminTab(this,'resign')">Resign History</button><button class="tab" onclick="adminTab(this,'transfer')">Transfer History</button><button class="tab" onclick="adminTab(this,'pending')">Pending Approvals</button><button class="tab" onclick="adminTab(this,'branches')">Branches & Access</button><button class="tab" onclick="adminTab(this,'fields')">Custom Fields</button></div><div id="adminContent"></div></main>`;adminTab(document.querySelector(".tab"),"staff")}
+function bar(title){return `<div class="appbar"><div class="brand"><div class="logo">T</div><div>${esc(title)}<small style="display:block;color:#78859a">TMSS Staff Info</small></div></div><div class="actions"><button class="btn red" onclick="logout()">Sign out</button></div></div>`}
+function adminTab(el,type){document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));el?.classList.add("active");let c=document.getElementById("adminContent");if(type==="staff")c.innerHTML=`<div class="toolbar"><select id="af" onchange="refreshAdmin()"><option value="">All branches</option>${db.branches.map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join("")}</select><select id="ast" onchange="refreshAdmin()"><option value="Active">Active</option><option value="">All statuses</option><option value="Resigned">Resigned</option></select><input id="aq" placeholder="Search…"><button class="btn" onclick="refreshAdmin()">Search</button><button class="btn" onclick="downloadCSV('ALL')">Download Compiled CSV</button></div><div id="at"></div>`;else if(type==="resign")c.innerHTML=resignPanel();else if(type==="transfer")c.innerHTML=historyPanel("Transfer");else if(type==="pending")c.innerHTML=pendingPanel();else if(type==="branches")c.innerHTML=branchesPanel();else c.innerHTML=fieldsPanel();if(type==="staff")refreshAdmin()}
+function refreshAdmin(){let q=(document.getElementById("aq")?.value||"").toLowerCase(),bid=document.getElementById("af")?.value||"",st=document.getElementById("ast")?.value||"";let r=db.staff.filter(s=>(!bid||s.branchId===bid)&&(!st||s.status===st)&&[s.nameEn,s.nameBn,s.employeeId,s.designation,bname(s.branchId)].join(" ").toLowerCase().includes(q));at.innerHTML=table(r,{actions:true})}
+
+function openResign(id){let s=db.staff.find(x=>x.id===id);modal("Staff Resign",`<div class="notice">The staff will leave the active branch list after resignation is saved. Both dates are retained in Resign History.</div><div class="field"><label>Staff Resign Date *</label><input id="rd" type="date"></div><div class="field"><label>Resign Effective Date *</label><input id="re" type="date"></div><div id="reErr" class="err"></div><div class="modalActions"><button class="btn" onclick="closeTemp()">Cancel</button><button class="btn red" onclick="saveResign('${id}')">Confirm Resignation</button></div>`)}
+function saveResign(id){if(!val("rd")||!val("re")){reErr.textContent="Both dates are required.";return}let s=db.staff.find(x=>x.id===id);s.status="Resigned";s.resignDate=val("rd");s.resignEffective=val("re");db.resignHistory.push({id:crypto.randomUUID(),staffId:id,employeeId:s.employeeId,nameEn:s.nameEn,nameBn:s.nameBn,branchId:s.branchId,branchName:bname(s.branchId),resignDate:s.resignDate,effectiveDate:s.resignEffective,reason:"Resigned"});save();closeTemp();toast("Resignation recorded.");session.role==="admin"?renderAdmin():renderBranch()}
+
+function requestTransfer(id){let s=db.staff.find(x=>x.id===id);modal("Transfer Request",`<div class="notice">Branch transfer does not happen immediately. It becomes effective only after Admin approval.</div><div class="field"><label>Transfer type</label><select id="tt" onchange="toggleOut()"><option value="branch">Within CTG North Zone</option><option value="out">Out of Zone</option></select></div><div id="inzone"><div class="field"><label>Destination branch *</label><select id="tb">${db.branches.filter(b=>b.id!==s.branchId).map(b=>`<option value="${b.id}">${esc(b.name)} — ${esc(b.region)}</option>`).join("")}</select></div><div class="field"><label>Next branch Joining Date *</label><input id="tj" type="date"></div></div><div class="field"><label>Transfer Order Sarok No. *</label><input id="sarok"></div><div id="trErr" class="err"></div><div class="modalActions"><button class="btn" onclick="closeTemp()">Cancel</button><button class="btn primary" onclick="submitTransfer('${id}')">Submit Transfer</button></div>`)}
+function toggleOut(){inzone.classList.toggle("hidden",tt.value==="out")}
+function submitTransfer(id){let s=db.staff.find(x=>x.id===id),out=tt.value==="out";if(!val("sarok")||(!out&&(!val("tj")||!tb.value))){trErr.textContent="Please complete the required transfer fields.";return}db.transferRequests.push({id:crypto.randomUUID(),staffId:id,employeeId:s.employeeId,nameEn:s.nameEn,from:s.branchId,to:out?null:tb.value,type:out?"Out of Zone":"Branch Transfer",joiningDate:out?null:val("tj"),sarokNo:val("sarok"),status:"Pending",requestedAt:new Date().toISOString().slice(0,10)});save();closeTemp();toast("Transfer request sent to Admin for approval.");}
+function pendingPanel(){let r=db.transferRequests.filter(x=>x.status==="Pending");return `<h3>Pending Transfer Approvals</h3>${r.map(x=>`<div class="card" style="margin:9px 0"><b>${esc(x.nameEn)}</b> — ${esc(x.type)}<p>${esc(bname(x.from))} → ${x.to?esc(bname(x.to)):"OUT OF ZONE"}<br>Joining: ${esc(x.joiningDate||"—")} • Sarok No: ${esc(x.sarokNo)}</p><button class="btn primary" onclick="approveTransfer('${x.id}')">Approve</button> <button class="btn red" onclick="rejectTransfer('${x.id}')">Reject</button></div>`).join("")||"<div class='card'>No pending transfer requests.</div>"}`}
+function approveTransfer(id){let x=db.transferRequests.find(a=>a.id===id),s=db.staff.find(a=>a.id===x.staffId);if(x.type==="Out of Zone"){s.status="Out of Zone";s.outDate=x.joiningDate||new Date().toISOString().slice(0,10);db.resignHistory.push({id:crypto.randomUUID(),staffId:s.id,employeeId:s.employeeId,nameEn:s.nameEn,nameBn:s.nameBn,branchId:x.from,branchName:bname(x.from),resignDate:s.outDate,effectiveDate:s.outDate,reason:"Out of Zone Transfer"});}else{s.branchId=x.to;s.branchJoin=x.joiningDate;s.region=region(x.to)}x.status="Approved";x.approvedAt=new Date().toISOString().slice(0,10);db.movements.push(x);save();toast("Transfer approved.");renderAdmin()}
+function rejectTransfer(id){db.transferRequests.find(x=>x.id===id).status="Rejected";save();toast("Transfer rejected.");renderAdmin()}
+function resignPanel(){return `<div class="toolbar"><select id="rf"><option value="">All branches</option>${db.branches.map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join("")}</select><label style="padding:10px;background:#fff;border:1px solid var(--line);border-radius:10px">From <input id="rfrom" type="date"></label><label style="padding:10px;background:#fff;border:1px solid var(--line);border-radius:10px">To <input id="rto" type="date"></label><button class="btn" onclick="refreshResign()">Apply</button></div><div id="resignStats"></div>`}
+function refreshResign(){let bid=rf.value||"",a=rfrom.value,z=rto.value,r=db.resignHistory.filter(x=>(!bid||x.branchId===bid)&&(!a||x.resignDate>=a)&&(!z||x.resignDate<=z));resignStats.innerHTML=`<div class="stats"><div class="stat"><small>Resign amount</small><b>${r.length}</b></div><div class="stat"><small>Branch</small><b>${bid?esc(bname(bid)):"All"}</b></div></div>${r.length?`<div class="tablewrap"><table class="table"><thead><tr><th>Employee ID</th><th>Name</th><th>Branch</th><th>Resign Date</th><th>Effective Date</th><th>Reason</th></tr></thead><tbody>${r.map(x=>`<tr><td>${esc(x.employeeId)}</td><td>${esc(x.nameEn)}<br>${esc(x.nameBn)}</td><td>${esc(x.branchName)}</td><td>${esc(x.resignDate)}</td><td>${esc(x.effectiveDate)}</td><td>${esc(x.reason)}</td></tr>`).join("")}</tbody></table></div>`:"<div class='card'>No resignations in this period.</div>"}`}
+function historyPanel(type){let r=db.movements.filter(x=>x.type==="Branch Transfer"||type==="Transfer");return `<div class="toolbar"><select id="hf"><option value="">All branches</option>${db.branches.map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join("")}</select><button class="btn" onclick="refreshHistory()">Filter</button></div><div id="history"></div>`}
+function refreshHistory(){let bid=hf.value,r=db.movements.filter(x=>(!bid||x.from===bid||x.to===bid));history.innerHTML=r.length?r.map(x=>`<div class="card" style="margin:8px 0"><b>${esc(x.nameEn||x.employeeId)}</b><p>${esc(bname(x.from))} → ${esc(x.to?bname(x.to):"OUT OF ZONE")} • ${esc(x.joiningDate||"")} • Sarok: ${esc(x.sarokNo||"")}</p></div>`).join(""):"<div class='card'>No transfer history.</div>"}
+
+function branchesPanel(){return `<div class="branchGrid">${db.branches.map(b=>`<div class="branchBox"><b>${esc(b.name)} ${b.code?`(${esc(b.code)})`:""}</b><small>${esc(b.region)}<br>${esc(b.username)}<br>${esc(b.password)}</small><div style="margin-top:9px"><button class="smallBtn" onclick="editBranch('${b.id}')">Edit</button> <button class="smallBtn red" onclick="removeBranch('${b.id}')">Remove</button></div></div>`).join("")}</div>`}
+function openBranch(id=""){let b=db.branches.find(x=>x.id===id)||{name:"",region:regions[0],code:""};modal(id?"Edit Branch":"New Branch",`<div class="grid"><div class="field"><label>Branch name *</label><input id="bn" value="${esc(b.name)}"></div><div class="field"><label>Branch code *</label><input id="bc" value="${esc(b.code)}" placeholder="0485"></div><div class="field"><label>Region *</label><select id="br">${REGIONS.map(x=>`<option ${x===b.region?"selected":""}>${x}</option>`).join("")}</select></div></div><div id="bErr" class="err"></div><div class="modalActions"><button class="btn" onclick="closeTemp()">Cancel</button><button class="btn primary" onclick="saveBranch('${id}')">Save</button></div>`)}
+function editBranch(id){openBranch(id)}
+function saveBranch(id){if(!val("bn")||!val("bc")||!val("br")){bErr.textContent="Branch name, code and region are mandatory.";return}if(id){let b=db.branches.find(x=>x.id===id);b.name=val("bn");b.code=val("bc");b.region=val("br");b.username="tmss_"+b.name.toLowerCase().replace(/[^a-z0-9]+/g,"");}else{let n=db.branches.length+1,name=val("bn");db.branches.push({id:"B"+String(n).padStart(2,"0"),name,region:val("br"),code:val("bc"),username:"tmss_"+name.toLowerCase().replace(/[^a-z0-9]+/g,""),password:"TMSS@"+String(n).padStart(2,"0")+"2026"})}save();closeTemp();toast("Branch saved.");renderAdmin()}
+function removeBranch(id){if(db.staff.some(s=>s.branchId===id&&s.status==="Active")){alert("Cannot remove a branch that still has active staff.");return}if(confirm("Remove this branch?")){db.branches=db.branches.filter(b=>b.id!==id);save();renderAdmin()}}
+
+function fieldsPanel(){return `<div class="notice">Admin controls custom fields. The field can be placed after any selected standard field and will automatically appear in the staff form.</div><div class="branchGrid">${db.customFields.map(c=>`<div class="branchBox"><b>${esc(c.label)}</b><small>Position: after “${esc(c.after)}” • Type: ${esc(c.type)} • ${c.required?"Required":"Optional"}</small><div style="margin-top:8px"><button class="smallBtn red" onclick="deleteField('${c.id}')">Delete</button></div></div>`).join("")||"<div class='card'>No custom fields.</div>"}</div>`}
+function openField(){modal("Add Custom Staff Field",`<div class="grid"><div class="field"><label>Field name *</label><input id="fn"></div><div class="field"><label>Position — place after *</label><select id="fa">${["Employee ID","Name","Designation","Grade","Department","Project","Joining Date (Branch)","Address"].map(x=>`<option>${x}</option>`).join("")}</select></div><div class="field"><label>Field type</label><select id="ft"><option>text</option><option>select</option></select></div><div class="field"><label>Required?</label><select id="fq"><option value="0">No</option><option value="1">Yes</option></select></div><div class="field"><label>Options (for select)</label><input id="fo" placeholder="A, B, C"></div></div><div class="modalActions"><button class="btn" onclick="closeTemp()">Cancel</button><button class="btn primary" onclick="saveField()">Add Field</button></div>`)}
+function saveField(){let label=val("fn");if(!label){alert("Field name required.");return}db.customFields.push({id:crypto.randomUUID(),label,after:val("fa"),type:val("ft"),required:val("fq")==="1",options:val("fo").split(",").map(x=>x.trim()).filter(Boolean)});save();closeTemp();toast("Custom field added.");renderAdmin()}
+function deleteField(id){if(confirm("Delete this custom field?")){db.customFields=db.customFields.filter(x=>x.id!==id);save();renderAdmin()}}
+
+function renderViewer(){landing.classList.add("hidden");app.classList.remove("hidden");app.innerHTML=`${bar("View Only Panel")}<main class="main"><div class="topline"><div><span class="eyebrow">READ ONLY</span><h1 style="margin:8px 0">All Branches — At a Glance</h1><p style="color:var(--muted)">View and copy information only. No edit, delete, transfer or resign controls.</p></div></div><div class="toolbar"><select id="vf" onchange="refreshViewer()"><option value="">All branches</option>${db.branches.map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join("")}</select><input id="vq" placeholder="Search…"><button class="btn" onclick="refreshViewer()">Search</button></div><div id="vt"></div></main>`;refreshViewer()}
+function refreshViewer(){let q=(document.getElementById("vq")?.value||"").toLowerCase(),bid=vf.value||"",r=db.staff.filter(s=>(!bid||s.branchId===bid)&&[s.nameEn,s.nameBn,s.employeeId,s.designation,bname(s.branchId)].join(" ").toLowerCase().includes(q));vt.innerHTML=table(r,{readonly:true})}
+
+function downloadCSV(branchId){let rows=db.staff.filter(s=>s.status==="Active"&&(branchId==="ALL"||s.branchId===branchId));let out=[CSV_COLUMNS];rows.forEach((s,i)=>out.push([i+1,s.employeeId,`${s.nameEn} / ${s.nameBn}`,s.designation,s.grade,"Op-05",s.department,s.project,"Ctg North",region(s.branchId),bname(s.branchId),s.tmssJoin,s.branchJoin]));let csv=out.map(r=>r.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\r\n"),blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=branchId==="ALL"?"TMSS_CTg_North_All_Branches.csv":`TMSS_${bname(branchId)}.csv`;a.click();URL.revokeObjectURL(a.href)}
+function deleteStaff(id){if(session.role!=="admin")return;if(confirm("Delete this staff record permanently?")){db.staff=db.staff.filter(s=>s.id!==id);save();toast("Deleted.");renderAdmin()}}
+window.addEventListener("beforeunload",save);
+</script><style>
+.badge{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:#e12632;color:#fff;font-size:11px;font-weight:900;margin-left:5px;box-shadow:0 0 0 3px #ffe2e4}.requestSent{display:inline-block;padding:5px 8px;border-radius:8px;background:#e9faf4;color:#087858;font-size:10px;font-weight:900}.noticeBoard{position:fixed;top:78px;right:20px;z-index:30;max-width:340px;background:#fff;border:1px solid #dce5f3;border-radius:14px;padding:10px 15px;box-shadow:0 15px 40px #1b31501c;overflow:hidden}.noticeBoard .ticker{white-space:nowrap;animation:noticeMove 11s linear infinite}@keyframes noticeMove{0%{transform:translateX(100%)}100%{transform:translateX(-120%)}}.insightGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:11px;margin:15px 0}.insight{background:linear-gradient(145deg,#fff,#f7f9ff);border:1px solid #e4e9f3;border-radius:16px;padding:16px;box-shadow:0 12px 30px #263d6510}.insight b{font-size:25px;display:block;margin-top:6px}.insight small{color:var(--muted);font-weight:700}
+</style><script>
+/* TMSS v3 corrections */
+db.resignRequests=db.resignRequests||[];db.loginHistory=db.loginHistory||[];db.notice=db.notice||{enabled:false,text:""};db.extraModules=db.extraModules||[];save();
+function pendingCount(){return db.transferRequests.filter(x=>x.status==="Pending").length+db.resignRequests.filter(x=>x.status==="Pending").length}
+function badge(n){return n?`<span class="badge">${n}</span>`:""}
+function hasPending(id,type){let a=type==='transfer'?db.transferRequests:db.resignRequests;return a.some(x=>x.staffId===id&&x.status==='Pending')}
+function noticeMarkup(){return db.notice.enabled&&db.notice.text?`<div class="noticeBoard"><div class="ticker">📢 ${esc(db.notice.text)}</div></div>`:""}
+const _oldDoLogin=doLogin;
+doLogin=function(){let u=lu.value.trim(),p=lp.value,ok=null;if(mode==='admin'&&u===ADMIN.username&&p===ADMIN.password)ok={role:'admin'};else if(mode==='viewer'&&u===VIEWER.username&&p===VIEWER.password)ok={role:'viewer'};else{let b=db.branches.find(x=>x.username===u&&x.password===p);if(b&&mode==='branch')ok={role:'branch',branchId:b.id}}
+if(!ok){loginErr.textContent='Invalid username or password.';return}session=ok;localStorage.setItem('tmss_current_session',JSON.stringify(ok));if(remember.checked)localStorage.setItem('tmss_saved_login',JSON.stringify({u,p,mode}));else localStorage.removeItem('tmss_saved_login');db.loginHistory.push({id:crypto.randomUUID(),username:u,role:ok.role,branchId:ok.branchId||null,date:new Date().toLocaleString()});save();closeLogin();ok.role==='admin'?renderAdmin():ok.role==='viewer'?renderViewer():renderBranch()}
+function logout(){session=null;localStorage.removeItem('tmss_current_session');app.classList.add('hidden');landing.classList.remove('hidden')}
+(function(){let x=JSON.parse(localStorage.getItem('tmss_saved_login')||'null');if(x){mode=x.mode;lu.value=x.u;lp.value=x.p;remember.checked=true}})();
+function table(rows,opts={}){if(!rows.length)return `<div class="card" style="text-align:center;color:var(--muted)">No records found.</div>`;return `<div class="tablewrap"><table class="table ${opts.readonly?'readonly':''}"><thead><tr><th>SL</th><th>Employee ID</th><th>Name</th><th>Designation</th><th>Grade</th><th>Domain</th><th>Department</th><th>Project</th><th>Zone</th><th>Region</th><th>Branch</th><th>Joining (TMSS)</th><th>Joining (Branch)</th><th>Address</th><th>Personal Phone</th>${opts.actions?'<th>Actions</th>':''}</tr></thead><tbody>${rows.map((s,i)=>{let acts='';if(opts.actions&&s.status==='Active'){acts+=session.role==='admin'?`<button class="smallBtn" onclick="adminTransfer('${s.id}')">Transfer</button>`:(hasPending(s.id,'transfer')?'<span class="requestSent">✓ Transfer request sent</span>':`<button class="smallBtn" onclick="requestTransfer('${s.id}')">Transfer</button>`);acts+=' ';acts+=session.role==='admin'?(hasPending(s.id,'resign')?'<span class="requestSent">✓ Resign request pending</span>':`<button class="smallBtn red" onclick="openResign('${s.id}')">Resign</button>`):(hasPending(s.id,'resign')?'<span class="requestSent">✓ Resign request sent</span>':`<button class="smallBtn red" onclick="openResign('${s.id}')">Resign</button>`)}if(opts.actions&&session.role==='admin')acts+=` <button class="smallBtn" onclick="openStaff('${s.id}')">Edit</button> <button class="smallBtn red" onclick="deleteStaff('${s.id}')">Delete</button>`;return `<tr><td>${i+1}</td><td>${esc(s.employeeId)}</td><td><b>${esc(s.nameEn)}</b><br>${esc(s.nameBn)}</td><td>${esc(s.designation)}</td><td>${esc(s.grade)}</td><td>Op-05</td><td>${esc(s.department)}</td><td>${esc(s.project)}</td><td>Ctg North</td><td>${esc(region(s.branchId))}</td><td>${esc(bname(s.branchId))}${s.status!=='Active'?`<br><span class="pill red">${esc(s.status)}</span>`:''}</td><td>${esc(s.tmssJoin)}</td><td>${esc(s.branchJoin)}</td><td>Village: ${esc(s.village)}<br>Post: ${esc(s.post)}<br>Thana: ${esc(s.thana)}<br>District: ${esc(s.district)}</td><td>${esc(s.phone)}</td>${opts.actions?`<td>${acts}</td>`:''}</tr>`}).join('')}</tbody></table></div>`}
+function renderBranch(){let b=db.branches.find(x=>x.id===session.branchId);landing.classList.add('hidden');app.classList.remove('hidden');app.innerHTML=`${bar(b.name+' Branch Portal')}${noticeMarkup()}<main class="main"><div class="topline"><div><span class="eyebrow">PRIVATE BRANCH</span><h1 style="margin:8px 0">Staff Directory</h1><p style="color:var(--muted)">Only your branch records are accessible.</p></div><button class="btn primary" onclick="openStaff()">+ Add Staff</button></div><div class="stats"><div class="stat"><small>Active staff</small><b>${db.staff.filter(s=>s.branchId===b.id&&s.status==='Active').length}</b></div><div class="stat"><small>Branch code</small><b>${b.code||'—'}</b></div><div class="stat"><small>Region</small><b style="font-size:15px">${esc(b.region)}</b></div><div class="stat"><small>Pending requests</small><b>${badge(db.resignRequests.filter(x=>x.branchId===b.id&&x.status==='Pending').length+db.transferRequests.filter(x=>x.from===b.id&&x.status==='Pending').length)||'0'}</b></div></div><div class="toolbar"><input id="bs" placeholder="Search staff / ID / designation…" oninput="refreshBranch()"><button class="btn" onclick="downloadCSV(session.branchId)">Download CSV</button></div><div id="bt"></div></main>`;refreshBranch()}
+function refreshBranch(){let q=(bs?.value||'').toLowerCase(),id=session.branchId;r=db.staff.filter(s=>s.branchId===id&&s.status==='Active'&&[s.nameEn,s.nameBn,s.employeeId,s.designation].join(' ').toLowerCase().includes(q));bt.innerHTML=table(r,{actions:true})}
+function renderAdmin(){landing.classList.add('hidden');app.classList.remove('hidden');app.innerHTML=`${bar('Central Admin Control')}<main class="main"><div class="topline"><div><span class="eyebrow">MASTER ADMIN</span><h1 style="margin:8px 0">Staff Control Center</h1><p style="color:var(--muted)">Full access: staff, branches, approvals, histories, fields, notices and reports.</p></div><div class="actions"><button class="btn primary" onclick="openStaff()">+ Add Staff</button><button class="btn" onclick="openBranch()">+ New Branch</button><button class="btn" onclick="openField()">+ Add Field</button></div></div><div class="stats"><div class="stat"><small>Branches</small><b>${db.branches.length}</b></div><div class="stat"><small>Regions</small><b>${new Set(db.branches.map(b=>b.region)).size}</b></div><div class="stat"><small>Active</small><b>${db.staff.filter(s=>s.status==='Active').length}</b></div><div class="stat"><small>Pending</small><b>${badge(pendingCount())||'0'}</b></div></div><div class="insightGrid">${DESIGNATIONS.map(d=>`<div class="insight"><small>${d}</small><b>${db.staff.filter(s=>s.designation===d&&s.status==='Active').length}</b><span style="font-size:11px;color:#8290a5">active staff</span></div>`).join('')}</div><div class="tabs"><button class="tab active" onclick="adminTab(this,'staff')">All Staff</button><button class="tab" onclick="adminTab(this,'resign')">Resign History</button><button class="tab" onclick="adminTab(this,'transfer')">Transfer History</button><button class="tab" onclick="adminTab(this,'pending')">Pending Approvals ${badge(pendingCount())}</button><button class="tab" onclick="adminTab(this,'branches')">Branches & Access</button><button class="tab" onclick="adminTab(this,'fields')">Custom Fields</button><button class="tab" onclick="adminTab(this,'notice')">Notice Board</button><button class="tab" onclick="adminTab(this,'logins')">Login History</button></div><div id="adminContent"></div></main>`;adminTab(document.querySelector('.tab'),'staff')}
+function adminTab(el,type){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));el?.classList.add('active');let c=adminContent;if(type==='staff')c.innerHTML=`<div class="toolbar"><select id="af" onchange="refreshAdmin()"><option value="">All branches</option>${db.branches.map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join('')}</select><select id="ast" onchange="refreshAdmin()"><option value="">Active + Resigned</option><option value="Active">Active</option><option value="Resigned">Resigned</option></select><input id="aq" placeholder="Search…"><button class="btn" onclick="refreshAdmin()">Search</button><button class="btn" onclick="downloadCSV('ALL')">Download Compiled CSV</button></div><div id="at"></div>`;else if(type==='resign')c.innerHTML=resignPanel();else if(type==='transfer')c.innerHTML=historyPanel('Transfer');else if(type==='pending')c.innerHTML=pendingPanel();else if(type==='branches')c.innerHTML=branchesPanel();else if(type==='fields')c.innerHTML=fieldsPanel();else if(type==='notice')c.innerHTML=noticePanel();else if(type==='logins')c.innerHTML=loginHistoryPanel();if(type==='staff')refreshAdmin();if(type==='resign')refreshResign();if(type==='transfer')refreshHistory()}
+function refreshAdmin(){let q=(aq?.value||'').toLowerCase(),bid=af?.value||'',st=ast?.value||'';let rows=db.staff.filter(s=>(!bid||s.branchId===bid)&&(s.status==='Active'||s.status==='Resigned')&&(!st||s.status===st)&&[s.nameEn,s.nameBn,s.employeeId,s.designation,bname(s.branchId)].join(' ').toLowerCase().includes(q));at.innerHTML=table(rows,{actions:true})}
+function openResign(id){if(hasPending(id,'resign')){modal('Request Already Sent',`<div class="notice">✓ This staff member's resignation request has already been sent and is waiting for Admin approval.</div><div class="modalActions"><button class="btn" onclick="closeTemp()">Close</button></div>`);return}modal('Staff Resign Request',`<div class="notice">This is an approval request. The staff remains active until Admin approves it.</div><div class="grid"><div class="field"><label>Staff Resign Date *</label><input id="rd" type="date"></div><div class="field"><label>Resign Effective Date *</label><input id="re" type="date"></div><div class="field"><label>Reason *</label><input id="rr" placeholder="Enter resignation reason"></div></div><div id="reErr" class="err"></div><div class="modalActions"><button class="btn" onclick="closeTemp()">Cancel</button><button class="btn red" onclick="sendResign('${id}')">Send Resign Request</button></div>`)}
+function sendResign(id){if(hasPending(id,'resign')){reErr.textContent='Request already sent.';return}if(!val('rd')||!val('re')||!val('rr')){reErr.textContent='All fields are required.';return}let s=db.staff.find(x=>x.id===id);db.resignRequests.push({id:crypto.randomUUID(),staffId:id,employeeId:s.employeeId,nameEn:s.nameEn,nameBn:s.nameBn,branchId:s.branchId,branchName:bname(s.branchId),resignDate:val('rd'),effectiveDate:val('re'),reason:val('rr'),status:'Pending',requestedAt:new Date().toLocaleString()});save();closeTemp();toast('✓ Resignation request sent to Admin.');renderBranch()}
+function pendingPanel(){let tr=db.transferRequests.filter(x=>x.status==='Pending'),rr=db.resignRequests.filter(x=>x.status==='Pending');return `<h3>Pending Requests ${badge(tr.length+rr.length)}</h3>${rr.map(x=>`<div class="card" style="margin:9px 0;border-left:4px solid #e12632"><b>🔴 Resignation Request</b><p>${esc(x.nameEn)} — ${esc(x.branchName)}<br>Resign: ${esc(x.resignDate)} • Effective: ${esc(x.effectiveDate)}<br>Reason: ${esc(x.reason)}</p><button class="btn primary" onclick="approveResign('${x.id}')">Approve</button> <button class="btn red" onclick="rejectResign('${x.id}')">Reject</button></div>`).join('')}${tr.map(x=>`<div class="card" style="margin:9px 0;border-left:4px solid #e12632"><b>🔴 Transfer Request</b><p>${esc(x.nameEn)} — ${esc(bname(x.from))}<br>${esc(bname(x.from))} → ${x.to?esc(bname(x.to)):'OUT OF ZONE'}<br>Joining: ${esc(x.joiningDate||'—')} • Sarok No: ${esc(x.sarokNo)}</p><button class="btn primary" onclick="approveTransfer('${x.id}')">Approve</button> <button class="btn red" onclick="rejectTransfer('${x.id}')">Reject</button></div>`).join('')}${!rr.length&&!tr.length?"<div class='card'>No pending requests.</div>":''}`}
+function approveResign(id){let r=db.resignRequests.find(x=>x.id===id),s=db.staff.find(x=>x.id===r.staffId);if(!r||!s)return;s.status='Resigned';s.resignDate=r.resignDate;s.resignEffective=r.effectiveDate;db.resignHistory.push({id:crypto.randomUUID(),staffId:s.id,employeeId:s.employeeId,nameEn:s.nameEn,nameBn:s.nameBn,branchId:r.branchId,branchName:r.branchName,resignDate:r.resignDate,effectiveDate:r.effectiveDate,reason:r.reason});r.status='Approved';r.approvedAt=new Date().toLocaleString();save();toast('Resignation approved.');renderAdmin()}
+function rejectResign(id){let r=db.resignRequests.find(x=>x.id===id);if(r){r.status='Rejected';save();toast('Resignation rejected.');renderAdmin()}}
+function requestTransfer(id){if(hasPending(id,'transfer')){modal('Request Already Sent',`<div class="notice">✓ This staff member's transfer request has already been sent and is waiting for Admin approval.</div><div class="modalActions"><button class="btn" onclick="closeTemp()">Close</button></div>`);return}let s=db.staff.find(x=>x.id===id);modal('Transfer Request',`<div class="notice">Branch transfers require Admin approval. The current branch remains active until approval.</div><div class="field"><label>Transfer type</label><select id="tt" onchange="toggleOut()"><option value="branch">Within CTG North Zone</option><option value="out">Out of Zone</option></select></div><div id="inzone"><div class="field"><label>Destination branch *</label><select id="tb">${db.branches.filter(b=>b.id!==s.branchId).map(b=>`<option value="${b.id}">${esc(b.name)} — ${esc(b.region)}</option>`).join('')}</select></div><div class="field"><label>Next branch Joining Date *</label><input id="tj" type="date"></div></div><div class="field"><label>Transfer Order Sarok No. *</label><input id="sarok"></div><div id="trErr" class="err"></div><div class="modalActions"><button class="btn" onclick="closeTemp()">Cancel</button><button class="btn primary" onclick="submitTransfer('${id}')">Submit Transfer</button></div>`)}
+function adminTransfer(id){let s=db.staff.find(x=>x.id===id);modal('Admin Transfer',`<div class="notice">Admin transfer is applied immediately. No approval is required.</div><div class="field"><label>Transfer type</label><select id="att" onchange="adminToggleOut()"><option value="branch">Within CTG North Zone</option><option value="out">Out of Zone</option></select></div><div id="ain"><div class="field"><label>Destination branch *</label><select id="atb">${db.branches.filter(b=>b.id!==s.branchId).map(b=>`<option value="${b.id}">${esc(b.name)} — ${esc(b.region)}</option>`).join('')}</select></div><div class="field"><label>Joining Date (Branch) *</label><input id="atj" type="date"></div></div><div class="field"><label>Transfer Order Sarok No. *</label><input id="asarok"></div><div class="modalActions"><button class="btn" onclick="closeTemp()">Cancel</button><button class="btn primary" onclick="applyAdminTransfer('${id}')">Apply Transfer</button></div>`)}
+function adminToggleOut(){ain.classList.toggle('hidden',att.value==='out')}
+function applyAdminTransfer(id){let s=db.staff.find(x=>x.id===id),out=att.value==='out',old=s.branchId;if(!val('asarok')||(!out&&(!val('atj')||!atb.value))){alert('Complete required fields.');return}if(out){s.status='Out of Zone';s.outDate=new Date().toISOString().slice(0,10);db.resignHistory.push({id:crypto.randomUUID(),staffId:s.id,employeeId:s.employeeId,nameEn:s.nameEn,nameBn:s.nameBn,branchId:old,branchName:bname(old),resignDate:s.outDate,effectiveDate:s.outDate,reason:'Out of Zone Transfer'});}else{s.branchId=atb.value;s.branchJoin=val('atj');s.region=region(s.branchId)}db.movements.push({id:crypto.randomUUID(),staffId:s.id,employeeId:s.employeeId,nameEn:s.nameEn,from:old,to:out?null:s.branchId,type:out?'Out of Zone':'Branch Transfer',joiningDate:out?null:s.branchJoin,sarokNo:val('asarok'),status:'Approved',approvedAt:new Date().toLocaleString(),adminDirect:true});save();closeTemp();toast('Transfer applied.');renderAdmin()}
+function approveTransfer(id){let x=db.transferRequests.find(a=>a.id===id),s=db.staff.find(a=>a.id===x.staffId);if(!x||!s)return;if(x.type==='Out of Zone'){s.status='Out of Zone';s.outDate=x.joiningDate||new Date().toISOString().slice(0,10);db.resignHistory.push({id:crypto.randomUUID(),staffId:s.id,employeeId:s.employeeId,nameEn:s.nameEn,nameBn:s.nameBn,branchId:x.from,branchName:bname(x.from),resignDate:s.outDate,effectiveDate:s.outDate,reason:'Out of Zone Transfer'});}else{s.branchId=x.to;s.branchJoin=x.joiningDate;s.region=region(x.to)}x.status='Approved';x.approvedAt=new Date().toLocaleString();db.movements.push({...x});save();toast('Transfer approved.');renderAdmin()}
+function historyPanel(){return `<div class="toolbar"><select id="hf"><option value="">All branches</option>${db.branches.map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join('')}</select><button class="btn" onclick="refreshHistory()">Filter</button></div><div id="history"></div>`}
+function refreshHistory(){let bid=hf.value,r=db.movements.filter(x=>!bid||x.from===bid||x.to===bid);history.innerHTML=r.length?r.map(x=>`<div class="card" style="margin:8px 0"><b>${esc(x.nameEn||x.employeeId)}</b><p>${esc(bname(x.from))} → ${esc(x.to?bname(x.to):'OUT OF ZONE')} • ${esc(x.joiningDate||'')} • Sarok: ${esc(x.sarokNo||'')} • ${esc(x.approvedAt||'')}</p><button class="smallBtn red" onclick="deleteHistory('${x.id}')">Delete History</button></div>`).join(''):'<div class="card">No transfer history.</div>'}
+function deleteHistory(id){if(confirm('Delete this history record?')){db.movements=db.movements.filter(x=>x.id!==id);db.resignHistory=db.resignHistory.filter(x=>x.id!==id);save();toast('History deleted.');renderAdmin()}}
+function resignPanel(){return `<div class="toolbar"><select id="rf"><option value="">All branches</option>${db.branches.map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join('')}</select><label style="padding:10px;background:#fff;border:1px solid var(--line);border-radius:10px">From <input id="rfrom" type="date"></label><label style="padding:10px;background:#fff;border:1px solid var(--line);border-radius:10px">To <input id="rto" type="date"></label><button class="btn" onclick="refreshResign()">Apply</button></div><div id="resignStats"></div>`}
+function refreshResign(){let bid=rf.value||'',a=rfrom.value,z=rto.value,r=db.resignHistory.filter(x=>(!bid||x.branchId===bid)&&(!a||x.resignDate>=a)&&(!z||x.resignDate<=z));resignStats.innerHTML=`<div class="stats"><div class="stat"><small>Resign amount</small><b>${r.length}</b></div><div class="stat"><small>Branch</small><b>${bid?esc(bname(bid)):'All'}</b></div></div>${r.length?`<div class="tablewrap"><table class="table"><thead><tr><th>Employee ID</th><th>Name</th><th>Branch</th><th>Resign Date</th><th>Effective Date</th><th>Reason</th><th>Action</th></tr></thead><tbody>${r.map(x=>`<tr><td>${esc(x.employeeId)}</td><td>${esc(x.nameEn)}<br>${esc(x.nameBn)}</td><td>${esc(x.branchName)}</td><td>${esc(x.resignDate)}</td><td>${esc(x.effectiveDate)}</td><td>${esc(x.reason)}</td><td><button class="smallBtn red" onclick="deleteHistory('${x.id}')">Delete</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="card">No resignations in this period.</div>'}`}
+function noticePanel(){return `<div class="card"><h3>Notice Board</h3><div class="field"><label>Notice text</label><input id="noticeText" value="${esc(db.notice.text)}" placeholder="Write branch notice…"></div><label style="font-size:12px"><input id="noticeOn" type="checkbox" ${db.notice.enabled?'checked':''}> Show notice to branches</label><div class="modalActions"><button class="btn primary" onclick="saveNotice()">Save Notice</button></div></div>`}
+function saveNotice(){db.notice.text=val('noticeText');db.notice.enabled=document.getElementById('noticeOn').checked;save();toast('Notice updated.');renderAdmin()}
+function loginHistoryPanel(){let r=[...db.loginHistory].reverse();return `<div class="tablewrap"><table class="table"><thead><tr><th>Date/Time</th><th>Username</th><th>Role</th><th>Branch</th></tr></thead><tbody>${r.map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.username)}</td><td>${esc(x.role)}</td><td>${esc(x.branchId?bname(x.branchId):'—')}</td></tr>`).join('')||'<tr><td colspan="4">No login history.</td></tr>'}</tbody></table></div>`}
+function renderViewer(){landing.classList.add('hidden');app.classList.remove('hidden');app.innerHTML=`${bar('View Only Panel')}<main class="main">${noticeMarkup()}<div class="topline"><div><span class="eyebrow">READ ONLY</span><h1 style="margin:8px 0">All Branches — At a Glance</h1><p style="color:var(--muted)">View and copy information only. No edit, delete, transfer or resign controls.</p></div></div><div class="toolbar"><select id="vf" onchange="refreshViewer()"><option value="">All branches</option>${db.branches.map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join('')}</select><input id="vq" placeholder="Search…"><button class="btn" onclick="refreshViewer()">Search</button></div><div id="vt"></div></main>`;refreshViewer()}
+function refreshViewer(){let q=(vq?.value||'').toLowerCase(),bid=vf.value||'',rows=db.staff.filter(s=>(!bid||s.branchId===bid)&&(s.status==='Active'||s.status==='Resigned')&&[s.nameEn,s.nameBn,s.employeeId,s.designation,bname(s.branchId)].join(' ').toLowerCase().includes(q));vt.innerHTML=table(rows,{readonly:true})}
+/* CSV: exact requested order; English name only; address and phone excluded. */
+function downloadCSV(branchId){let rows=db.staff.filter(s=>(s.status==='Active'||s.status==='Resigned')&&(branchId==='ALL'||s.branchId===branchId));let out=[CSV_COLUMNS];rows.forEach((s,i)=>out.push([i+1,s.employeeId,s.nameEn,s.designation,s.grade,'Op-05',s.department,s.project,'Ctg North',region(s.branchId),bname(s.branchId),s.tmssJoin,s.branchJoin]));let csv=out.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\r\n'),blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=branchId==='ALL'?'TMSS_CTG_North_All_Branches.csv':`TMSS_${bname(branchId)}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
+</script><style>.address-stack{line-height:1.65;white-space:normal}.address-stack div{margin:1px 0}</style><script>(function(){function addressHTML(s){const v=x=>String(x??'').trim();return `<div class="address-stack"><div><b>গ্রাম:</b> ${esc(v(s.village)||'—')}</div><div><b>ডাকঘর:</b> ${esc(v(s.post)||'—')}</div><div><b>থানা/উপজেলা:</b> ${esc(v(s.upazila)||'—')}</div><div><b>জেলা:</b> ${esc(v(s.district)||'—')}</div></div>`}window.refreshViewer=function(){const q=(document.getElementById('vq')?.value||'').trim().toLowerCase(),bid=document.getElementById('vf')?.value||'',target=document.getElementById('vt');if(!target)return;target.innerHTML=db.branches.map((b,i)=>{if(bid&&b.id!==bid)return '';const br=db.staff.filter(s=>s.status==='Active'&&s.branchId===b.id&&[s.nameEn,s.nameBn,s.employeeId,s.designation,b.name].join(' ').toLowerCase().includes(q));if(!br.length)return '';return `<section class="card" style="margin-bottom:16px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span class="badge">${String(i+1).padStart(2,'0')}</span><div><h3 style="margin:0">${esc(b.name)}</h3><small style="color:var(--muted)">${esc(b.region||'')} • Active staff: ${br.length}</small></div></div><div class="tablewrap"><table class="table"><thead><tr><th>SL</th><th>Employee ID</th><th>Name</th><th>Designation</th><th>Grade</th><th>Zone</th><th>Region</th><th>Branch</th><th>Joining Date (TMSS)</th><th>Joining Date (Branch)</th><th>Address</th><th>Personal Phone</th></tr></thead><tbody>${br.map((s,j)=>`<tr><td>${j+1}</td><td>${esc(s.employeeId||'—')}</td><td><b>${esc(s.nameEn||'—')}</b><br><small>${esc(s.nameBn||'')}</small></td><td>${esc(s.designation||'—')}</td><td>${esc(s.grade||'—')}</td><td>${esc(s.zone||'Ctg North')}</td><td>${esc(s.region||b.region||'—')}</td><td>${esc(b.name)}</td><td>${esc(s.joiningDateTmss||s.joinDate||'—')}</td><td>${esc(s.joiningDateBranch||s.branchJoinDate||'—')}</td><td>${addressHTML(s)}</td><td>${esc(s.phone||'—')}</td></tr>`).join('')}</tbody></table></div></section>`}).join('')||`<div class="card" style="text-align:center;color:var(--muted)">No active staff records found.</div>`};window.renderViewer=function(){landing.classList.add('hidden');app.classList.remove('hidden');app.innerHTML=`${bar("View Only Panel")}<main class="main"><div class="topline"><div><span class="eyebrow">READ ONLY</span><h1 style="margin:8px 0">All Branches — Active Staff</h1><p style="color:var(--muted)">Branches are displayed in serial order. Only Active staff are shown.</p></div></div><div class="toolbar"><select id="vf" onchange="refreshViewer()"><option value="">All branches — Serial order</option>${db.branches.map((b,i)=>`<option value="${b.id}">${String(i+1).padStart(2,'0')} — ${esc(b.name)}</option>`).join('')}</select><input id="vq" placeholder="Search name, ID or designation…" oninput="refreshViewer()"></div><div id="vt"></div></main>`;refreshViewer()};const oldTable=window.table;window.table=function(rows,opts={}){const out=oldTable(rows,opts);if(!out||!rows?.length)return out;return out.replace(/Village:\s*([^<]*)<br>\s*Post:\s*([^<]*),\s*([^<]*),\s*([^<]*)/g,(_,v,p,u,d)=>addressHTML({village:v,post:p,upazila:u,district:d}))}})();</script>
+<style>
+.custom-admin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}.required-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid #e8edf5;border-radius:12px;background:#fff}.required-row b{font-size:13px}.required-row small{display:block;color:#7b8799;font-size:11px;margin-top:2px}.switchMini{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-size:11px;font-weight:800}.fieldBoxAdmin{padding:14px;border:1px solid #e8edf5;border-radius:14px;background:#fff}</style>
+<script>
+(function(){
+  const STANDARD_FIELD_RULES=[
+    ['nameEn','Name — English (As per NID card)'],['nameBn','নাম — বাংলা (NID অনুযায়ী)'],['phone','Personal Phone'],['employeeId','Employee ID'],['designation','Designation'],['grade','Grade'],['department','Department'],['project','Project'],['tmssJoin','Joining date (TMSS)'],['branchJoin','Joining Date (Branch)'],['domain','Domain name'],['zone','Zone'],['region','Region name'],['branch','Branch'],['village','Village (বাংলায়)'],['post','Post (বাংলায়)'],['thana','Thana / Upazila (বাংলায়)'],['district','District (বাংলায়)']
+  ];
+  function ensureRules(){
+    db.fieldRules=Array.isArray(db.fieldRules)?db.fieldRules:[];
+    STANDARD_FIELD_RULES.forEach(x=>{if(!db.fieldRules.some(r=>r.id===x[0]))db.fieldRules.push({id:x[0],label:x[1],required:['nameEn','nameBn','phone','employeeId','designation','tmssJoin','branchJoin','village','post','thana','district'].includes(x[0])});});
+    save();
+  }
+  ensureRules();
+  function isReq(id){const r=db.fieldRules.find(x=>x.id===id);return r?r.required:true}
+  window.fieldRuleLabel=function(id){return db.fieldRules.find(x=>x.id===id)?.label||id}
+  window.setStandardRequired=function(id,checked){const r=db.fieldRules.find(x=>x.id===id);if(r){r.required=!!checked;save();toast((r.required?'Required: ':'Optional: ')+r.label);}}
+  window.fieldsPanel=function(){
+    ensureRules();
+    return `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div><h3 style="margin:0">Form Fields & Required / Optional</h3><p style="color:var(--muted);font-size:12px;margin:5px 0 0">Admin can decide which standard fields are mandatory. Custom fields can also be added and controlled here.</p></div><button class="btn primary" onclick="openField()">+ Add New Field</button></div><h4 style="margin:18px 0 9px">Standard Staff Form Fields</h4><div class="custom-admin-grid">${STANDARD_FIELD_RULES.map(x=>{const r=db.fieldRules.find(a=>a.id===x[0]);return `<div class="required-row"><div><b>${esc(x[1])}</b><small>Standard field</small></div><label class="switchMini"><input type="checkbox" ${r?.required?'checked':''} onchange="setStandardRequired('${x[0]}',this.checked)"> Required</label></div>`}).join('')}</div><h4 style="margin:20px 0 9px">Custom Staff Fields</h4><div class="custom-admin-grid">${db.customFields.map(c=>`<div class="fieldBoxAdmin"><b>${esc(c.label)}</b><div style="font-size:11px;color:var(--muted);margin-top:4px">After: ${esc(c.after||'Employee ID')} • Type: ${esc(c.type||'text')}</div><label class="switchMini" style="margin-top:9px"><input type="checkbox" ${c.required?'checked':''} onchange="setCustomFieldRequired('${c.id}',this.checked)"> Required</label><button class="smallBtn red" style="margin-left:8px" onclick="deleteField('${c.id}')">Delete</button></div>`).join('')||'<div class="card">No custom fields added yet.</div>'}</div></div>`;
+  };
+  window.setCustomFieldRequired=function(id,checked){const c=db.customFields.find(x=>x.id===id);if(c){c.required=!!checked;save();toast(c.required?'Custom field is now required.':'Custom field is now optional.');}}
+  window.openField=function(){
+    const positions=['Employee ID','Name','Designation','Grade','Department','Project','Joining Date (Branch)','Address'];
+    modal('Add Custom Staff Field',`<div class="grid"><div class="field"><label>Field name *</label><input id="fn" placeholder="e.g. NID Number"></div><div class="field"><label>Position — place after *</label><select id="fa">${positions.map(x=>`<option>${x}</option>`).join('')}</select></div><div class="field"><label>Field type</label><select id="ft"><option value="text">Text</option><option value="select">Dropdown / Select</option></select></div><div class="field"><label>Required?</label><select id="fq"><option value="0">Optional</option><option value="1">Required</option></select></div><div class="field"><label>Options (for dropdown)</label><input id="fo" placeholder="A, B, C"></div></div><div class="modalActions"><button class="btn" onclick="closeTemp()">Cancel</button><button class="btn primary" onclick="saveField()">Add Field</button></div>`);
+  };
+  window.saveField=function(){const label=(val('fn')||'').trim();if(!label){alert('Field name is required.');return}const type=val('ft')||'text';const options=(val('fo')||'').split(',').map(x=>x.trim()).filter(Boolean);if(type==='select'&&!options.length){alert('Please enter dropdown options, e.g. A, B, C.');return}if(db.customFields.some(c=>String(c.label).trim().toLowerCase()===label.toLowerCase())){alert('This field already exists.');return}db.customFields.push({id:crypto.randomUUID(),label,after:val('fa'),type,required:val('fq')==='1',options});save();closeTemp();toast('New custom field added to staff form.');adminTab(document.querySelector('.tab.active'),'fields');};
+  window.deleteField=function(id){if(confirm('Delete this custom field? Existing saved values will remain in old staff records, but the field will no longer appear in the form.')){db.customFields=db.customFields.filter(c=>c.id!==id);save();adminTab(document.querySelector('.tab.active'),'fields');}};
+
+  // Rebuild staff form without removing existing features; required markers come from Admin settings.
+  window.staffForm=function(s={},allowBranch=true){
+    let branchId=s.branchId||((session?.role==='branch')?session.branchId:(db.branches[0]?.id||'')); const list=designs(); const exists=list.some(d=>d.name.toLowerCase()===String(s.designation||'').trim().toLowerCase()); const selected=exists?String(s.designation||''):'__custom__';
+    const mark=id=>isReq(id)?' *':'';
+    return `<div class="notice">Name must be exactly as per NID card. Enter the name in both English and Bangla. Address fields should be completed in Bangla.</div><div class="grid">
+    <div class="field"><label>Name — English (As per NID card)${mark('nameEn')}</label><input id="f_en" value="${esc(s.nameEn)}"></div>
+    <div class="field"><label>নাম — বাংলা (NID অনুযায়ী)${mark('nameBn')}</label><input id="f_bn" value="${esc(s.nameBn)}"></div>
+    <div class="field"><label>Personal Phone Only${mark('phone')}</label><input id="f_phone" value="${esc(s.phone)}"><div class="hint">Only personal mobile number. Do not enter official/office number.</div></div>
+    <div class="field"><label>Employee ID${mark('employeeId')}</label><input id="f_emp" value="${esc(s.employeeId||s.staffId)}"></div>
+    <div class="field"><label>Designation${mark('designation')}</label><select id="f_des" onchange="toggleCustomDesignation()">${list.map(d=>`<option value="${esc(d.name)}" ${d.name.toLowerCase()===String(s.designation||'').trim().toLowerCase()?'selected':''}>${esc(d.name)}</option>`).join('')}<option value="__custom__" ${selected==='__custom__'?'selected':''}>+ New / Custom Designation</option></select><div id="customDesBox" style="display:${selected==='__custom__'?'block':'none'};margin-top:7px"><input id="f_custom_des" value="${exists?'':esc(s.designation||'')}" placeholder="Type new designation"><div class="hint">After typing, choose its position below.</div><select id="f_custom_pos" style="margin-top:6px"><option value="top">Highest — above SBM</option><option value="after">Place after selected designation</option><option value="bottom">Lowest — below all</option></select><select id="f_custom_after" style="margin-top:6px;display:none">${list.map(d=>`<option value="${esc(d.name)}">After ${esc(d.name)}</option>`).join('')}</select></div></div>
+    <div class="field"><label>Grade${mark('grade')}</label><input id="f_grade" value="${esc(s.grade)}"></div><div class="field"><label>Department${mark('department')}</label><input id="f_dept" value="${esc(s.department)}"></div><div class="field"><label>Project${mark('project')}</label><input id="f_project" value="${esc(s.project)}"></div>
+    <div class="field"><label>Joining date (TMSS)${mark('tmssJoin')}</label><input id="f_tmss" type="date" value="${esc(s.tmssJoin)}"></div><div class="field"><label>Joining Date (Branch)${mark('branchJoin')}</label><input id="f_branchdate" type="date" value="${esc(s.branchJoin)}"></div>
+    <div class="field"><label>Domain name${mark('domain')}</label><input value="Op-05" disabled></div><div class="field"><label>Zone${mark('zone')}</label><input value="Ctg North" disabled></div><div class="field"><label>Region name${mark('region')}</label><select id="f_region" disabled>${REGIONS.map(x=>`<option ${x===region(branchId)?'selected':''}>${x}</option>`).join('')}</select></div><div class="field"><label>Branch${mark('branch')}</label><select id="f_branchsel" ${session?.role==='branch'?'disabled':''} onchange="syncRegion()">${db.branches.map(b=>`<option value="${b.id}" ${b.id===branchId?'selected':''}>${esc(b.name)}${b.code?` (${esc(b.code)})`:''}</option>`).join('')}</select></div>
+    <div class="field"><label>Village (বাংলায়)${mark('village')}</label><input id="f_village" value="${esc(s.village)}"></div><div class="field"><label>Post (বাংলায়)${mark('post')}</label><input id="f_post" value="${esc(s.post)}"></div><div class="field"><label>Thana / Upazila (বাংলায়)${mark('thana')}</label><input id="f_thana" value="${esc(s.thana||s.upazila)}"></div><div class="field"><label>District (বাংলায়)${mark('district')}</label><input id="f_dist" value="${esc(s.district)}"></div>
+    ${db.customFields.map(c=>`<div class="field"><label>${esc(c.label)}${c.required?' *':''}</label>${c.type==='select'?`<select id="cf_${esc(c.id)}"><option value="">Select</option>${(c.options||[]).map(o=>`<option value="${esc(o)}" ${s.custom?.[c.id]===o?'selected':''}>${esc(o)}</option>`).join('')}</select>`:`<input id="cf_${esc(c.id)}" value="${esc(s.custom?.[c.id]||'')}">`}</div>`).join('')}</div><div id="formErr" class="err"></div><div class="modalActions"><button class="btn" onclick="closeTemp()">Cancel</button><button class="btn primary" onclick="saveStaff()">Save Staff</button></div>`;
+  };
+  window.saveStaff=function(){
+    const req=(id,v)=>isReq(id)&&!String(v??'').trim(); let branchId=document.getElementById('f_branchsel')?.value||session?.branchId||''; let des=document.getElementById('f_des')?.value||'';
+    if(des==='__custom__'){des=(document.getElementById('f_custom_des')?.value||'').trim();if(!des){document.getElementById('formErr').textContent='Please type the new designation.';return}const pos=document.getElementById('f_custom_pos')?.value||'bottom',after=document.getElementById('f_custom_after')?.value||'';const arr=designs().filter(x=>x.name.toLowerCase()!==des.toLowerCase());let idx=pos==='top'?0:pos==='after'?Math.max(0,arr.findIndex(x=>x.name.toLowerCase()===after.toLowerCase())+1):arr.length;arr.splice(idx,0,{name:des,rank:idx+1});arr.forEach((x,i)=>x.rank=i+1);db.designations=arr;}
+    const d={nameEn:val('f_en'),nameBn:val('f_bn'),phone:val('f_phone'),employeeId:val('f_emp'),designation:des,grade:val('f_grade'),department:val('f_dept'),project:val('f_project'),tmssJoin:val('f_tmss'),branchJoin:val('f_branchdate'),domain:'Op-05',zone:'Ctg North',region:region(branchId),branchId,village:val('f_village'),post:val('f_post'),thana:val('f_thana'),district:val('f_dist'),status:'Active',custom:{}};
+    const vals={nameEn:d.nameEn,nameBn:d.nameBn,phone:d.phone,employeeId:d.employeeId,designation:d.designation,grade:d.grade,department:d.department,project:d.project,tmssJoin:d.tmssJoin,branchJoin:d.branchJoin,domain:d.domain,zone:d.zone,region:d.region,branch:d.branchId,village:d.village,post:d.post,thana:d.thana,district:d.district}; const missing=STANDARD_FIELD_RULES.filter(x=>req(x[0],vals[x[0]])).map(x=>x[1]); db.customFields.forEach(c=>{const e=document.getElementById('cf_'+c.id);const v=e?.value||'';d.custom[c.id]=v;if(c.required&&!String(v).trim())missing.push(c.label)}); if(missing.length){document.getElementById('formErr').textContent='Please complete required field(s): '+missing.join(', ');return;}
+    if(editingId){const old=db.staff.find(x=>x.id===editingId);if(old)Object.assign(old,d)}else{d.id=crypto.randomUUID();db.staff.push(d)} save();closeTemp();toast(editingId?'Staff updated successfully.':'Staff added successfully.');session?.role==='admin'?renderAdmin():renderBranch();
+  };
+  // Make the Custom Fields tab always available even if an older renderer hides it.
+  const oldRenderAdmin=window.renderAdmin; window.renderAdmin=function(){oldRenderAdmin();setTimeout(()=>{const tabs=document.querySelectorAll('.tab');const exists=[...tabs].some(t=>t.textContent.includes('Custom Fields'));if(!exists){const host=document.querySelector('.tabs');if(host){const b=document.createElement('button');b.className='tab';b.textContent='Custom Fields';b.onclick=function(){adminTab(this,'fields')};host.appendChild(b)}}},0)};
+})();
+</script>
+</body></html><script>
+/* TMSS v4 final fixes */
+
+// ---------- Safe data migration ----------
+db.resignRequests = Array.isArray(db.resignRequests) ? db.resignRequests : [];
+db.transferRequests = Array.isArray(db.transferRequests) ? db.transferRequests : [];
+db.resignHistory = Array.isArray(db.resignHistory) ? db.resignHistory : [];
+db.movements = Array.isArray(db.movements) ? db.movements : [];
+db.customFields = Array.isArray(db.customFields) ? db.customFields : [];
+db.extraModules = Array.isArray(db.extraModules) ? db.extraModules : [];
+
+function activeOnlyRows(){ return db.staff.filter(s=>s.status==='Active'); }
+function pendingForStaff(id,type){
+  const arr=type==='resign'?db.resignRequests:db.transferRequests;
+  return arr.some(x=>x.staffId===id && x.status==='Pending');
+}
+function transferAlreadyPending(id){return pendingForStaff(id,'transfer')}
+function resignAlreadyPending(id){return pendingForStaff(id,'resign')}
+function transferHistoryPush(x){
+  const item={
+    id:x.id||crypto.randomUUID(), staffId:x.staffId, employeeId:x.employeeId,
+    nameEn:x.nameEn, nameBn:x.nameBn||'', from:x.from||null, to:x.to||null,
+    type:x.type||'Branch Transfer', joiningDate:x.joiningDate||null,
+    sarokNo:x.sarokNo||'', status:'Approved', approvedAt:x.approvedAt||new Date().toLocaleString(),
+    requestedAt:x.requestedAt||'', adminDirect:!!x.adminDirect
+  };
+  db.movements.push(item);
+  return item;
+}
+
+// ---------- Admin resignation = direct action, never pending ----------
+function openResign(id){
+  const s=db.staff.find(x=>x.id===id); if(!s)return;
+  if(session.role==='branch' && resignAlreadyPending(id)){
+    modal('Request Already Sent',`<div class="notice">✓ Request already sent. This resignation request is waiting for Admin approval.</div><div class="modalActions"><button class="btn" onclick="closeTemp()">Close</button></div>`);return;
+  }
+  modal('Staff Resign',`<div class="notice">${session.role==='admin'?'Admin action is applied immediately. No approval is required.':'This resignation request will be sent to Admin for approval.'}</div>
+    <div class="grid"><div class="field"><label>Staff Resign Date *</label><input id="rd" type="date"></div>
+    <div class="field"><label>Resign Effective Date *</label><input id="re" type="date"></div>
+    <div class="field" style="grid-column:1/-1"><label>Reason *</label><textarea id="rr" rows="3" placeholder="Enter the exact resignation reason"></textarea></div></div>
+    <div id="reErr" class="err"></div><div class="modalActions"><button class="btn" onclick="closeTemp()">Cancel</button><button class="btn red" onclick="saveResign('${id}')">${session.role==='admin'?'Confirm Resignation':'Send Resignation Request'}</button></div>`);
+}
+function saveResign(id){
+  const s=db.staff.find(x=>x.id===id); if(!s)return;
+  const rd=val('rd'), re=val('re'), reason=val('rr');
+  if(!rd||!re||!reason){reErr.textContent='Staff Resign Date, Resign Effective Date and Reason are required.';return;}
+  if(session.role==='admin'){
+    s.status='Resigned'; s.resignDate=rd; s.resignEffective=re;
+    db.resignHistory.push({id:crypto.randomUUID(),staffId:s.id,employeeId:s.employeeId,nameEn:s.nameEn,nameBn:s.nameBn,branchId:s.branchId,branchName:bname(s.branchId),resignDate:rd,effectiveDate:re,reason:reason,approvedAt:new Date().toLocaleString(),adminDirect:true});
+    // clean any stale pending request for the same staff
+    db.resignRequests=db.resignRequests.filter(x=>!(x.staffId===id&&x.status==='Pending'));
+    save();closeTemp();toast('Resignation recorded directly by Admin.');renderAdmin();return;
+  }
+  if(resignAlreadyPending(id)){reErr.textContent='Request already sent.';return;}
+  db.resignRequests.push({id:crypto.randomUUID(),staffId:id,employeeId:s.employeeId,nameEn:s.nameEn,nameBn:s.nameBn,branchId:s.branchId,branchName:bname(s.branchId),resignDate:rd,effectiveDate:re,reason:reason,status:'Pending',requestedAt:new Date().toLocaleString()});
+  save();closeTemp();toast('✓ Resignation request sent to Admin.');renderBranch();
+}
+
+// ---------- Branch transfer request: visible sent label + duplicate block ----------
+function requestTransfer(id){
+  const s=db.staff.find(x=>x.id===id); if(!s)return;
+  if(transferAlreadyPending(id)){
+    modal('Request Already Sent',`<div class="notice">✓ Request already sent. This transfer request is waiting for Admin approval.</div><div class="modalActions"><button class="btn" onclick="closeTemp()">Close</button></div>`);return;
+  }
+  modal('Transfer Request',`<div class="notice">Branch transfer requires Admin approval. The current branch stays active until approval.</div>
+    <div class="field"><label>Transfer type</label><select id="tt" onchange="toggleOut()"><option value="branch">Within CTG North Zone</option><option value="out">Out of Zone</option></select></div>
+    <div id="inzone"><div class="field"><label>Destination branch *</label><select id="tb">${db.branches.filter(b=>b.id!==s.branchId).map(b=>`<option value="${b.id}">${esc(b.name)}${b.code?` (${esc(b.code)})`:''} — ${esc(b.region)}</option>`).join('')}</select></div><div class="field"><label>Next branch Joining Date *</label><input id="tj" type="date"></div></div>
+    <div class="field"><label>Transfer Order Sarok No. *</label><input id="sarok"></div><div id="trErr" class="err"></div>
+    <div class="modalActions"><button class="btn" onclick="closeTemp()">Cancel</button><button class="btn primary" onclick="submitTransfer('${id}')">Submit Transfer</button></div>`);
+}
+function submitTransfer(id){
+  const s=db.staff.find(x=>x.id===id); if(!s)return;
+  if(transferAlreadyPending(id)){toast('Request already sent.');return;}
+  const out=tt.value==='out';
+  if(!val('sarok')||(!out&&(!val('tj')||!tb.value))){trErr.textContent='Please complete the required transfer fields.';return;}
+  const x={id:crypto.randomUUID(),staffId:id,employeeId:s.employeeId,nameEn:s.nameEn,nameBn:s.nameBn,from:s.branchId,to:out?null:tb.value,type:out?'Out of Zone':'Branch Transfer',joiningDate:out?null:val('tj'),sarokNo:val('sarok'),status:'Pending',requestedAt:new Date().toLocaleString()};
+  db.transferRequests.push(x);save();closeTemp();toast('✓ Transfer request sent to Admin.');renderBranch();
+}
+function pendingCount(){return db.transferRequests.filter(x=>x.status==='Pending').length+db.resignRequests.filter(x=>x.status==='Pending').length}
+function badge(n){return n?`<span class="badge">${n}</span>`:''}
+
+// ---------- Approval: every approved transfer is written to permanent history ----------
+function approveTransfer(id){
+  const x=db.transferRequests.find(a=>a.id===id); if(!x)return;
+  const s=db.staff.find(a=>a.id===x.staffId); if(!s)return;
+  const old=x.from;
+  if(x.type==='Out of Zone'){
+    s.status='Out of Zone';
+    s.outDate=x.joiningDate||new Date().toISOString().slice(0,10);
+    db.resignHistory.push({id:crypto.randomUUID(),staffId:s.id,employeeId:s.employeeId,nameEn:s.nameEn,nameBn:s.nameBn,branchId:old,branchName:bname(old),resignDate:s.outDate,effectiveDate:s.outDate,reason:'Out of Zone Transfer'});
+  }else{
+    s.branchId=x.to; s.branchJoin=x.joiningDate; s.region=region(x.to); s.status='Active';
+  }
+  x.status='Approved'; x.approvedAt=new Date().toLocaleString();
+  transferHistoryPush(x);
+  save();toast('Transfer approved and added to Transfer History.');renderAdmin();
+}
+function rejectTransfer(id){const x=db.transferRequests.find(a=>a.id===id);if(x){x.status='Rejected';x.rejectedAt=new Date().toLocaleString();save();toast('Transfer request rejected.');renderAdmin()}}
+function approveResign(id){
+  const r=db.resignRequests.find(x=>x.id===id);if(!r)return;const s=db.staff.find(x=>x.id===r.staffId);if(!s)return;
+  s.status='Resigned';s.resignDate=r.resignDate;s.resignEffective=r.effectiveDate;
+  db.resignHistory.push({id:crypto.randomUUID(),staffId:s.id,employeeId:s.employeeId,nameEn:s.nameEn,nameBn:s.nameBn,branchId:r.branchId,branchName:r.branchName,resignDate:r.resignDate,effectiveDate:r.effectiveDate,reason:r.reason,approvedAt:new Date().toLocaleString()});
+  r.status='Approved';r.approvedAt=new Date().toLocaleString();save();toast('Resignation approved.');renderAdmin();
+}
+function rejectResign(id){const r=db.resignRequests.find(x=>x.id===id);if(r){r.status='Rejected';r.rejectedAt=new Date().toLocaleString();save();toast('Resignation request rejected.');renderAdmin()}}
+
+// ---------- Transfer history ----------
+function historyPanel(){return `<div class="toolbar"><select id="hf"><option value="">All branches</option>${db.branches.map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join('')}</select><button class="btn" onclick="refreshHistory()">Filter</button></div><div id="history"></div>`}
+function refreshHistory(){
+  const bid=document.getElementById('hf')?.value||'';
+  const r=db.movements.filter(x=>(!bid||x.from===bid||x.to===bid));
+  const el=document.getElementById('history');
+  if(!el)return;
+  el.innerHTML=r.slice().reverse().map(x=>`<div class="card" style="margin:8px 0"><b>${esc(x.nameEn||x.employeeId||'Staff')}</b><p>${esc(bname(x.from))} → ${esc(x.to?bname(x.to):'OUT OF ZONE')} • Branch Joining: ${esc(x.joiningDate||'—')}<br>Sarok No: ${esc(x.sarokNo||'—')} • ${esc(x.approvedAt||x.date||'')}</p><button class="smallBtn red" onclick="deleteHistory('${x.id}')">Delete History</button></div>`).join('')||'<div class="card">No transfer history.</div>';
+}
+function deleteHistory(id){if(session.role!=='admin')return;if(confirm('Delete this history record?')){db.movements=db.movements.filter(x=>x.id!==id);save();refreshHistory();}}
+
+// ---------- Viewer: Active staff ONLY; Out of Zone and Resigned excluded ----------
+function refreshViewer(){
+  const q=(document.getElementById('vq')?.value||'').toLowerCase(), bid=document.getElementById('vf')?.value||'';
+  const rows=db.staff.filter(s=>s.status==='Active'&&(!bid||s.branchId===bid)&&[s.nameEn,s.nameBn,s.employeeId,s.designation,bname(s.branchId),s.phone,s.village,s.post,s.upazila,s.district].join(' ').toLowerCase().includes(q));
+  const el=document.getElementById('vt');if(el)el.innerHTML=table(rows,{readonly:true});
+}
+function renderViewer(){landing.classList.add('hidden');app.classList.remove('hidden');app.innerHTML=`${bar('View Only Panel')}<main class="main"><div class="topline"><div><span class="eyebrow">READ ONLY</span><h1 style="margin:8px 0">All Branches — Active Staff</h1><p style="color:var(--muted)">Only Active staff are shown. Out of Zone and Resigned records are excluded.</p></div></div><div class="toolbar"><select id="vf" onchange="refreshViewer()"><option value="">All branches</option>${db.branches.map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join('')}</select><input id="vq" placeholder="Search name, ID, designation, phone…" oninput="refreshViewer()"><button class="btn" onclick="refreshViewer()">Search</button></div><div id="vt"></div></main>`;refreshViewer()}
+
+// ---------- Admin direct transfer: no approval, permanent history ----------
+function applyAdminTransfer(id){
+  const s=db.staff.find(x=>x.id===id);if(!s)return;
+  const out=att.value==='out',old=s.branchId;
+  if(!val('asarok')||(!out&&(!val('atj')||!atb.value))){alert('Complete required fields.');return;}
+  const joining=out?null:val('atj'),to=out?null:atb.value;
+  if(out){
+    s.status='Out of Zone';s.outDate=new Date().toISOString().slice(0,10);
+    db.resignHistory.push({id:crypto.randomUUID(),staffId:s.id,employeeId:s.employeeId,nameEn:s.nameEn,nameBn:s.nameBn,branchId:old,branchName:bname(old),resignDate:s.outDate,effectiveDate:s.outDate,reason:'Out of Zone Transfer',approvedAt:new Date().toLocaleString(),adminDirect:true});
+  }else{s.status='Active';s.branchId=to;s.branchJoin=joining;s.region=region(to);}
+  transferHistoryPush({staffId:s.id,employeeId:s.employeeId,nameEn:s.nameEn,nameBn:s.nameBn,from:old,to:to,type:out?'Out of Zone':'Branch Transfer',joiningDate:joining,sarokNo:val('asarok'),adminDirect:true});
+  db.transferRequests=db.transferRequests.filter(x=>!(x.staffId===id&&x.status==='Pending'));
+  save();closeTemp();toast('Admin transfer applied directly and saved in Transfer History.');renderAdmin();
+}
+
+// ---------- Branch pending labels ----------
+function branchPendingLabel(id){
+  const r=resignAlreadyPending(id), t=transferAlreadyPending(id);
+  if(r&&t)return `<span class="requestSent">🔴 Resign + Transfer request sent — waiting for Admin</span>`;
+  if(r)return `<span class="requestSent">🔴 Resign request sent — waiting for Admin</span>`;
+  if(t)return `<span class="requestSent">🔴 Transfer request sent — waiting for Admin</span>`;
+  return '';
+}
+
+// table override: full address + phone at end; pending status visible
+function table(rows,opts={}){
+  if(!rows.length)return `<div class="card" style="text-align:center;color:var(--muted)">No records found.</div>`;
+  return `<div class="tablewrap"><table class="table ${opts.readonly?'readonly':''}"><thead><tr><th>SL</th><th>Employee ID</th><th>Name</th><th>Designation</th><th>Grade</th><th>Zone</th><th>Region</th><th>Branch</th><th>Joining Date (TMSS)</th><th>Joining Date (Branch)</th><th>Address</th><th>Personal Phone</th>${opts.actions?'<th>Actions</th>':''}</tr></thead><tbody>${rows.map((s,i)=>`<tr><td>${i+1}</td><td>${esc(s.employeeId)}</td><td><b>${esc(s.nameEn)}</b><br><small>${esc(s.nameBn)}</small>${session?.role==='branch'?`<br>${branchPendingLabel(s.id)}`:''}</td><td>${esc(s.designation)}</td><td>${esc(s.grade)}</td><td>Op-05</td><td>${esc(region(s.branchId)||s.region||'—')}</td><td>${esc(bname(s.branchId))}</td><td>${esc(s.tmssJoin||'')}</td><td>${esc(s.branchJoin||'')}</td><td>${esc(s.village||'')}<br>${esc(s.post||'')}, ${esc(s.upazila||'')}, ${esc(s.district||'')}</td><td>${esc(s.phone||'')}</td>${opts.actions?`<td><div class="actions"><button class="smallBtn" onclick="openStaff('${s.id}')">Edit</button>${s.status==='Active'?`<button class="smallBtn" onclick="requestTransfer('${s.id}')">Transfer</button><button class="smallBtn red" onclick="openResign('${s.id}')">Resign</button>${session?.role==='admin'?`<button class="smallBtn" onclick="adminTransfer('${s.id}')">Admin Transfer</button>`:''}`:''}</div></td>`:''}</tr>`).join('')}</tbody></table></div>`;
+}
+
+// ---------- New branch: reliable add/edit with mandatory region ----------
+function openBranch(id=''){
+  const b=db.branches.find(x=>x.id===id)||{name:'',region:REGIONS[0]||'Pahartoli Region',code:''};
+  modal(id?'Edit Branch':'Add New Branch',`<div class="grid"><div class="field"><label>Branch name *</label><input id="bn" value="${esc(b.name)}" placeholder="Branch name"></div><div class="field"><label>Branch code *</label><input id="bc" value="${esc(b.code||'')}" placeholder="0485"></div><div class="field"><label>Region *</label><select id="br">${REGIONS.map(x=>`<option value="${esc(x)}" ${x===b.region?'selected':''}>${esc(x)}</option>`).join('')}</select></div></div><div class="notice">Region is mandatory. Branch code will be shown beside the branch name and branch login credentials will be generated automatically.</div><div id="bErr" class="err"></div><div class="modalActions"><button class="btn" onclick="closeTemp()">Cancel</button><button class="btn primary" onclick="saveBranch('${id}')">${id?'Save Changes':'Create Branch'}</button></div>`);
+}
+function saveBranch(id){
+  const name=val('bn').trim(),code=val('bc').trim(),reg=val('br');
+  if(!name||!code||!reg){bErr.textContent='Branch name, branch code and region are mandatory.';return;}
+  if(db.branches.some(b=>b.id!==id&&b.name.toLowerCase()===name.toLowerCase())){bErr.textContent='This branch already exists.';return;}
+  if(id){const b=db.branches.find(x=>x.id===id);if(!b)return;b.name=name;b.code=code;b.region=reg;b.username='tmss_'+slug(name);}
+  else{
+    const nums=db.branches.map(b=>parseInt(String(b.id||'').replace(/\D/g,''),10)).filter(Number.isFinite);const n=(nums.length?Math.max(...nums):0)+1;
+    db.branches.push({id:'B'+String(n).padStart(2,'0'),name,code,region:reg,username:'tmss_'+slug(name),password:'TMSS@'+String(n).padStart(2,'0')+'2026'});
+  }
+  save();closeTemp();toast(id?'Branch updated.':'New branch created successfully.');renderAdmin();
+}
+
+// ---------- Main Options / custom modules ----------
+function modulePanel(){
+  return `<div class="topline"><div><h3 style="margin:0">Main Options / Modules</h3><p style="color:var(--muted);margin:5px 0">Admin can create future modules such as <b>Stamp Demand</b>. Each module can have its own fields/columns and branch submission.</p></div><button class="btn primary" onclick="openModule()">+ Add Main Option</button></div>
+  <div class="branchGrid" style="margin-top:14px">${db.extraModules.map(m=>`<div class="branchBox"><b>${esc(m.name)}</b><small>${(m.fields||[]).length} field(s) • ${m.description?esc(m.description):'Custom branch form'}</small><div style="margin-top:9px"><button class="smallBtn" onclick="openModule('${m.id}')">Edit</button> <button class="smallBtn" onclick="openModuleEntry('${m.id}')">Branch Form</button> <button class="smallBtn" onclick="moduleSubmissions('${m.id}')">Submissions</button> <button class="smallBtn red" onclick="deleteModule('${m.id}')">Delete</button></div></div>`).join('')||'<div class="card">No custom main options yet. Create one — for example “Stamp Demand”.</div>'}</div>`;
+}
+function openModule(id=''){
+  const m=db.extraModules.find(x=>x.id===id)||{name:'',description:'',fields:[]};
+  modal(id?'Edit Main Option':'Add Main Option',`<div class="grid"><div class="field"><label>Option / Module name *</label><input id="mn" value="${esc(m.name)}" placeholder="e.g. Stamp Demand"></div><div class="field"><label>Description</label><input id="md" value="${esc(m.description||'')}" placeholder="What is this form for?"></div></div><div class="notice">Add the fields/columns that branches must fill. You can edit them later.</div><div id="mfields" class="card" style="margin:10px 0"></div><button class="btn" onclick="addTempModuleField()">+ Add Field</button><div id="mErr" class="err"></div><div class="modalActions"><button class="btn" onclick="closeTemp()">Cancel</button><button class="btn primary" onclick="saveModule('${id}')">Save Main Option</button></div>`);
+  window._moduleDraft=(m.fields||[]).map(x=>({...x}));renderModuleDraft();
+}
+function renderModuleDraft(){const e=document.getElementById('mfields');if(!e)return;e.innerHTML=(window._moduleDraft||[]).map((f,i)=>`<div style="display:grid;grid-template-columns:1.3fr 1fr 100px 70px;gap:8px;align-items:center;margin:7px 0"><input value="${esc(f.label)}" oninput="_moduleDraft[${i}].label=this.value" placeholder="Column / field heading"><select onchange="_moduleDraft[${i}].type=this.value"><option value="text" ${f.type==='text'?'selected':''}>Text</option><option value="date" ${f.type==='date'?'selected':''}>Date</option><option value="number" ${f.type==='number'?'selected':''}>Number</option><option value="select" ${f.type==='select'?'selected':''}>Select</option></select><label><input type="checkbox" ${f.required?'checked':''} onchange="_moduleDraft[${i}].required=this.checked"> Required</label><button class="smallBtn red" onclick="_moduleDraft.splice(${i},1);renderModuleDraft()">Delete</button></div>`).join('')||'<p style="color:var(--muted)">No fields yet.</p>'}
+function addTempModuleField(){(window._moduleDraft=window._moduleDraft||[]).push({id:crypto.randomUUID(),label:'',type:'text',required:false});renderModuleDraft()}
+function saveModule(id){
+  const name=val('mn').trim();if(!name){mErr.textContent='Option / Module name is required.';return}
+  const fields=(window._moduleDraft||[]).filter(f=>String(f.label||'').trim()).map(f=>({...f,label:String(f.label).trim()}));
+  if(!fields.length){mErr.textContent='Add at least one field/column.';return}
+  if(db.extraModules.some(m=>m.id!==id&&m.name.toLowerCase()===name.toLowerCase())){mErr.textContent='This main option already exists.';return}
+  if(id){const m=db.extraModules.find(x=>x.id===id);m.name=name;m.description=val('md');m.fields=fields;}else db.extraModules.push({id:crypto.randomUUID(),name,description:val('md'),fields,submissions:[]});
+  save();closeTemp();toast('Main option saved.');renderAdmin();
+}
+function deleteModule(id){if(confirm('Delete this main option and its submissions?')){db.extraModules=db.extraModules.filter(x=>x.id!==id);save();renderAdmin()}}
+function openModuleEntry(id){
+  const m=db.extraModules.find(x=>x.id===id);if(!m)return;
+  modal(m.name,`<div class="notice">Branch: ${session.role==='branch'?esc(bname(session.branchId)):'Admin'}</div><div class="grid">${m.fields.map(f=>`<div class="field"><label>${esc(f.label)}${f.required?' *':''}</label><input id="mf_${f.id}" type="${f.type==='date'?'date':f.type==='number'?'number':'text'}"></div>`).join('')}</div><div id="mfErr" class="err"></div><div class="modalActions"><button class="btn" onclick="closeTemp()">Cancel</button><button class="btn primary" onclick="submitModuleEntry('${id}')">Submit Form</button></div>`);
+}
+function submitModuleEntry(id){
+  const m=db.extraModules.find(x=>x.id===id);if(!m)return;const data={};let ok=true;
+  m.fields.forEach(f=>{data[f.id]=val('mf_'+f.id);if(f.required&&!data[f.id])ok=false});
+  if(!ok){mfErr.textContent='Please complete all required fields.';return}
+  m.submissions=Array.isArray(m.submissions)?m.submissions:[];m.submissions.push({id:crypto.randomUUID(),branchId:session.branchId||null,branchName:session.branchId?bname(session.branchId):'Admin',submittedBy:session.role,submittedAt:new Date().toLocaleString(),data});save();closeTemp();toast('Form submitted successfully.');if(session.role==='admin')renderAdmin();else renderBranch();
+}
+function moduleSubmissions(id){
+  const m=db.extraModules.find(x=>x.id===id);if(!m)return;const subs=Array.isArray(m.submissions)?m.submissions:[];
+  modal(m.name+' — Submissions',`<div class="tablewrap"><table class="table"><thead><tr><th>Branch</th><th>Submitted At</th>${m.fields.map(f=>`<th>${esc(f.label)}</th>`).join('')}</tr></thead><tbody>${subs.slice().reverse().map(s=>`<tr><td>${esc(s.branchName||bname(s.branchId))}</td><td>${esc(s.submittedAt||'')}</td>${m.fields.map(f=>`<td>${esc(s.data?.[f.id]||'')}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="${2+m.fields.length}">No submissions yet.</td></tr>`}</tbody></table></div><div class="modalActions"><button class="btn" onclick="closeTemp()">Close</button></div>`);
+}
+
+// Add custom module tab to admin without removing existing tabs.
+const _oldRenderAdminFinal=renderAdmin;
+renderAdmin=function(){
+  _oldRenderAdminFinal();
+  const tabs=document.querySelector('.tabs');
+  if(tabs && !tabs.querySelector('[data-module-tab]')){const b=document.createElement('button');b.className='tab';b.setAttribute('data-module-tab','1');b.textContent='Main Options';b.onclick=()=>adminTab(b,'modules');tabs.appendChild(b)}
+  // add a visible pending notification even if user lands on admin page
+  const pendingBtn=[...document.querySelectorAll('.tab')].find(x=>x.textContent.includes('Pending Approvals'));
+  if(pendingBtn)pendingBtn.innerHTML='Pending Approvals '+badge(pendingCount());
+};
+const _oldAdminTabFinal=adminTab;
+adminTab=function(el,type){
+  if(type==='modules'){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));el?.classList.add('active');const c=document.getElementById('adminContent');if(c)c.innerHTML=modulePanel();return;}
+  _oldAdminTabFinal(el,type);
+};
+
+// Branch portal gets a small submitted/pending area and custom main-option forms.
+const _oldRenderBranchFinal=renderBranch;
+renderBranch=function(){
+  _oldRenderBranchFinal();
+  const main=document.querySelector('.main');if(!main)return;
+  const modules=db.extraModules||[];
+  if(modules.length){
+    const box=document.createElement('div');box.className='card';box.style.marginTop='16px';box.innerHTML='<h3>Available Forms</h3><p style="color:var(--muted)">Admin-created main options/forms</p>'+modules.map(m=>`<button class="btn" style="margin:5px" onclick="openModuleEntry('${m.id}')">${esc(m.name)}</button>`).join('');main.appendChild(box);
+  }
+};
+
+// Ensure saved login is restored when opening the app.
+(function(){try{const x=JSON.parse(localStorage.getItem('tmss_saved_login')||'null');if(x&&typeof mode!=='undefined'){mode=x.mode;if(typeof lu!=='undefined')lu.value=x.u||'';if(typeof lp!=='undefined')lp.value=x.p||'';if(typeof remember!=='undefined')remember.checked=true}}catch(e){}})();
+
+// CSS for request-sent labels and compact custom forms.
+if(!document.getElementById('tmss-v4-css')){const st=document.createElement('style');st.id='tmss-v4-css';st.textContent='.requestSent{display:inline-block;margin-top:5px;padding:4px 8px;border-radius:8px;background:#fff0f1;color:#c51f2a;font-size:11px;font-weight:800}.badge{display:inline-flex;min-width:20px;height:20px;padding:0 6px;align-items:center;justify-content:center;border-radius:999px;background:#e12632;color:#fff;font-size:11px;font-weight:800;margin-left:4px}.tabs{flex-wrap:wrap}.table td,.table th{vertical-align:top}';document.head.appendChild(st)}
+save();
+</script>
+
+<script>
+/* TMSS v5 — final address, admin bulk delete, viewer bilingual CSV */
+(function(){
+  // Normalize old/new address key names so nothing is ever lost.
+  db.staff.forEach(function(s){
+    if((!s.thana || !String(s.thana).trim()) && s.upazila) s.thana=s.upazila;
+    if((!s.upazila || !String(s.upazila).trim()) && s.thana) s.upazila=s.thana;
+  });
+  save();
+
+  function addrHTML(s){
+    const clean=v=>String(v==null?'':v).trim();
+    const village=clean(s.village), post=clean(s.post), thana=clean(s.thana||s.upazila), district=clean(s.district);
+    return '<div class="address-stack address-complete">'
+      + '<div><b>গ্রাম (Village):</b> '+esc(village||'—')+'</div>'
+      + '<div><b>ডাকঘর (Post):</b> '+esc(post||'—')+'</div>'
+      + '<div><b>থানা/উপজেলা (Thana/Upazila):</b> '+esc(thana||'—')+'</div>'
+      + '<div><b>জেলা (District):</b> '+esc(district||'—')+'</div>'
+      + '</div>';
+  }
+  window.addressHTML=addrHTML;
+
+  // Complete address in every Admin/Branch table. No commas, no duplicated pieces.
+  window.table=function(rows,opts={}){
+    if(!rows.length)return '<div class="card" style="text-align:center;color:var(--muted)">No records found.</div>';
+    return '<div class="tablewrap"><table class="table '+(opts.readonly?'readonly':'')+'"><thead><tr>'
+      + '<th><input type="checkbox" id="selectAllStaff" title="Select all" onchange="toggleAllStaff(this.checked)"></th>'
+      + '<th>SL</th><th>Employee ID</th><th>Name</th><th>Designation</th><th>Grade</th><th>Zone</th><th>Region</th><th>Branch</th><th>Joining Date (TMSS)</th><th>Joining Date (Branch)</th><th>Address</th><th>Personal Phone</th>'
+      + (opts.actions?'<th>Actions</th>':'') + '</tr></thead><tbody>'
+      + rows.map(function(s,i){
+        let acts='';
+        if(opts.actions){
+          if(s.status==='Active'){
+            if(session?.role==='admin') acts+='<button class="smallBtn" onclick="adminTransfer(\''+s.id+'\')">Transfer</button> ';
+            else acts+=(transferAlreadyPending(s.id)?'<span class="requestSent">🔴 Transfer request sent — waiting for Admin</span> ':'<button class="smallBtn" onclick="requestTransfer(\''+s.id+'\')">Transfer</button> ');
+            if(session?.role==='admin') acts+=(hasPending(s.id,'resign')?'<span class="requestSent">🔴 Resign request pending</span> ':'<button class="smallBtn red" onclick="openResign(\''+s.id+'\')">Resign</button> ');
+            else acts+=(hasPending(s.id,'resign')?'<span class="requestSent">🔴 Resign request sent — waiting for Admin</span> ':'<button class="smallBtn red" onclick="openResign(\''+s.id+'\')">Resign</button> ');
+          }
+          if(session?.role==='admin') acts+='<button class="smallBtn" onclick="openStaff(\''+s.id+'\')">Edit</button> <button class="smallBtn red" onclick="deleteStaff(\''+s.id+'\')">Delete</button>';
+        }
+        return '<tr><td>'+(session?.role==='admin'&&!opts.readonly?'<input class="staffSelect" type="checkbox" value="'+esc(s.id)+'" onchange="updateBulkDeleteBar()">':'')+'</td>'
+          + '<td>'+(i+1)+'</td><td>'+esc(s.employeeId||'—')+'</td><td><b>'+esc(s.nameEn||'—')+'</b><br><small>'+esc(s.nameBn||'—')+'</small></td>'
+          + '<td>'+esc(s.designation||'—')+'</td><td>'+esc(s.grade||'—')+'</td><td>Op-05</td><td>'+esc(region(s.branchId)||s.region||'—')+'</td><td>'+esc(bname(s.branchId))+(s.status!=='Active'?'<br><span class="pill red">'+esc(s.status)+'</span>':'')+'</td>'
+          + '<td>'+esc(s.tmssJoin||'—')+'</td><td>'+esc(s.branchJoin||'—')+'</td><td>'+addrHTML(s)+'</td><td>'+esc(s.phone||'—')+'</td>'
+          + (opts.actions?'<td><div class="actions">'+acts+'</div></td>':'')+'</tr>';
+      }).join('')+'</tbody></table></div>';
+  };
+
+  window.toggleAllStaff=function(checked){
+    document.querySelectorAll('.staffSelect').forEach(x=>x.checked=checked);
+    updateBulkDeleteBar();
+  };
+  window.selectedStaffIds=function(){return [...document.querySelectorAll('.staffSelect:checked')].map(x=>x.value);};
+  window.updateBulkDeleteBar=function(){
+    const n=selectedStaffIds().length, bar=document.getElementById('bulkDeleteBar');
+    if(bar) bar.innerHTML=n?'<b>'+n+' staff selected</b><button class="btn red" onclick="bulkDeleteStaff()">Delete Selected ('+n+')</button>':'<span style="color:var(--muted)">Select staff to delete multiple records at once.</span>';
+  };
+  window.bulkDeleteStaff=function(){
+    if(session?.role!=='admin')return;
+    const ids=selectedStaffIds(); if(!ids.length){toast('No staff selected.');return;}
+    if(!confirm('Permanently delete '+ids.length+' selected staff record(s)? This cannot be undone.'))return;
+    db.staff=db.staff.filter(s=>!ids.includes(s.id));
+    db.resignRequests=db.resignRequests.filter(x=>!ids.includes(x.staffId));
+    db.transferRequests=db.transferRequests.filter(x=>!ids.includes(x.staffId));
+    save();toast(ids.length+' staff record(s) deleted.');renderAdmin();
+  };
+  const oldDeleteStaff=window.deleteStaff;
+  window.deleteStaff=function(id){
+    if(session?.role!=='admin')return;
+    if(!db.staff.some(s=>s.id===id))return;
+    if(!confirm('Permanently delete this staff record?'))return;
+    db.staff=db.staff.filter(s=>s.id!==id);
+    db.resignRequests=db.resignRequests.filter(x=>x.staffId!==id);
+    db.transferRequests=db.transferRequests.filter(x=>x.staffId!==id);
+    save();toast('Staff record deleted.');renderAdmin();
+  };
+
+  // Admin All Staff gets Select All + bulk delete.
+  const oldAdminTab=window.adminTab;
+  window.adminTab=function(el,type){
+    oldAdminTab(el,type);
+    if(type==='staff'){
+      const c=document.getElementById('adminContent');
+      if(!c)return;
+      const toolbar=c.querySelector('.toolbar');
+      if(toolbar && !document.getElementById('bulkDeleteBar')){
+        const bulk=document.createElement('div');bulk.id='bulkDeleteBar';bulk.className='bulkDeleteBar';
+        bulk.innerHTML='<span style="color:var(--muted)">Select staff to delete multiple records at once.</span>';
+        c.insertBefore(bulk,c.querySelector('#at'));
+      }
+      const selectAll=document.getElementById('selectAllStaff'); if(selectAll)selectAll.checked=false;
+    }
+  };
+
+  // Separate English-name and Bangla-name CSV downloads for View Only.
+  function csvEscape(v){return '"'+String(v??'').replace(/"/g,'""')+'"';}
+  function downloadViewerCSV(nameType){
+    const bid=document.getElementById('vf')?.value||'';
+    const q=(document.getElementById('vq')?.value||'').trim().toLowerCase();
+    const rows=db.staff.filter(s=>s.status==='Active'&&(!bid||s.branchId===bid)&&[s.nameEn,s.nameBn,s.employeeId,s.designation,bname(s.branchId),s.village,s.post,s.thana,s.upazila,s.district].join(' ').toLowerCase().includes(q));
+    const cols=['SL','Employee ID',nameType==='bn'?'Name (Bangla)':'Name (English)','Designation','Grade','Domain name','Department','Project','Zone','Region name','Branch name','Joining date (Tmss)','Joining Date (Branch)'];
+    const out=[cols];
+    rows.forEach((s,i)=>out.push([i+1,s.employeeId,nameType==='bn'?s.nameBn:s.nameEn,s.designation,s.grade,'Op-05',s.department,s.project,'Ctg North',region(s.branchId),bname(s.branchId),s.tmssJoin,s.branchJoin]));
+    const csv=out.map(r=>r.map(csvEscape).join(',')).join('\r\n');
+    const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    const branchLabel=bid?bname(bid).replace(/[^a-zA-Z0-9]+/g,'_'):'All_Branches';
+    a.download=nameType==='bn'?'TMSS_ViewOnly_BanglaName_'+branchLabel+'.csv':'TMSS_ViewOnly_EnglishName_'+branchLabel+'.csv';
+    a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);
+  }
+  window.downloadViewerEnglishCSV=function(){downloadViewerCSV('en')};
+  window.downloadViewerBanglaCSV=function(){downloadViewerCSV('bn')};
+
+  // Viewer: active staff only, original branch serial order, complete address, two CSV buttons.
+  window.refreshViewer=function(){
+    const q=(document.getElementById('vq')?.value||'').trim().toLowerCase(),bid=document.getElementById('vf')?.value||'',target=document.getElementById('vt');
+    if(!target)return;
+    target.innerHTML=db.branches.map(function(b,i){
+      if(bid&&b.id!==bid)return '';
+      const br=db.staff.filter(s=>s.status==='Active'&&s.branchId===b.id&&[s.nameEn,s.nameBn,s.employeeId,s.designation,b.name,s.phone,s.village,s.post,s.thana,s.upazila,s.district].join(' ').toLowerCase().includes(q));
+      if(!br.length)return '';
+      return '<section class="card" style="margin-bottom:16px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span class="badge">'+String(i+1).padStart(2,'0')+'</span><div><h3 style="margin:0">'+esc(b.name)+'</h3><small style="color:var(--muted)">'+esc(b.region||'')+' • Active staff: '+br.length+'</small></div></div><div class="tablewrap"><table class="table readonly"><thead><tr><th>SL</th><th>Employee ID</th><th>Name</th><th>Designation</th><th>Grade</th><th>Zone</th><th>Region</th><th>Branch</th><th>Joining Date (TMSS)</th><th>Joining Date (Branch)</th><th>Address</th><th>Personal Phone</th></tr></thead><tbody>'
+        +br.map((s,j)=>'<tr><td>'+(j+1)+'</td><td>'+esc(s.employeeId||'—')+'</td><td><b>'+esc(s.nameEn||'—')+'</b><br><small>'+esc(s.nameBn||'—')+'</small></td><td>'+esc(s.designation||'—')+'</td><td>'+esc(s.grade||'—')+'</td><td>'+esc(s.zone||'Ctg North')+'</td><td>'+esc(s.region||b.region||'—')+'</td><td>'+esc(b.name)+'</td><td>'+esc(s.tmssJoin||'—')+'</td><td>'+esc(s.branchJoin||'—')+'</td><td>'+addrHTML(s)+'</td><td>'+esc(s.phone||'—')+'</td></tr>').join('')+'</tbody></table></div></section>';
+    }).join('')||'<div class="card" style="text-align:center;color:var(--muted)">No active staff records found.</div>';
+  };
+  const oldRenderViewer=window.renderViewer;
+  window.renderViewer=function(){
+    landing.classList.add('hidden');app.classList.remove('hidden');
+    app.innerHTML=bar('View Only Panel')+'<main class="main"><div class="topline"><div><span class="eyebrow">READ ONLY</span><h1 style="margin:8px 0">All Branches — Active Staff</h1><p style="color:var(--muted)">Branches are displayed in original serial order. Only Active staff are shown.</p></div></div><div class="toolbar"><select id="vf" onchange="refreshViewer()"><option value="">All branches — Serial order</option>'+db.branches.map((b,i)=>'<option value="'+esc(b.id)+'">'+String(i+1).padStart(2,'0')+' — '+esc(b.name)+'</option>').join('')+'</select><input id="vq" placeholder="Search name, ID, designation, phone…" oninput="refreshViewer()"><button class="btn" onclick="refreshViewer()">Search</button><button class="btn" onclick="downloadViewerEnglishCSV()">CSV — English Name</button><button class="btn" onclick="downloadViewerBanglaCSV()">CSV — Bangla Name</button></div><div id="vt"></div></main>';
+    refreshViewer();
+  };
+
+  // Make sure Admin staff table is re-rendered with the new selection checkbox.
+  const oldRefreshAdmin=window.refreshAdmin;
+  window.refreshAdmin=function(){
+    oldRefreshAdmin();
+    if(session?.role==='admin'){
+      const all=document.getElementById('selectAllStaff');
+      if(all)all.onchange=function(){toggleAllStaff(this.checked)};
+      updateBulkDeleteBar();
+    }
+  };
+
+  const style=document.createElement('style');style.textContent='.address-complete{min-width:245px;line-height:1.7}.address-complete div{margin:1px 0}.bulkDeleteBar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:8px 0 12px;padding:10px 12px;background:#fff;border:1px solid var(--line);border-radius:12px}.staffSelect,#selectAllStaff{width:16px;height:16px;accent-color:#2457ff}.table th:first-child,.table td:first-child{width:34px;text-align:center}.table td .actions{display:flex;gap:5px;flex-wrap:wrap}.table td{vertical-align:top}';document.head.appendChild(style);
+  save();
+})();
+</script>
+<script>
+// Final branch save fix: define slug helper and make Save reliable for both edit and add.
+function slug(s){return String(s||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'').slice(0,40)||'branch';}
+function saveBranch(id){
+  const name=(document.getElementById('bn')?.value||'').trim();
+  const code=(document.getElementById('bc')?.value||'').trim();
+  const reg=(document.getElementById('br')?.value||'').trim();
+  const err=document.getElementById('bErr');
+  if(err) err.textContent='';
+  if(!name||!code||!reg){if(err)err.textContent='Branch name, branch code and region are mandatory.';return;}
+  if(db.branches.some(b=>b.id!==id && String(b.name||'').trim().toLowerCase()===name.toLowerCase())){if(err)err.textContent='This branch already exists.';return;}
+  if(id){
+    const b=db.branches.find(x=>x.id===id);
+    if(!b){if(err)err.textContent='Branch not found.';return;}
+    b.name=name;b.code=code;b.region=reg;b.username='tmss_'+slug(name);
+  }else{
+    const nums=db.branches.map(b=>parseInt(String(b.id||'').replace(/\D/g,''),10)).filter(Number.isFinite);
+    const n=(nums.length?Math.max(...nums):0)+1;
+    db.branches.push({id:'B'+String(n).padStart(2,'0'),name,code,region:reg,username:'tmss_'+slug(name),password:'TMSS@'+String(n).padStart(2,'0')+'2026'});
+  }
+  save();
+  closeTemp();
+  toast(id?'Branch updated successfully.':'New branch created successfully.');
+  renderAdmin();
+}
+</script>
+<script>
+/* TMSS Login Reliability Fix
+   - Uses explicit DOM lookups (no browser implicit-global dependency)
+   - Repairs missing branch credentials without changing existing passwords
+   - Supports branch usernames generated from the current branch name
+   - Keeps Admin and View Only credentials stable
+*/
+(function(){
+  function el(id){ return document.getElementById(id); }
+  function makeUsername(name){
+    return 'tmss_'+String(name||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'').slice(0,40);
+  }
+  function ensureBranchCredentials(){
+    if(!Array.isArray(db.branches)) db.branches=[];
+    db.branches.forEach(function(b,i){
+      if(!b.username || !String(b.username).trim()) b.username=makeUsername(b.name)||('tmss_branch'+(i+1));
+      if(!b.password || !String(b.password).trim()) b.password='TMSS@'+String(i+1).padStart(2,'0')+'2026';
+    });
+    db.loginHistory=Array.isArray(db.loginHistory)?db.loginHistory:[];
+    save();
+  }
+  ensureBranchCredentials();
+
+  window.loginOpen=function(m){
+    mode=m||'branch';
+    const box=el('login');
+    if(!box)return;
+    box.classList.remove('hidden');
+    const title=el('loginTitle'),sub=el('loginSub'),err=el('loginErr'),u=el('lu'),p=el('lp'),rem=el('remember');
+    if(title) title.textContent=mode==='admin'?'Admin Panel':mode==='viewer'?'View Only Panel':'Branch Sign In';
+    if(sub) sub.textContent=mode==='viewer'?'Read-only: no edit, delete or change access.':mode==='admin'?'Full access.':'Your branch only.';
+    if(err)err.textContent='';
+    if(u)u.value=''; if(p)p.value=''; if(rem)rem.checked=false;
+    setTimeout(function(){if(u)u.focus()},30);
+  };
+
+  window.closeLogin=function(){ const x=el('login'); if(x)x.classList.add('hidden'); };
+
+  window.doLogin=function(){
+    const uEl=el('lu'),pEl=el('lp'),err=el('loginErr'),rem=el('remember');
+    const u=(uEl?.value||'').trim();
+    const p=pEl?.value||'';
+    let ok=null;
+
+    if(mode==='admin' && u===ADMIN.username && p===ADMIN.password){
+      ok={role:'admin'};
+    }else if(mode==='viewer' && u===VIEWER.username && p===VIEWER.password){
+      ok={role:'viewer'};
+    }else if(mode==='branch'){
+      const lower=u.toLowerCase();
+      const b=db.branches.find(function(x){
+        const stored=String(x.username||'').trim();
+        const generated=makeUsername(x.name);
+        return (stored.toLowerCase()===lower || generated.toLowerCase()===lower) && String(x.password||'')===p;
+      });
+      if(b)ok={role:'branch',branchId:b.id};
+    }
+
+    if(!ok){
+      if(err)err.textContent='Invalid username or password.';
+      return;
+    }
+
+    session=ok;
+    localStorage.setItem('tmss_current_session',JSON.stringify(ok));
+    if(rem?.checked){
+      localStorage.setItem('tmss_saved_login',JSON.stringify({u:u,p:p,mode:mode}));
+    }else{
+      localStorage.removeItem('tmss_saved_login');
+    }
+    db.loginHistory=Array.isArray(db.loginHistory)?db.loginHistory:[];
+    db.loginHistory.push({id:crypto.randomUUID(),username:u,role:ok.role,branchId:ok.branchId||null,date:new Date().toLocaleString()});
+    save();
+    closeLogin();
+    if(ok.role==='admin')renderAdmin();
+    else if(ok.role==='viewer')renderViewer();
+    else renderBranch();
+  };
+
+  /* Re-load remembered credentials safely, without forcing a broken mode. */
+  try{
+    const x=JSON.parse(localStorage.getItem('tmss_saved_login')||'null');
+    if(x){
+      mode=x.mode||'branch';
+      const u=el('lu'),p=el('lp'),r=el('remember');
+      if(u)u.value=x.u||'';
+      if(p)p.value=x.p||'';
+      if(r)r.checked=true;
+    }
+  }catch(e){ localStorage.removeItem('tmss_saved_login'); }
+})();
+</script>
+<script>
+/* Branch staff ordering + clear edit action */
+(function(){
+  const branchDesignationOrder=["SBM","DSBM","BM","ABM","SS","DSS","FS","AFS","AYA"];
+  window.refreshBranch=function(){
+    const q=(document.getElementById('bs')?.value||'').toLowerCase().trim();
+    const id=session.branchId;
+    const rank=d=>{const i=branchDesignationOrder.indexOf(String(d||'').trim().toUpperCase()); return i<0?999:i;};
+    const r=db.staff.filter(s=>s.branchId===id&&s.status==='Active'&&[s.nameEn,s.nameBn,s.employeeId,s.designation].join(' ').toLowerCase().includes(q));
+    r.sort((a,b)=>rank(a.designation)-rank(b.designation)||String(a.nameEn||'').localeCompare(String(b.nameEn||'')));
+    const box=document.getElementById('bt');
+    if(!box)return;
+    if(!r.length){box.innerHTML='<div class="card" style="text-align:center;color:var(--muted)">No active staff found.</div>';return;}
+    box.innerHTML=`<div class="card" style="margin-bottom:12px;padding:12px 16px"><b>Designation-wise Staff List</b><span style="color:var(--muted);font-size:12px;margin-left:10px">SBM → DSBM → BM → ABM → SS → DSS → FS → AFS → AYA</span></div>`+table(r,{actions:true});
+  };
+})();
+</script>
+<style>
+/* Make branch-level Edit action prominent and easy to find */
+.actions .smallBtn.editStaffBtn{font-weight:800;border:1px solid #b9c9ff;background:#f1f5ff;color:#2453c6;min-width:70px}
+</style>
+<script>
+/* Replace the branch table renderer only, so Edit is always visible at branch level. */
+(function(){
+  const originalTable=window.table;
+  window.table=function(rows,opts={}){
+    if(!opts.actions || session?.role!=='branch') return originalTable(rows,opts);
+    if(!rows.length)return `<div class="card" style="text-align:center;color:var(--muted)">No active staff found.</div>`;
+    return `<div class="tablewrap"><table class="table"><thead><tr><th>SL</th><th>Employee ID</th><th>Name</th><th>Designation</th><th>Grade</th><th>Zone</th><th>Region</th><th>Branch</th><th>Joining Date (TMSS)</th><th>Joining Date (Branch)</th><th>Address</th><th>Personal Phone</th><th>Actions</th></tr></thead><tbody>${rows.map((s,i)=>`<tr><td>${i+1}</td><td>${esc(s.employeeId)}</td><td><b>${esc(s.nameEn)}</b><br><small>${esc(s.nameBn)}</small>${branchPendingLabel?`<br>${branchPendingLabel(s.id)}`:''}</td><td><b>${esc(s.designation)}</b></td><td>${esc(s.grade)}</td><td>Op-05</td><td>${esc(region(s.branchId)||s.region||'—')}</td><td>${esc(bname(s.branchId))}</td><td>${esc(s.tmssJoin||'')}</td><td>${esc(s.branchJoin||'')}</td><td>${esc(s.village||'')}<br>${esc(s.post||'')}<br>${esc(s.thana||s.upazila||'')}<br>${esc(s.district||'')}</td><td>${esc(s.phone||'')}</td><td><div class="actions"><button class="smallBtn editStaffBtn" onclick="openStaff('${s.id}')">✏️ Edit</button><button class="smallBtn" onclick="requestTransfer('${s.id}')">Transfer</button><button class="smallBtn red" onclick="openResign('${s.id}')">Resign</button></div></td></tr>`).join('')}</tbody></table></div>`;
+  };
+})();
+</script>
+
+<style>
+/* Bangladesh date format: show/edit dates as DD/MM/YYYY while storing ISO values internally. */
+.bd-date-wrap{position:relative;width:100%}
+.bd-date-wrap input.bd-date-text{width:100%;box-sizing:border-box}
+.bd-date-wrap input.bd-date-native{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+</style>
+<script>
+(function(){
+  function pad(n){return String(n).padStart(2,'0')}
+  function toBD(v){
+    if(!v)return '';
+    var m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return m ? m[3]+'/'+m[2]+'/'+m[1] : String(v);
+  }
+  function toISO(v){
+    var m=String(v||'').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if(!m)return '';
+    var d=pad(m[1]),mo=pad(m[2]),y=m[3];
+    var dt=new Date(Number(y),Number(mo)-1,Number(d));
+    if(dt.getFullYear()!=Number(y)||dt.getMonth()!=Number(mo)-1||dt.getDate()!=Number(d))return '';
+    return y+'-'+mo+'-'+d;
+  }
+  function enhance(root){
+    root=root||document;
+    root.querySelectorAll('input[type="date"]:not([data-bd-date])').forEach(function(native){
+      native.setAttribute('data-bd-date','1');
+      var wrap=document.createElement('div'); wrap.className='bd-date-wrap';
+      native.parentNode.insertBefore(wrap,native); wrap.appendChild(native);
+      var text=document.createElement('input'); text.type='text'; text.className='bd-date-text';
+      text.placeholder='DD/MM/YYYY'; text.inputMode='numeric'; text.autocomplete='off';
+      text.value=toBD(native.value);
+      wrap.insertBefore(text,native);
+      text.addEventListener('input',function(){
+        var raw=text.value.replace(/[^0-9]/g,'').slice(0,8);
+        if(raw.length>4) raw=raw.slice(0,2)+'/'+raw.slice(2,4)+'/'+raw.slice(4);
+        else if(raw.length>2) raw=raw.slice(0,2)+'/'+raw.slice(2);
+        text.value=raw;
+        var iso=toISO(raw); if(iso) native.value=iso;
+      });
+      text.addEventListener('blur',function(){
+        var iso=toISO(text.value);
+        if(text.value.trim() && !iso){text.setCustomValidity('Please enter date as DD/MM/YYYY.');}
+        else {text.setCustomValidity(''); if(iso)native.value=iso;}
+      });
+      native.addEventListener('change',function(){text.value=toBD(native.value);text.setCustomValidity('');});
+    });
+  }
+  var obs=new MutationObserver(function(){enhance(document)});
+  if(document.body) obs.observe(document.body,{childList:true,subtree:true});
+  document.addEventListener('DOMContentLoaded',function(){enhance(document)});
+  window.addEventListener('load',function(){enhance(document)});
+  window.tmssEnhanceBDDates=enhance;
+})();
+</script>
+
+
+<!-- TMSS requested advanced fixes: mobile login, dynamic designations/order, persistent login, chat, aligned tables, CSV import/export -->
+<style>
+.mobile-login-note{font-size:11px;color:#6b7890;margin-top:5px}
+.designation-tools{display:grid;grid-template-columns:1fr 180px auto;gap:8px;align-items:end}
+.designation-list{display:grid;gap:7px;margin-top:10px}
+.designation-row{display:grid;grid-template-columns:42px 1fr 110px;gap:8px;align-items:center;padding:8px 10px;border:1px solid #e5eaf2;border-radius:10px;background:#fafbfe}
+.designation-rank{font-weight:900;text-align:center}
+.pendingCompact{display:inline-block!important;white-space:nowrap!important;word-break:keep-all!important;padding:2px 6px!important;border-radius:999px!important;font-size:9px!important;font-weight:800!important;background:#fff4d6!important;color:#9a6a00!important;border:1px solid #f0d98d!important;line-height:1.2!important;margin-top:3px!important}
+.staffAligned .table{table-layout:auto}
+.staffAligned .table th,.staffAligned .table td{vertical-align:middle;white-space:nowrap}
+.staffAligned .table td.addressCell{white-space:normal;min-width:210px;line-height:1.5}
+.chatWrap{display:grid;grid-template-columns:230px 1fr;gap:12px;min-height:520px}
+.chatUsers,.chatBox{background:#fff;border:1px solid var(--line);border-radius:16px}
+.chatUsers{padding:10px;overflow:auto}.chatUser{width:100%;text-align:left;padding:10px;border-radius:10px;background:#fff;color:var(--ink);margin-bottom:5px;border:1px solid transparent}.chatUser.active{background:#edf2ff;border-color:#cbd6ff;color:#2349b4;font-weight:800}
+.chatBox{display:flex;flex-direction:column;overflow:hidden}.chatHead{padding:12px 14px;border-bottom:1px solid var(--line);font-weight:850}.chatMessages{flex:1;min-height:390px;max-height:480px;overflow:auto;padding:14px;background:#f7f9fd}.chatMsg{max-width:78%;padding:8px 10px;border-radius:12px;margin:5px 0;font-size:12px;line-height:1.45}.chatMsg.mine{margin-left:auto;background:#eaf0ff}.chatMsg.theirs{background:#fff;border:1px solid #e7ebf2}.chatMeta{font-size:9px;color:#8995a8;margin-top:3px}.chatComposer{display:flex;gap:7px;padding:10px;border-top:1px solid var(--line)}.chatComposer input{flex:1;padding:10px;border:1px solid var(--line);border-radius:10px}
+.importBox{display:none}
+@media(max-width:700px){.designation-tools{grid-template-columns:1fr}.designation-row{grid-template-columns:34px 1fr 95px}.chatWrap{grid-template-columns:1fr}.chatUsers{max-height:170px}.chatMessages{min-height:300px}.chatMsg{max-width:88%}}
+</style>
+<script>
+(function(){
+  // ---------- Dynamic designation master ----------
+  const BASE_DESIGNATIONS=["SBM","DSBM","BM","ABM","SS","DSS","FS","AFS","AYA"];
+  db.designations=Array.isArray(db.designations)&&db.designations.length ? db.designations : BASE_DESIGNATIONS.map((name,i)=>({name,rank:i+1}));
+  function normDesignations(){
+    const seen=new Set(), out=[];
+    db.designations.forEach((d,i)=>{let name=typeof d==='string'?d:String(d.name||'').trim(); if(!name)return; let key=name.toLowerCase(); if(seen.has(key))return; seen.add(key); out.push({name,rank:Number(d.rank)||i+1})});
+    BASE_DESIGNATIONS.forEach((name,i)=>{if(!seen.has(name.toLowerCase()))out.push({name,rank:i+1})});
+    out.sort((a,b)=>a.rank-b.rank||a.name.localeCompare(b.name)); out.forEach((d,i)=>d.rank=i+1); db.designations=out; save(); return out;
+  }
+  function designs(){return normDesignations()}
+  function designRank(name){const d=designs().find(x=>x.name.toLowerCase()===String(name||'').trim().toLowerCase());return d?d.rank:9999}
+  window.tmssDesignations=designs;
+  window.tmssDesignationRank=designRank;
+
+  // ---------- Persistent login: stay signed in after tab/browser close ----------
+  try{
+    const saved=JSON.parse(localStorage.getItem('tmss_current_session')||'null');
+    if(saved && saved.role && (saved.role==='admin'||saved.role==='viewer'||db.branches.some(b=>b.id===saved.branchId))){
+      session=saved; mode=saved.role;
+      setTimeout(()=>{try{document.getElementById('landing').classList.add('hidden');document.getElementById('app').classList.remove('hidden');saved.role==='admin'?renderAdmin():saved.role==='viewer'?renderViewer():renderBranch()}catch(e){}},0);
+    }
+  }catch(e){localStorage.removeItem('tmss_current_session')}
+  const oldLogin=window.doLogin;
+  window.doLogin=function(){oldLogin(); if(session){localStorage.setItem('tmss_current_session',JSON.stringify(session));}}
+  const oldLogout=window.logout;
+  window.logout=function(){localStorage.removeItem('tmss_current_session');localStorage.removeItem('tmss_saved_login');oldLogout();}
+
+  // ---------- Mobile-friendly landing/login ----------
+  window.loginOpen=function(m){
+    mode=m||'branch'; const box=document.getElementById('login'); if(!box)return; box.classList.remove('hidden');
+    document.getElementById('loginTitle').textContent=mode==='admin'?'Admin Panel':mode==='viewer'?'View Only Panel':'Branch Sign In';
+    document.getElementById('loginSub').textContent=mode==='viewer'?'Read-only: no edit, delete or change access.':mode==='admin'?'Full access.':'Your branch only.';
+    document.getElementById('loginErr').textContent=''; document.getElementById('lu').value=''; document.getElementById('lp').value=''; document.getElementById('remember').checked=true;
+    setTimeout(()=>document.getElementById('lu')?.focus(),30);
+  };
+
+  // ---------- Staff form with all original designations + custom designation ----------
+  window.staffForm=function(s={},allowBranch=true){
+    let branchId=s.branchId||((session?.role==='branch')?session.branchId:(db.branches[0]?.id||''));
+    const list=designs();
+    const exists=list.some(d=>d.name.toLowerCase()===String(s.designation||'').trim().toLowerCase());
+    const selected=exists?String(s.designation||''):'__custom__';
+    return `<div class="notice">Name must be exactly as per NID card. Enter the name in both English and Bangla. Address fields must be completed in Bangla.</div>
+    <div class="grid">
+    <div class="field"><label>Name — English (As per NID card) *</label><input id="f_en" value="${esc(s.nameEn)}"></div>
+    <div class="field"><label>নাম — বাংলা (NID অনুযায়ী) *</label><input id="f_bn" value="${esc(s.nameBn)}"></div>
+    <div class="field"><label>Personal Phone Only *</label><input id="f_phone" value="${esc(s.phone)}"><div class="hint">Only personal mobile number. Do not enter official/office number.</div></div>
+    <div class="field"><label>Employee ID *</label><input id="f_emp" value="${esc(s.employeeId||s.staffId)}"></div>
+    <div class="field"><label>Designation *</label><select id="f_des" onchange="toggleCustomDesignation()">${list.map(d=>`<option value="${esc(d.name)}" ${d.name.toLowerCase()===String(s.designation||'').trim().toLowerCase()?'selected':''}>${esc(d.name)}</option>`).join('')}<option value="__custom__" ${selected==='__custom__'?'selected':''}>+ New / Custom Designation</option></select><div id="customDesBox" style="display:${selected==='__custom__'?'block':'none'};margin-top:7px"><input id="f_custom_des" value="${exists?'':esc(s.designation||'')}" placeholder="Type new designation"><div class="hint">After typing, choose its position below.</div><select id="f_custom_pos" style="margin-top:6px"><option value="top">Highest — above SBM</option><option value="after">Place after selected designation</option><option value="bottom">Lowest — below all</option></select><select id="f_custom_after" style="margin-top:6px;display:none">${list.map(d=>`<option value="${esc(d.name)}">After ${esc(d.name)}</option>`).join('')}</select></div></div>
+    <div class="field"><label>Grade</label><input id="f_grade" value="${esc(s.grade)}"></div>
+    <div class="field"><label>Department</label><input id="f_dept" value="${esc(s.department)}"></div>
+    <div class="field"><label>Project</label><input id="f_project" value="${esc(s.project)}"></div>
+    <div class="field"><label>Joining date (TMSS) *</label><input id="f_tmss" type="date" value="${esc(s.tmssJoin)}"></div>
+    <div class="field"><label>Joining Date (Branch) *</label><input id="f_branchdate" type="date" value="${esc(s.branchJoin)}"></div>
+    <div class="field"><label>Domain name</label><input value="Op-05" disabled></div><div class="field"><label>Zone</label><input value="Ctg North" disabled></div>
+    <div class="field"><label>Region name *</label><select id="f_region" disabled>${REGIONS.map(x=>`<option ${x===region(branchId)?'selected':''}>${x}</option>`).join('')}</select></div>
+    <div class="field"><label>Branch *</label><select id="f_branchsel" ${session?.role==='branch'?'disabled':''} onchange="syncRegion()">${db.branches.map(b=>`<option value="${b.id}" ${b.id===branchId?'selected':''}>${esc(b.name)}${b.code?` (${esc(b.code)})`:''}</option>`).join('')}</select></div>
+    <div class="field"><label>Village (বাংলায়) *</label><input id="f_village" value="${esc(s.village)}"></div><div class="field"><label>Post (বাংলায়) *</label><input id="f_post" value="${esc(s.post)}"></div><div class="field"><label>Thana / Upazila (বাংলায়) *</label><input id="f_thana" value="${esc(s.thana||s.upazila)}"></div><div class="field"><label>District (বাংলায়) *</label><input id="f_dist" value="${esc(s.district)}"></div>
+    ${db.customFields.map(c=>`<div class="field"><label>${esc(c.label)}${c.required?' *':''}</label>${c.type==='select'?`<select id="cf_${esc(c.id)}"><option value="">Select</option>${c.options.map(o=>`<option ${s.custom?.[c.id]===o?'selected':''}>${esc(o)}</option>`).join('')}</select>`:`<input id="cf_${esc(c.id)}" value="${esc(s.custom?.[c.id]||'')}">`}</div>`).join('')}
+    </div><div id="formErr" class="err"></div><div class="modalActions"><button class="btn" onclick="closeTemp()">Cancel</button><button class="btn primary" onclick="saveStaff()">Save Staff</button></div>`;
+  };
+  window.toggleCustomDesignation=function(){const is=document.getElementById('f_des')?.value==='__custom__';const box=document.getElementById('customDesBox');if(box)box.style.display=is?'block':'none';const pos=document.getElementById('f_custom_pos');const after=document.getElementById('f_custom_after');if(pos)pos.onchange=()=>{if(after)after.style.display=pos.value==='after'?'block':'none'};if(pos)pos.onchange()};
+  window.openStaff=function(id=''){editingId=id;const s=db.staff.find(x=>x.id===id)||{};modal(id?'Edit Staff':'Add New Staff',staffForm(s));setTimeout(toggleCustomDesignation,0)};
+  window.saveStaff=function(){
+    let branchId=document.getElementById('f_branchsel')?.value||session?.branchId||'';
+    let des=document.getElementById('f_des')?.value||'';
+    if(des==='__custom__'){
+      des=(document.getElementById('f_custom_des')?.value||'').trim(); if(!des){document.getElementById('formErr').textContent='Please type the new designation.';return;}
+      const pos=document.getElementById('f_custom_pos')?.value||'bottom'; const after=document.getElementById('f_custom_after')?.value||'';
+      const arr=designs().filter(x=>x.name.toLowerCase()!==des.toLowerCase());
+      let idx=pos==='top'?0:pos==='after'?Math.max(0,arr.findIndex(x=>x.name.toLowerCase()===after.toLowerCase())+1):arr.length;
+      arr.splice(idx,0,{name:des,rank:idx+1}); arr.forEach((x,i)=>x.rank=i+1); db.designations=arr;
+    }
+    let d={nameEn:val('f_en'),nameBn:val('f_bn'),phone:val('f_phone'),employeeId:val('f_emp'),designation:des,grade:val('f_grade'),department:val('f_dept'),project:val('f_project'),tmssJoin:val('f_tmss'),branchJoin:val('f_branchdate'),domain:'Op-05',zone:'Ctg North',region:region(branchId),branchId,village:val('f_village'),post:val('f_post'),thana:val('f_thana'),district:val('f_dist'),status:'Active',custom:{}};
+    if(!d.nameEn||!d.nameBn||!d.employeeId||!d.phone||!d.tmssJoin||!d.branchJoin||!d.village||!d.post||!d.thana||!d.district){document.getElementById('formErr').textContent='Please complete all required fields.';return;}
+    db.customFields.forEach(c=>{const e=document.getElementById('cf_'+c.id);d.custom[c.id]=e?.value||''});
+    if(editingId){const old=db.staff.find(x=>x.id===editingId);if(old)Object.assign(old,d)}else{d.id=crypto.randomUUID();db.staff.push(d)} save();closeTemp();toast(editingId?'Staff updated successfully.':'Staff added successfully.');session?.role==='admin'?renderAdmin():renderBranch();
+  };
+
+  // ---------- Compact pending approval label ----------
+  window.branchPendingLabel=function(id){const r=db.resignRequests?.some(x=>x.staffId===id&&x.status==='Pending'),t=db.transferRequests?.some(x=>x.staffId===id&&x.status==='Pending');if(r||t)return `<span class="pendingCompact">Pending approval</span>`;return ''};
+
+  // ---------- Stable, aligned branch table with designation order ----------
+  if(!window._tmssOriginalTable) window._tmssOriginalTable=window.table;
+  window.table=function(rows,opts={}){
+    if(!(opts.actions&&session?.role==='branch')) return window._tmssOriginalTable?window._tmssOriginalTable(rows,opts):'';
+    const list=[...rows].sort((a,b)=>designRank(a.designation)-designRank(b.designation)||String(a.nameEn||'').localeCompare(String(b.nameEn||'')));
+    return `<div class="tablewrap staffAligned"><table class="table"><thead><tr><th>SL</th><th>Employee ID</th><th>Name</th><th>Designation</th><th>Grade</th><th>Zone</th><th>Region</th><th>Branch</th><th>Joining Date (TMSS)</th><th>Joining Date (Branch)</th><th>Address</th><th>Personal Phone</th><th>Actions</th></tr></thead><tbody>${list.map((s,i)=>`<tr><td>${i+1}</td><td>${esc(s.employeeId)}</td><td><b>${esc(s.nameEn)}</b><br><small>${esc(s.nameBn)}</small>${branchPendingLabel(s.id)?'<br>'+branchPendingLabel(s.id):''}</td><td><b>${esc(s.designation||'—')}</b></td><td>${esc(s.grade||'—')}</td><td>Op-05</td><td>${esc(region(s.branchId)||'—')}</td><td>${esc(bname(s.branchId))}</td><td>${esc(s.tmssJoin||'')}</td><td>${esc(s.branchJoin||'')}</td><td class="addressCell">${esc(s.village||'—')}<br>${esc(s.post||'—')}<br>${esc(s.thana||s.upazila||'—')}<br>${esc(s.district||'—')}</td><td>${esc(s.phone||'')}</td><td><div class="actions"><button class="smallBtn editStaffBtn" onclick="openStaff('${s.id}')">✏️ Edit</button><button class="smallBtn" onclick="requestTransfer('${s.id}')">Transfer</button><button class="smallBtn red" onclick="openResign('${s.id}')">Resign</button></div></td></tr>`).join('')}</tbody></table></div>`;
+  };
+
+  // ---------- CSV helpers ----------
+  function csvEscape(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}
+  function csvRows(branchId){return db.staff.filter(s=>(branchId==='ALL'||s.branchId===branchId)&&(s.status==='Active'||s.status==='Resigned'))}
+  window.downloadCSVTemplate=function(){
+    const rows=[CSV_COLUMNS,['1','EMP001','Example Name','SBM','1','Op-05','Department','Project','Ctg North','Pahartoli Region','Pahartoli','01/01/2026','01/01/2026']];
+    const csv='\ufeff'+rows.map(r=>r.map(csvEscape).join(',')).join('\r\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='TMSS_Staff_Import_Template.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);
+  };
+  window.downloadBranchCSV=function(){downloadCSV(session.branchId)};
+  function parseCSV(text){
+    text=text.replace(/^\ufeff/,'');const rows=[];let row=[],cell='',q=false;
+    for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(c==='"'){if(q&&n==='"'){cell+='"';i++;}else q=!q}else if(c===','&&!q){row.push(cell);cell=''}else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&n==='\n')i++;row.push(cell);if(row.some(x=>x.trim()!==''))rows.push(row);row=[];cell=''}else cell+=c}if(cell!==''||row.length){row.push(cell);rows.push(row)}return rows}
+  function normHeader(x){return String(x||'').trim().toLowerCase().replace(/\s+/g,' ')}
+  window.importStaffCSV=function(input,forcedBranchId){const file=input?.files?.[0];if(!file)return;const reader=new FileReader();reader.onload=function(){try{const rows=parseCSV(reader.result);if(rows.length<2)throw Error('CSV has no staff rows.');const head=rows[0].map(normHeader);const idx={};head.forEach((h,i)=>idx[h]=i);const required=['employee id','name','designation','grade','domain name','department','project','zone','region name','branch name','joining date (tmss)','joining date (branch)'];const missing=required.filter(h=>idx[h]===undefined);if(missing.length)throw Error('Missing columns: '+missing.join(', '));let added=0,updated=0,skipped=0;rows.slice(1).forEach(r=>{const get=h=>String(r[idx[h]]??'').trim();if(!get('employee id')&&!get('name'))return;const branchName=get('branch name');let b=forcedBranchId?db.branches.find(x=>x.id===forcedBranchId):db.branches.find(x=>x.name.toLowerCase()===branchName.toLowerCase());if(!b){skipped++;return}let des=get('designation');if(!des){skipped++;return}if(!designs().some(d=>d.name.toLowerCase()===des.toLowerCase())){const arr=designs();arr.push({name:des,rank:arr.length+1});arr.forEach((x,i)=>x.rank=i+1);db.designations=arr}let existing=db.staff.find(s=>s.employeeId===get('employee id'));let obj={nameEn:get('name'),nameBn:existing?.nameBn||'',phone:existing?.phone||'',employeeId:get('employee id'),designation:des,grade:get('grade'),department:get('department'),project:get('project'),domain:'Op-05',zone:'Ctg North',region:b.region,branchId:b.id,village:existing?.village||'',post:existing?.post||'',thana:existing?.thana||existing?.upazila||'',district:existing?.district||'',tmssJoin:toISOImport(get('joining date (tmss)')),branchJoin:toISOImport(get('joining date (branch)')),status:existing?.status||'Active',custom:existing?.custom||{}};if(!obj.tmssJoin||!obj.branchJoin){skipped++;return}if(existing){Object.assign(existing,obj);updated++}else{obj.id=crypto.randomUUID();db.staff.push(obj);added++}});save();toast(`CSV import: ${added} added, ${updated} updated, ${skipped} skipped.`);if(session.role==='admin')renderAdmin();else renderBranch();}catch(e){alert('CSV import failed: '+e.message)}finally{input.value=''}};reader.readAsText(file,'utf-8')};
+  function toISOImport(v){v=String(v||'').trim();let m=v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);if(m){let d=String(m[1]).padStart(2,'0'),mo=String(m[2]).padStart(2,'0');return `${m[3]}-${mo}-${d}`}m=v.match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?v:''}
+
+  // ---------- Branch render: CSV import/export + designation order + chat ----------
+  const oldRenderBranch=window.renderBranch;
+  window.renderBranch=function(){
+    landing.classList.add('hidden');app.classList.remove('hidden');const b=db.branches.find(x=>x.id===session.branchId);if(!b)return;
+    app.innerHTML=`${bar('Branch Portal')}<main class="main">${noticeMarkup?noticeMarkup():''}<div class="topline"><div><span class="eyebrow">${esc(b.name)}</span><h1 style="margin:8px 0">Branch Staff</h1><p style="color:var(--muted)">Designation order: SBM → DSBM → BM → ABM → SS → DSS → FS → AFS → AYA → Custom positions</p></div><div class="stat" style="min-width:150px"><small>Branch</small><b>${esc(b.name)}</b></div></div><div class="toolbar"><input id="bs" placeholder="Search staff / ID / designation…" oninput="refreshBranch()"><button class="btn" onclick="downloadCSV(session.branchId)">Export CSV</button><button class="btn" onclick="downloadCSVTemplate()">CSV Template</button><label class="btn" style="cursor:pointer">Import CSV<input class="importBox" type="file" accept=".csv,text/csv" onchange="importStaffCSV(this,session.branchId)"></label><button class="btn primary" onclick="openStaff()">+ Add Staff</button><button class="btn" onclick="openChat()">💬 Chat</button></div><div id="bt"></div></main>`;refreshBranch();
+  };
+  window.refreshBranch=function(){const q=(document.getElementById('bs')?.value||'').trim().toLowerCase();const rows=db.staff.filter(s=>s.branchId===session.branchId&&s.status==='Active'&&[s.nameEn,s.nameBn,s.employeeId,s.designation].join(' ').toLowerCase().includes(q));const box=document.getElementById('bt');if(!box)return;rows.sort((a,b)=>designRank(a.designation)-designRank(b.designation)||String(a.nameEn||'').localeCompare(String(b.nameEn||'')));box.innerHTML=`<div class="card" style="margin-bottom:12px;padding:11px 15px"><b>Designation-wise Staff List</b><span style="font-size:11px;color:var(--muted);margin-left:8px;white-space:nowrap">${rows.length} Active</span></div>`+window.table(rows,{actions:true});};
+
+  // ---------- Admin render: import/export + designation manager + chat ----------
+  const oldRenderAdmin=window.renderAdmin;
+  window.renderAdmin=function(){landing.classList.add('hidden');app.classList.remove('hidden');app.innerHTML=`${bar('Central Admin Control')}<main class="main"><div class="topline"><div><span class="eyebrow">MASTER ADMIN</span><h1 style="margin:8px 0">Staff Control Center</h1><p style="color:var(--muted)">Full access to staff, branches, approvals, histories, designations, CSV and chat.</p></div><div class="actions"><button class="btn primary" onclick="openStaff()">+ Add Staff</button><button class="btn" onclick="openBranch()">+ New Branch</button></div></div><div class="stats"><div class="stat"><small>Branches</small><b>${db.branches.length}</b></div><div class="stat"><small>Designations</small><b>${designs().length}</b></div><div class="stat"><small>Active</small><b>${db.staff.filter(s=>s.status==='Active').length}</b></div><div class="stat"><small>Pending</small><b>${pendingCount?pendingCount():0}</b></div></div><div class="tabs"><button class="tab active" onclick="adminTab(this,'staff')">All Staff</button><button class="tab" onclick="adminTab(this,'resign')">Resign History</button><button class="tab" onclick="adminTab(this,'transfer')">Transfer History</button><button class="tab" onclick="adminTab(this,'pending')">Pending Approvals</button><button class="tab" onclick="adminTab(this,'branches')">Branches & Access</button><button class="tab" onclick="adminTab(this,'fields')">Custom Fields</button><button class="tab" onclick="adminTab(this,'designations')">Designation Order</button><button class="tab" onclick="adminTab(this,'chat')">💬 Chat</button></div><div id="adminContent"></div></main>`;adminTab(document.querySelector('.tab'),'staff')};
+  const oldAdminTab=window.adminTab;
+  window.adminTab=function(el,type){if(type!=='designations'&&type!=='chat')return oldAdminTab(el,type);document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));el?.classList.add('active');const c=document.getElementById('adminContent');if(type==='designations'){c.innerHTML=designationPanel()}else c.innerHTML=chatPanel('admin');};
+  window.designationPanel=function(){const list=designs();return `<div class="card"><h3 style="margin-top:0">Designation Master & Listing Order</h3><p style="color:var(--muted);font-size:12px">All standard designations remain available. Add any new company designation and set its position so staff listing never loses the correct senior-to-junior order.</p><div class="designation-tools"><div class="field"><label>New designation</label><input id="newDes" placeholder="e.g. Senior Officer"></div><div class="field"><label>Position</label><select id="newPos"><option value="top">Highest — above SBM</option><option value="after">After another designation</option><option value="bottom">Lowest — below all</option></select></div><div class="field"><button class="btn primary" onclick="addMasterDesignation()">Add Designation</button></div></div><div class="field" id="afterDesWrap" style="display:none"><label>Place after</label><select id="afterDes">${list.map(d=>`<option>${esc(d.name)}</option>`).join('')}</select></div><div class="designation-list">${list.map((d,i)=>`<div class="designation-row"><div class="designation-rank">${i+1}</div><div><b>${esc(d.name)}</b><small style="display:block;color:var(--muted)">${i<9?'Standard designation':'Custom designation'}</small></div><button class="smallBtn red" onclick="removeMasterDesignation(${i})">Remove</button></div>`).join('')}</div></div>`}
+  window.addMasterDesignation=function(){const name=(document.getElementById('newDes')?.value||'').trim();if(!name)return alert('Enter a designation.');const arr=designs();if(arr.some(x=>x.name.toLowerCase()===name.toLowerCase()))return alert('This designation already exists.');const pos=document.getElementById('newPos')?.value||'bottom';let idx=pos==='top'?0:pos==='after'?Math.max(0,arr.findIndex(x=>x.name===(document.getElementById('afterDes')?.value||''))+1):arr.length;arr.splice(idx,0,{name,rank:idx+1});arr.forEach((x,i)=>x.rank=i+1);db.designations=arr;save();toast('Designation added.');document.querySelector('.tab.active')&&adminTab(document.querySelector('.tab.active'),'designations')};
+  window.removeMasterDesignation=function(i){const arr=designs();if(arr[i]&&BASE_DESIGNATIONS.includes(arr[i].name))return alert('Standard designation cannot be removed.');const name=arr[i]?.name;if(!name)return;arr.splice(i,1);arr.forEach((x,j)=>x.rank=j+1);db.designations=arr;save();toast('Designation removed.');adminTab(document.querySelector('.tab.active'),'designations')};
+  document.addEventListener('change',e=>{if(e.target.id==='newPos'){document.getElementById('afterDesWrap').style.display=e.target.value==='after'?'block':'none'}});
+
+  // ---------- CSV admin panel injection into All Staff ----------
+  const origRefreshAdmin=window.refreshAdmin;
+  window.refreshAdmin=function(){origRefreshAdmin();setTimeout(()=>{const t=document.getElementById('adminContent');if(!t||document.getElementById('adminCsvTools'))return;const barEl=t.querySelector('.toolbar');if(!barEl)return;const wrap=document.createElement('span');wrap.id='adminCsvTools';wrap.innerHTML='<button class="btn" onclick="downloadCSVTemplate()">CSV Template</button><label class="btn" style="cursor:pointer">Import CSV<input class="importBox" type="file" accept=".csv,text/csv" onchange="importStaffCSV(this,null)"></label>';barEl.appendChild(wrap)},0)};
+
+  // ---------- Chat: persistent per-browser, cross-tab live sync ----------
+  const CHATKEY='tmss_chat_v1';
+  function chats(){try{return JSON.parse(localStorage.getItem(CHATKEY)||'[]')}catch(e){return[]}}
+  function saveChats(a){localStorage.setItem(CHATKEY,JSON.stringify(a));try{window.dispatchEvent(new StorageEvent('storage',{key:CHATKEY,newValue:JSON.stringify(a)}))}catch(e){}}
+  function meId(){return session?.role==='admin'?'ADMIN':session?.branchId||''}
+  window.openChat=function(){modal('Live Chat',chatPanel(session.role));setTimeout(()=>{initChat(session.role)},0)};
+  window.chatPanel=function(role){const users=[{id:'ADMIN',name:'Admin Panel'}].concat(db.branches.map(b=>({id:b.id,name:b.name}))).filter(u=>u.id!==meId());return `<div class="chatWrap"><div class="chatUsers"><b style="font-size:12px">Contacts</b><div style="margin-top:8px">${users.map((u,i)=>`<button class="chatUser ${i===0?'active':''}" data-chat-user="${esc(u.id)}" onclick="selectChat('${esc(u.id)}')">${esc(u.name)}</button>`).join('')}</div></div><div class="chatBox"><div class="chatHead" id="chatHead">${esc(users[0]?.name||'Select contact')}</div><div class="chatMessages" id="chatMessages"></div><div class="chatComposer"><input id="chatInput" placeholder="Type message…" onkeydown="if(event.key==='Enter'){event.preventDefault();sendChatMessage()}"><button class="btn primary" onclick="sendChatMessage()">Send</button></div></div></div>`}
+  let chatPeer='';
+  window.initChat=function(){const first=document.querySelector('[data-chat-user]');chatPeer=first?.getAttribute('data-chat-user')||'';refreshChat();}
+  window.selectChat=function(id){chatPeer=id;document.querySelectorAll('[data-chat-user]').forEach(x=>x.classList.toggle('active',x.getAttribute('data-chat-user')===id));const b=db.branches.find(x=>x.id===id);document.getElementById('chatHead').textContent=id==='ADMIN'?'Admin Panel':b?.name||id;refreshChat();document.getElementById('chatInput')?.focus()}
+  window.sendChatMessage=function(){const input=document.getElementById('chatInput');const text=(input?.value||'').trim();if(!text||!chatPeer)return;const arr=chats();arr.push({id:crypto.randomUUID(),from:meId(),to:chatPeer,text,at:new Date().toISOString()});saveChats(arr);input.value='';refreshChat()}
+  window.refreshChat=function(){const box=document.getElementById('chatMessages');if(!box)return;const arr=chats().filter(x=>(x.from===meId()&&x.to===chatPeer)||(x.from===chatPeer&&x.to===meId()));box.innerHTML=arr.map(x=>`<div class="chatMsg ${x.from===meId()?'mine':'theirs'}"><div>${esc(x.text)}</div><div class="chatMeta">${new Date(x.at).toLocaleString()}</div></div>`).join('')||'<div style="text-align:center;color:#8a96aa;font-size:12px;margin-top:120px">No messages yet.</div>';box.scrollTop=box.scrollHeight}
+  window.addEventListener('storage',e=>{if(e.key===CHATKEY)refreshChat()});
+  if('BroadcastChannel' in window){try{const bc=new BroadcastChannel('tmss_chat_live');bc.onmessage=()=>refreshChat();window.tmssChatBroadcast=bc;const oldSend=window.sendChatMessage;window.sendChatMessage=function(){oldSend();try{bc.postMessage({t:Date.now()})}catch(e){}}}catch(e){}}
+})();
+</script>
