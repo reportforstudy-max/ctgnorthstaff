@@ -9,7 +9,12 @@
 .app{min-height:100vh;background:var(--bg)}.appbar{height:68px;background:#fff;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;padding:0 3vw;position:sticky;top:0;z-index:15}.main{padding:25px 3vw}.topline{display:flex;justify-content:space-between;align-items:end;gap:15px;flex-wrap:wrap}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin:18px 0}.stat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:17px}.stat small{color:var(--muted)}.stat b{display:block;font-size:25px;margin-top:5px}.toolbar{display:flex;flex-wrap:wrap;gap:9px;margin:15px 0}.toolbar input,.toolbar select{padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}.tablewrap{overflow:auto;background:#fff;border:1px solid var(--line);border-radius:17px}.table{width:100%;border-collapse:collapse;min-width:1250px}.table th,.table td{padding:11px 10px;border-bottom:1px solid #edf0f5;text-align:left;font-size:12px;vertical-align:top}.table th{font-size:11px;text-transform:uppercase;color:#66748b;background:#fafbfe}.pill{padding:4px 8px;border-radius:20px;background:#eaf2ff;color:#2e54b7;font-size:10px;font-weight:800}.pill.red{background:#fff0f0;color:#bb343b}.smallBtn{padding:6px 8px;border-radius:8px;background:#edf1ff;color:#2d4fb0;font-size:11px}.smallBtn.red{background:#fff0f0;color:#bb343b}.tabs{display:flex;gap:7px;overflow:auto;margin:12px 0}.tab{padding:9px 13px;border-radius:10px;background:#fff;border:1px solid var(--line);font-weight:750;color:#53627a;white-space:nowrap}.tab.active{background:#1f4fff;color:#fff}.branchGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}.branchBox{padding:14px;background:#fff;border:1px solid var(--line);border-radius:14px}.branchBox b{display:block}.branchBox small{color:var(--muted)}.notice{padding:11px 13px;background:#fff8df;border:1px solid #f2e2a6;border-radius:11px;font-size:12px;color:#6f5a1c;margin:10px 0}.readonly td{user-select:text}
 .toast{position:fixed;right:20px;bottom:20px;background:#17233f;color:#fff;padding:12px 16px;border-radius:11px;z-index:200;box-shadow:0 15px 40px #0003}
 @media(max-width:900px){.hero{grid-template-columns:1fr}.features{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr 1fr}.stats{grid-template-columns:1fr 1fr}}@media(max-width:560px){.features,.grid,.stats{grid-template-columns:1fr}.hero{padding-top:45px}.nav{padding:10px 12px;height:auto;min-height:72px;gap:8px;align-items:center}.nav .actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:5px}.nav .actions .btn{padding:8px 9px;font-size:11px;white-space:nowrap}.nav .actions .btn:first-child{display:block}.hero .actions{flex-wrap:wrap}.hero .actions .btn{font-size:12px;padding:9px 11px}.appbar{padding:0 15px}.main{padding:18px 15px}.modal{padding:18px;border-radius:18px}.tablewrap{border-radius:12px}.table{min-width:1180px}.toolbar{gap:7px}.toolbar .btn,.toolbar input,.toolbar select{max-width:100%}}
-</style></head><body>
+</style>
+<!-- TMSS CLOUD BACKEND: Firebase Firestore. Paste your Firebase web config in TMSS_FIREBASE_CONFIG below. -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+</head><body>
 <div id="landing"><div class="nav"><div class="brand"><div class="logo">T</div><div>TMSS Staff Info<small style="display:block;color:#7a879b">CTG North Zone</small></div></div><div class="actions"><button class="btn" onclick="loginOpen('branch')">Branch Sign In</button><button class="btn primary" onclick="loginOpen('admin')">Admin Panel</button><button class="btn" onclick="loginOpen('viewer')">View Only</button></div></div>
 <section class="hero"><div><span class="eyebrow">21 BRANCHES • CENTRAL STAFF DIRECTORY</span><h1>One platform for <span>every staff record.</span></h1><p>Branch-wise staff management with controlled access, transfers, resignations, regional mapping, CSV reporting and a read-only information panel.</p><div class="actions"><button class="btn primary" onclick="loginOpen('branch')">Enter Branch Portal →</button><button class="btn" onclick="loginOpen('viewer')">Open View Only</button></div></div><div class="heroCard"><b>TMSS • CTG NORTH ZONE</b><h2>Clean data. Controlled access.</h2><div style="opacity:.8;line-height:1.6">Branch users manage their own staff. Transfers wait for admin approval. Admin retains complete control.</div><div class="metrics"><div><small>Branches</small><b id="heroBranches">21</b></div><div><small>Designation</small><b>9</b></div><div><small>Domain</small><b>Op-05</b></div><div><small>Zone</small><b>Ctg North</b></div></div></div></section>
 <section class="section"><div class="features"><div class="card"><b>👥 Staff Directory</b><p>Bangla address, NID-based bilingual name, designation and complete employment fields.</p></div><div class="card"><b>🔄 Approval Transfer</b><p>Branch transfer requests stay pending until Admin approves them.</p></div><div class="card"><b>📊 CSV Reports</b><p>Branch-wise CSV and one compiled all-branch CSV using the exact requested column order.</p></div><div class="card"><b>🔐 Role Separation</b><p>Branch, Admin and read-only View Panel have separate access levels.</p></div></div></section><footer class="footer">TMSS Staff Info • CTG North Zone</footer></div>
@@ -1051,3 +1056,118 @@ function saveBranch(id){
   };
 })();
 </script>
+\n<script>
+/*
+ TMSS CLOUD SYNC — preserves the existing UI/business logic and moves shared data
+ from browser-only localStorage to Firebase Firestore so 21 branch PCs + Admin can
+ use the same live database.
+
+ IMPORTANT: replace the placeholder values in TMSS_FIREBASE_CONFIG with the Web App
+ config from your Firebase project. Enable Anonymous Authentication + Firestore.
+*/
+(function(){
+  const TMSS_FIREBASE_CONFIG = window.TMSS_FIREBASE_CONFIG || {
+    apiKey: "PASTE_FIREBASE_API_KEY",
+    authDomain: "PASTE_PROJECT_ID.firebaseapp.com",
+    projectId: "PASTE_PROJECT_ID",
+    storageBucket: "PASTE_PROJECT_ID.firebasestorage.app",
+    messagingSenderId: "PASTE_MESSAGING_SENDER_ID",
+    appId: "PASTE_FIREBASE_APP_ID"
+  };
+  const configured=TMSS_FIREBASE_CONFIG.apiKey && !String(TMSS_FIREBASE_CONFIG.apiKey).startsWith('PASTE_') && TMSS_FIREBASE_CONFIG.projectId && !String(TMSS_FIREBASE_CONFIG.projectId).startsWith('PASTE_');
+  if(!configured){
+    console.warn('TMSS Cloud Sync is not configured. Add Firebase web config to enable multi-PC sync.');
+    window.tmssCloud={enabled:false,status:'Not configured'};
+    return;
+  }
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(TMSS_FIREBASE_CONFIG);
+    const auth=firebase.auth(), fs=firebase.firestore();
+    const stateRef=fs.collection('tmss').doc('centralState');
+    const chatRef=fs.collection('tmss').doc('centralChat');
+    const clientId=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random());
+    let suppress=false, applyingRemote=false, started=false, lastStateStamp=0, lastChatStamp=0, uploadTimer=null, chatTimer=null;
+    window.tmssCloud={enabled:true,status:'Connecting…',clientId};
+
+    function markStatus(text){window.tmssCloud.status=text;document.dispatchEvent(new CustomEvent('tmss-cloud-status',{detail:text}));}
+    function cloneDb(){try{return JSON.parse(JSON.stringify(window.db||db));}catch(e){return null}}
+    function uploadState(){
+      const payload=cloneDb(); if(!payload)return;
+      const stamp=Date.now(); lastStateStamp=Math.max(lastStateStamp,stamp);
+      stateRef.set({payload,stamp,source:clientId,updatedAt:firebase.firestore.FieldValue.serverTimestamp()})
+        .then(()=>markStatus('Cloud synced'))
+        .catch(e=>markStatus('Cloud sync error: '+(e.message||e)));
+    }
+    function scheduleStateUpload(){
+      if(suppress)return;
+      clearTimeout(uploadTimer); uploadTimer=setTimeout(uploadState,250);
+    }
+    function applyState(payload,stamp){
+      if(!payload || applyingRemote || stamp<=lastStateStamp)return;
+      applyingRemote=true; lastStateStamp=stamp; suppress=true;
+      try{
+        window.db=payload; db=payload;
+        localStorage.setItem('tmss_db_v2',JSON.stringify(payload));
+        suppress=false;
+        if(typeof session!=='undefined' && session){
+          if(session.role==='admin' && typeof renderAdmin==='function')renderAdmin();
+          else if(session.role==='viewer' && typeof renderViewer==='function')renderViewer();
+          else if(session.role==='branch' && typeof renderBranch==='function')renderBranch();
+        }
+      }catch(e){console.error(e)}
+      suppress=false; applyingRemote=false;
+    }
+    function initialState(){
+      stateRef.get().then(snap=>{
+        if(snap.exists){
+          const d=snap.data()||{}; applyState(d.payload,Number(d.stamp||0)); markStatus('Cloud connected');
+        }else{
+          uploadState(); markStatus('Cloud initialized from this browser');
+        }
+        started=true;
+      }).catch(e=>{started=true;markStatus('Cloud connection failed: '+(e.message||e))});
+    }
+
+    function uploadChat(){
+      try{
+        const raw=localStorage.getItem('tmss_chat_v1'); if(!raw)return;
+        const messages=JSON.parse(raw); const stamp=Date.now(); lastChatStamp=Math.max(lastChatStamp,stamp);
+        chatRef.set({messages,stamp,source:clientId,updatedAt:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{});
+      }catch(e){}
+    }
+    function scheduleChatUpload(){clearTimeout(chatTimer);chatTimer=setTimeout(uploadChat,250)}
+    function applyChat(messages,stamp){
+      if(!Array.isArray(messages)||stamp<=lastChatStamp)return;
+      lastChatStamp=stamp; suppress=true;
+      try{localStorage.setItem('tmss_chat_v1',JSON.stringify(messages));window.dispatchEvent(new StorageEvent('storage',{key:'tmss_chat_v1',newValue:JSON.stringify(messages)}));}catch(e){}
+      suppress=false;
+    }
+
+    // Intercept ONLY the two existing shared localStorage keys. All other localStorage
+    // behavior (login/session/etc.) remains unchanged.
+    const nativeSet=Storage.prototype.setItem;
+    Storage.prototype.setItem=function(key,value){
+      nativeSet.call(this,key,value);
+      if(suppress)return;
+      if(key==='tmss_db_v2' && started)scheduleStateUpload();
+      if(key==='tmss_chat_v1' && started)scheduleChatUpload();
+    };
+
+    auth.signInAnonymously().then(()=>{
+      markStatus('Cloud connected');
+      initialState();
+      chatRef.get().then(s=>{if(s.exists){const d=s.data()||{};applyChat(d.messages,Number(d.stamp||0))}}).catch(()=>{});
+      setInterval(()=>{
+        stateRef.get().then(s=>{if(!s.exists)return;const d=s.data()||{};if(Number(d.stamp||0)>lastStateStamp)applyState(d.payload,Number(d.stamp||0))}).catch(()=>{});
+      },2500);
+      setInterval(()=>{
+        chatRef.get().then(s=>{if(!s.exists)return;const d=s.data()||{};if(Number(d.stamp||0)>lastChatStamp)applyChat(d.messages,Number(d.stamp||0))}).catch(()=>{});
+      },2500);
+    }).catch(e=>markStatus('Cloud login failed: '+(e.message||e)));
+
+    window.addEventListener('beforeunload',()=>{try{uploadState();uploadChat()}catch(e){}});
+  }catch(e){
+    console.error(e); window.tmssCloud={enabled:false,status:'Firebase error'};
+  }
+})();
+</script>\n
