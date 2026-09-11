@@ -1568,7 +1568,7 @@ function saveBranch(id){
   const originalStaffForm=window.staffForm;
   window.staffForm=function(s={},allowBranch=true){
     const branchId=s.branchId||((session?.role==='branch')?session.branchId:(db.branches[0]?.id||''));
-    const list=typeof designs==='function'?designs():[];
+    const list=(typeof window.tmssDesignations==='function'?window.tmssDesignations():[]);
     const exists=list.some(d=>String(d.name).toLowerCase()===String(s.designation||'').trim().toLowerCase());
     const selected=exists?String(s.designation||''):'__custom__';
     const req=id=>typeof isReq==='function'?(isReq(id)?' *':''):'';
@@ -1688,18 +1688,28 @@ function saveBranch(id){
   function fsReady(){return window.firebase&&firebase.apps&&firebase.apps.length}
   async function chatRefV4(){if(!fsReady())return null;const a=firebase.auth();if(!a.currentUser){try{await a.signInAnonymously()}catch(e){} }return firebase.firestore().collection('tmss').doc('centralChat')}
   async function loadReads(){try{return JSON.parse(localStorage.getItem('tmss_chat_reads_v1')||'{}')}catch(e){return{}}}
-  function unreadFor(peer){const reads=loadReads();const stamp=Number(reads[me()+'|'+peer]||0);return chatMessagesV4.filter(x=>x.to===me()&&x.from===peer&&new Date(x.at).getTime()>stamp).length}
+  function msgTime(x){const t=Date.parse(x?.at||'');return Number.isFinite(t)?t:0}
+  function unreadFor(peer){const reads=loadReads();const stamp=Number(reads[me()+'|'+peer]||0);return chatMessagesV4.filter(x=>x.to===me()&&x.from===peer&&msgTime(x)>stamp).length}
   function paintChatBadges(){
-    const total=chatMessagesV4.filter(x=>x.to===me()&&new Date(x.at).getTime()>0).filter(x=>{const reads=loadReads();return new Date(x.at).getTime()>Number(reads[me()+'|'+x.from]||0)}).length;
+    const reads=loadReads();
+    const total=chatMessagesV4.filter(x=>x.to===me()&&msgTime(x)>Number(reads[me()+'|'+x.from]||0)).length;
     document.querySelectorAll('.tmssChatBadge').forEach(b=>{b.textContent=total?String(total):'';b.hidden=!total});
     document.querySelectorAll('[data-chat-user]').forEach(b=>{const peer=b.getAttribute('data-chat-user');let badge=b.querySelector('.tmssContactBadge');const n=unreadFor(peer);if(!badge){badge=document.createElement('span');badge.className='tmssContactBadge';b.appendChild(badge)}badge.textContent=n?String(n):'';badge.hidden=!n});
   }
-  function markRead(peer){const reads=loadReads();reads[me()+'|'+peer]=Date.now();localStorage.setItem('tmss_chat_reads_v1',JSON.stringify(reads));paintChatBadges();}
+  function markRead(peer){
+    if(!peer)return;
+    const received=chatMessagesV4.filter(x=>x.to===me()&&x.from===peer).map(msgTime).filter(Boolean);
+    const latest=received.length?Math.max.apply(null,received):Date.now();
+    const reads=loadReads();
+    reads[me()+'|'+peer]=latest;
+    localStorage.setItem('tmss_chat_reads_v1',JSON.stringify(reads));
+    paintChatBadges();
+  }
   function renderChatMessages(){const box=document.getElementById('chatMessages');if(!box)return;const arr=chatMessagesV4.filter(x=>(x.from===me()&&x.to===chatPeerV4)||(x.from===chatPeerV4&&x.to===me()));box.innerHTML=arr.map(x=>`<div class="chatMsg ${x.from===me()?'mine':'theirs'}"><div>${escx(x.text)}</div><div class="chatMeta">${new Date(x.at).toLocaleString()}</div></div>`).join('')||'<div style="text-align:center;color:#8a96aa;font-size:12px;margin-top:120px">No messages yet.</div>';box.scrollTop=box.scrollHeight;paintChatBadges()}
-  function attachChatRealtime(){if(chatUnsubV4)try{chatUnsubV4()}catch(e){};if(!fsReady())return;try{chatUnsubV4=firebase.firestore().collection('tmss').doc('centralChat').onSnapshot(s=>{const d=s.data()||{};chatMessagesV4=Array.isArray(d.messages)?d.messages:[];try{localStorage.setItem(CHATKEY,JSON.stringify(chatMessagesV4))}catch(e){};renderChatMessages();paintChatBadges()})}catch(e){chatMessagesV4=localMsgs();renderChatMessages()}}
+  function attachChatRealtime(){if(chatUnsubV4)try{chatUnsubV4()}catch(e){};if(!fsReady())return;try{chatUnsubV4=firebase.firestore().collection('tmss').doc('centralChat').onSnapshot(s=>{const d=s.data()||{};chatMessagesV4=Array.isArray(d.messages)?d.messages:[];try{localStorage.setItem(CHATKEY,JSON.stringify(chatMessagesV4))}catch(e){};if(chatPeerV4&&document.getElementById('chatMessages'))markRead(chatPeerV4);renderChatMessages();paintChatBadges()})}catch(e){chatMessagesV4=localMsgs();renderChatMessages()}}
   window.chatPanel=function(role){const meId=me();const users=[{id:'ADMIN',name:'Admin Panel'}].concat((db.branches||[]).map(b=>({id:b.id,name:b.name}))).filter(u=>u.id!==meId);return `<div class="chatWrap"><div class="chatUsers"><b style="font-size:12px">Contacts</b><div style="margin-top:8px">${users.map((u,i)=>`<button class="chatUser ${i===0?'active':''}" data-chat-user="${escx(u.id)}" onclick="selectChat('${escx(u.id)}')"><span class="tmssChatUserLine"><span>${escx(u.name)}</span><span class="tmssContactBadge" hidden></span></span></button>`).join('')}</div></div><div class="chatBox"><div class="chatHead" id="chatHead">${escx(users[0]?.name||'Select contact')}</div><div class="chatMessages" id="chatMessages"></div><div class="chatComposer"><input id="chatInput" placeholder="Type message…"><button type="button" class="btn primary" id="chatSendBtn" onclick="sendChatMessage()">Send</button></div></div></div>`}
   window.openChat=function(){modal('Live Chat',window.chatPanel(session.role));setTimeout(()=>window.initChat(session.role),20)};
-  window.initChat=function(){const first=document.querySelector('[data-chat-user]');chatPeerV4=first?.getAttribute('data-chat-user')||'';attachChatRealtime();renderChatMessages();const inp=document.getElementById('chatInput');if(inp){inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();window.sendChatMessage()}};inp.focus()}paintChatBadges()};
+  window.initChat=function(){const first=document.querySelector('[data-chat-user]');chatPeerV4=first?.getAttribute('data-chat-user')||'';attachChatRealtime();if(chatPeerV4)markRead(chatPeerV4);renderChatMessages();const inp=document.getElementById('chatInput');if(inp){inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();window.sendChatMessage()}};inp.focus()}paintChatBadges()};
   window.selectChat=function(id){chatPeerV4=id||'';document.querySelectorAll('[data-chat-user]').forEach(x=>x.classList.toggle('active',x.getAttribute('data-chat-user')===chatPeerV4));const b=db.branches.find(x=>x.id===chatPeerV4);const h=document.getElementById('chatHead');if(h)h.textContent=chatPeerV4==='ADMIN'?'Admin Panel':b?.name||chatPeerV4;markRead(chatPeerV4);renderChatMessages();document.getElementById('chatInput')?.focus()};
   window.refreshChat=renderChatMessages;
   window.sendChatMessage=async function(){const input=document.getElementById('chatInput');const text=(input?.value||'').trim();if(!text||!chatPeerV4)return;const msg={id:crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random(),from:me(),to:chatPeerV4,text,at:new Date().toISOString()};try{const ref=await chatRefV4();if(ref){await ref.set({messages:firebase.firestore.FieldValue.arrayUnion(msg),stamp:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});chatMessagesV4=[...chatMessagesV4,msg];}else{chatMessagesV4=[...localMsgs(),msg];localStorage.setItem(CHATKEY,JSON.stringify(chatMessagesV4))}if(input)input.value='';renderChatMessages();paintChatBadges()}catch(e){console.error(e);alert('Message could not be sent. Please try again.')}};
@@ -1709,4 +1719,5 @@ function saveBranch(id){
   window.addEventListener('storage',e=>{if(e.key===CHATKEY){chatMessagesV4=localMsgs();renderChatMessages();paintChatBadges()}if(e.key==='tmss_chat_reads_v1')paintChatBadges()});
   setInterval(()=>{paintChatBadges()},1500);
 })();
+<!-- v7 targeted fixes: restore designation master in final Staff form + reliably clear chat notifications when conversation is viewed -->
 </script>
