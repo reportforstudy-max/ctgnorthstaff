@@ -1757,3 +1757,200 @@ function saveBranch(id){
 })();
 <!-- v7 targeted fixes: restore designation master in final Staff form + reliably clear chat notifications when conversation is viewed -->
 </script>
+
+<style>
+/* v9 — clean branch staff actions + bulk admin deletion */
+.adminBulkBar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:0 0 12px;padding:11px 13px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 6px 18px rgba(35,72,120,.05)}
+.adminBulkBar .bulkInfo{font-size:12px;font-weight:800;color:var(--ink);margin-right:auto}.adminBulkBar .bulkDanger{background:#fff0f1;color:#b52d35}.rowSelect{width:16px;height:16px;cursor:pointer}
+.branchStaffActions{margin:14px 0 16px;padding:16px 18px;border:1px solid #dfe7f4;border-radius:18px;background:linear-gradient(135deg,#ffffff,#f7faff);display:flex;align-items:center;justify-content:space-between;gap:16px;box-shadow:0 8px 24px rgba(36,87,255,.07)}
+.branchStaffActions .bsCopy{display:flex;align-items:center;gap:12px}.branchStaffActions .bsIcon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:#edf3ff;font-size:21px}.branchStaffActions b{display:block;font-size:14px}.branchStaffActions small{display:block;color:var(--muted);font-size:11px;margin-top:3px}.branchStaffActions .btn{min-width:142px;white-space:nowrap}
+@media(max-width:650px){.branchStaffActions{flex-direction:column;align-items:stretch}.branchStaffActions .btn{width:100%}.adminBulkBar .bulkInfo{width:100%}}
+</style>
+<script>
+/* TMSS v9 FINAL CORRECTION
+   Shared-data rule: every application save is mirrored to Firestore centralStateV2.
+   centralStateV2 is the single source of truth for staff, requests, histories,
+   modules/submissions and admin configuration. Existing v8 UI/business logic stays intact.
+*/
+(function(){
+  'use strict';
+  const V2DOC='centralStateV2';
+  let v2Ready=false,v2Applying=false,v2Timer=null,v2Unsub=null,lastV2Stamp=0;
+  function fs(){return window.firebase&&firebase.apps&&firebase.apps.length?firebase.firestore():null}
+  function clone(){try{return JSON.parse(JSON.stringify(window.db||db))}catch(e){return null}}
+  function writeCloud(){
+    const f=fs(),d=clone(); if(!f||!d||!v2Ready||v2Applying)return;
+    const stamp=Date.now(); lastV2Stamp=Math.max(lastV2Stamp,stamp);
+    Promise.all([
+      f.collection('tmss').doc(V2DOC).set({payload:d,stamp,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}),
+      f.collection('tmss').doc('centralState').set({payload:d,stamp,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}),
+      f.collection('tmss').doc('appConfig').set({payload:{branches:d.branches||[],fieldRules:d.fieldRules||[],customFields:d.customFields||[],designations:d.designations||[],notice:d.notice||{enabled:false,text:''},extraModules:d.extraModules||[],viewerAccess:d.viewerAccess||null},stamp,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})
+    ]).catch(e=>console.error('TMSS Firebase save error:',e));
+  }
+  function schedule(){clearTimeout(v2Timer);v2Timer=setTimeout(writeCloud,80)}
+  function apply(payload,stamp){
+    if(!payload||!stamp||stamp<=lastV2Stamp||v2Applying)return;
+    v2Applying=true;lastV2Stamp=stamp;
+    try{
+      window.db=payload;db=payload;
+      nativeLocal(JSON.stringify(payload));
+      if(session){
+        if(session.role==='admin'&&typeof renderAdmin==='function')renderAdmin();
+        else if(session.role==='branch'&&typeof renderBranch==='function')renderBranch();
+        else if(session.role==='viewer'&&typeof renderViewer==='function')renderViewer();
+      }
+    }catch(e){console.error('TMSS Firebase apply error:',e)}finally{v2Applying=false}
+  }
+  const nativeLocal=Storage.prototype.setItem;
+  // One authoritative save hook: all existing actions already call save().
+  const oldSave=window.save;
+  window.save=function(){
+    const r=oldSave?oldSave.apply(this,arguments):nativeLocal.call(localStorage,'tmss_db_v2',JSON.stringify(db));
+    if(!v2Applying)schedule();
+    return r;
+  };
+  window.tmssFirebaseSyncNow=function(){writeCloud()};
+
+  function start(){
+    const f=fs();if(!f)return;
+    const ref=f.collection('tmss').doc(V2DOC);
+    ref.get().then(s=>{
+      if(s.exists){const d=s.data()||{};apply(d.payload,Number(d.stamp||0));}
+      else{v2Ready=true;writeCloud();return;}
+      v2Ready=true;
+      // Make the current cloud snapshot the source immediately, then keep it realtime.
+      ref.get().catch(()=>{});
+      if(v2Unsub)try{v2Unsub()}catch(e){}
+      v2Unsub=ref.onSnapshot(snap=>{
+        const d=snap.data()||{};const st=Number(d.stamp||0);
+        if(st>lastV2Stamp)apply(d.payload,st);
+      },e=>console.error('TMSS Firebase realtime error:',e));
+    }).catch(e=>{console.error('TMSS Firebase V2 init error:',e);v2Ready=true;writeCloud();});
+  }
+  function wait(){if(fs())start();else setTimeout(wait,500)}
+  wait();
+})();
+</script>
+<script>
+/* v9 — Main Options submissions are visible in Admin and sync through the same source. */
+(function(){
+  function cloud(){try{window.tmssFirebaseSyncNow&&window.tmssFirebaseSyncNow()}catch(e){}}
+  ['saveStaff','sendResign','submitTransfer','approveResign','rejectResign','approveTransfer','rejectTransfer','applyAdminTransfer','deleteHistory','saveNotice','saveModule','submitModuleEntry','deleteModule','saveField','deleteField','saveBranch','removeBranch','setStandardRequired','setCustomFieldRequired','addMasterDesignation','removeMasterDesignation','saveViewerAccess'].forEach(function(name){
+    const old=window[name]; if(typeof old!=='function')return;
+    window[name]=function(){const r=old.apply(this,arguments);setTimeout(cloud,120);return r};
+  });
+
+  // Ensure the Admin Main Options panel has an obvious submission count.
+  const oldModulePanel=window.modulePanel;
+  if(typeof oldModulePanel==='function')window.modulePanel=function(){
+    const out=oldModulePanel.apply(this,arguments);
+    try{
+      return out.replace(/<small>\((\d+) field\(s\)[^<]*<\/small>/g,'<small>$1 field(s)</small>');
+    }catch(e){return out}
+  };
+})();
+</script>
+<script>
+/* v9 — Admin staff deletion: single, select-many, select-all visible records. */
+(function(){
+  function ids(){return [...document.querySelectorAll('.adminStaffSelect:checked')].map(x=>x.value)}
+  function removeIds(list){
+    if(session?.role!=='admin'||!list.length)return;
+    if(!confirm('Permanently delete '+list.length+' selected staff record(s)? This cannot be undone.'))return;
+    const set=new Set(list);
+    db.staff=(db.staff||[]).filter(s=>!set.has(s.id));
+    db.resignRequests=(db.resignRequests||[]).filter(x=>!set.has(x.staffId));
+    db.transferRequests=(db.transferRequests||[]).filter(x=>!set.has(x.staffId));
+    db.resignHistory=(db.resignHistory||[]).filter(x=>!set.has(x.staffId));
+    db.movements=(db.movements||[]).filter(x=>!set.has(x.staffId));
+    save();toast(list.length===1?'Staff deleted.':list.length+' staff records deleted.');renderAdmin();
+  }
+  window.tmssDeleteSelectedStaff=function(){removeIds(ids())};
+  window.tmssDeleteOneStaff=function(id){removeIds([id])};
+  window.tmssToggleAllStaff=function(on){document.querySelectorAll('.adminStaffSelect').forEach(x=>x.checked=!!on);const c=document.getElementById('tmssSelectedCount');if(c)c.textContent=ids().length+' selected'};
+  window.tmssRefreshSelectedCount=function(){const c=document.getElementById('tmssSelectedCount');if(c)c.textContent=ids().length+' selected'};
+
+  const oldRefresh=window.refreshAdmin;
+  window.refreshAdmin=function(){
+    const r=oldRefresh.apply(this,arguments);setTimeout(function(){
+      const host=document.getElementById('at');if(!host)return;
+      const table=host.querySelector('table');if(!table)return;
+      if(!table.querySelector('thead .adminSelectHead')){const th=document.createElement('th');th.className='adminSelectHead';th.innerHTML='<input class="rowSelect" type="checkbox" title="Select all visible staff" onchange="tmssToggleAllStaff(this.checked)">';table.querySelector('thead tr').insertBefore(th,table.querySelector('thead tr').firstElementChild)}
+      table.querySelectorAll('tbody tr').forEach(function(tr){
+        if(tr.querySelector('.adminStaffSelect'))return;
+        const id=(tr.querySelector('button[onclick*="openStaff("]')?.getAttribute('onclick')||'').match(/openStaff\('([^']+)'/i)?.[1];
+        if(!id)return;
+        const td=document.createElement('td');td.innerHTML='<input class="rowSelect adminStaffSelect" type="checkbox" value="'+id+'" onchange="tmssRefreshSelectedCount()">';tr.insertBefore(td,tr.firstElementChild);
+      });
+      if(!document.getElementById('tmssAdminBulkBar')){
+        const bar=document.createElement('div');bar.id='tmssAdminBulkBar';bar.className='adminBulkBar';bar.innerHTML='<span id="tmssSelectedCount" class="bulkInfo">0 selected</span><button class="btn" type="button" onclick="tmssToggleAllStaff(true)">Select all visible</button><button class="btn bulkDanger" type="button" onclick="tmssDeleteSelectedStaff()">🗑 Delete selected</button>';
+        host.insertBefore(bar,host.firstChild);
+      }
+    },20);return r;
+  };
+})();
+</script>
+<script>
+/* v9 — Branch Staff Add gets its own dedicated action card, separated from CSV tools. */
+(function(){
+  const oldBranch=window.renderBranch;if(typeof oldBranch!=='function')return;
+  window.renderBranch=function(){
+    oldBranch.apply(this,arguments);
+    setTimeout(function(){
+      const main=document.querySelector('.main');if(!main)return;
+      const old=main.querySelector('.branchStaffActions');if(old)old.remove();
+      const top=main.querySelector('.topline');if(top)top.querySelectorAll('button').forEach(b=>{if(/add staff/i.test(b.textContent))b.remove()});
+      const card=document.createElement('div');card.className='branchStaffActions';card.innerHTML='<div class="bsCopy"><span class="bsIcon">👥</span><div><b>Staff Management</b><small>Add a new staff member to this branch directory</small></div></div><button class="btn primary" type="button" onclick="openStaff()">＋ Add Staff</button>';
+      const stats=main.querySelector('.stats');if(stats)main.insertBefore(card,stats);else if(top)main.insertBefore(card,top.nextSibling);else main.insertBefore(card,main.firstChild);
+    },35);
+  };
+})();
+</script>
+
+<script>
+/* v9 — chat reliability: one Firestore document per message, realtime query, explicit Seen. */
+(function(){
+  'use strict';
+  const COL='tmssChatMessagesV2';
+  let peer='',unsub=null,msgs=[];
+  const readKey=()=> 'tmss_chat_seen_v2_'+(session?.role==='admin'?'ADMIN':session?.branchId||'');
+  const me2=()=>session?.role==='admin'?'ADMIN':session?.branchId||'';
+  const reads=()=>{try{return JSON.parse(localStorage.getItem(readKey())||'{}')}catch(e){return{}}};
+  const saveReads=x=>localStorage.setItem(readKey(),JSON.stringify(x));
+  const stamp=m=>Date.parse(m.at||'')||0;
+  function unreadFor(p){const r=reads();return msgs.filter(m=>m.to===me2()&&m.from===p&&stamp(m)>Number(r[p]||0)).length}
+  function paint(){
+    const total=msgs.filter(m=>m.to===me2()&&stamp(m)>Number(reads()[m.from]||0)).length;
+    document.querySelectorAll('.tmssChatBadge').forEach(x=>{x.textContent=total?String(total):'';x.hidden=!total});
+    document.querySelectorAll('[data-chat-user]').forEach(b=>{const p=b.getAttribute('data-chat-user');let x=b.querySelector('.tmssContactBadge');if(!x){x=document.createElement('span');x.className='tmssContactBadge';b.appendChild(x)}const n=unreadFor(p);x.textContent=n?String(n):'';x.hidden=!n});
+  }
+  function seen(p){if(!p)return;const inc=msgs.filter(m=>m.to===me2()&&m.from===p).map(stamp).filter(Boolean);if(!inc.length)return;const r=reads();r[p]=Math.max(Number(r[p]||0),Math.max(...inc));saveReads(r);paint()}
+  function render(){const box=document.getElementById('chatMessages');if(!box)return;const a=msgs.filter(m=>(m.from===me2()&&m.to===peer)||(m.from===peer&&m.to===me2())).sort((x,y)=>stamp(x)-stamp(y));box.innerHTML=a.map(m=>`<div class="chatMsg ${m.from===me2()?'mine':'theirs'}"><div>${esc(m.text)}</div><div class="chatMeta">${new Date(m.at).toLocaleString()}</div></div>`).join('')||'<div style="text-align:center;color:#8a96aa;font-size:12px;margin-top:120px">No messages yet.</div>';box.scrollTop=box.scrollHeight;paint()}
+  function subscribe(){if(unsub)try{unsub()}catch(e){};if(!firebase?.apps?.length)return;try{unsub=firebase.firestore().collection(COL).onSnapshot(s=>{msgs=s.docs.map(d=>d.data());render();paint()})}catch(e){console.error(e)}}
+  window.chatPanel=function(){const users=[{id:'ADMIN',name:'Admin Panel'}].concat((db.branches||[]).map(b=>({id:b.id,name:b.name}))).filter(u=>u.id!==me2());return `<div class="chatWrap"><div class="chatUsers"><b style="font-size:12px">Contacts</b><div style="margin-top:8px">${users.map((u,i)=>`<button class="chatUser ${i===0?'active':''}" data-chat-user="${esc(u.id)}" onclick="selectChat('${esc(u.id)}')"><span class="tmssChatUserLine"><span>${esc(u.name)}</span><span class="tmssContactBadge" hidden></span></span></button>`).join('')}</div></div><div class="chatBox"><div class="chatHead" id="chatHead">${esc(users[0]?.name||'Select contact')}</div><div class="chatMessages" id="chatMessages"></div><div class="chatComposer"><input id="chatInput" placeholder="Type message…"><button type="button" class="btn primary" onclick="sendChatMessage()">Send</button></div></div></div>`}
+  window.openChat=function(){modal('Live Chat',window.chatPanel(session?.role));setTimeout(()=>window.initChat(),20)};
+  window.initChat=function(){const first=document.querySelector('[data-chat-user]');peer=first?.getAttribute('data-chat-user')||'';subscribe();if(peer)seen(peer);render();const i=document.getElementById('chatInput');if(i)i.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();window.sendChatMessage()}};paint()};
+  window.selectChat=function(id){peer=id||'';document.querySelectorAll('[data-chat-user]').forEach(x=>x.classList.toggle('active',x.getAttribute('data-chat-user')===peer));const b=(db.branches||[]).find(x=>x.id===peer),h=document.getElementById('chatHead');if(h)h.textContent=peer==='ADMIN'?'Admin Panel':b?.name||peer;render();seen(peer);document.getElementById('chatInput')?.focus()};
+  window.sendChatMessage=async function(){const i=document.getElementById('chatInput'),text=(i?.value||'').trim();if(!text||!peer)return;try{const msg={id:crypto.randomUUID(),from:me2(),to:peer,text,at:new Date().toISOString()};await firebase.firestore().collection(COL).doc(msg.id).set(msg);if(i)i.value='';}catch(e){console.error(e);alert('Message could not be sent. Please try again.')}};
+  window.tmssChatSeen=function(){seen(peer)};
+  setTimeout(()=>{if(firebase?.apps?.length){subscribe();paint()}},1800);
+  window.addEventListener('storage',e=>{if(e.key&&e.key.startsWith('tmss_chat_seen_v2_'))paint()});
+})();
+</script>
+
+<script>
+/* v9 — final Admin All Staff renderer: selectable rows + single delete + bulk delete. */
+(function(){
+  const old=window.refreshAdmin;if(typeof old!=='function')return;
+  window.refreshAdmin=function(){
+    old.apply(this,arguments);
+    setTimeout(()=>{
+      const host=document.getElementById('at');if(!host)return;
+      const t=host.querySelector('table');if(!t)return;
+      const h=t.querySelector('thead tr');if(h&&!h.querySelector('.v9sel')){const th=document.createElement('th');th.className='v9sel';th.innerHTML='<input class="rowSelect" type="checkbox" onchange="tmssToggleAllStaff(this.checked)" title="Select all">';h.insertBefore(th,h.firstElementChild)}
+      t.querySelectorAll('tbody tr').forEach(tr=>{if(tr.querySelector('.adminStaffSelect'))return;const b=tr.querySelector('button[onclick*="openStaff("]');const m=b?.getAttribute('onclick')?.match(/openStaff\('([^']+)'/);if(!m)return;const td=document.createElement('td');td.innerHTML='<input class="rowSelect adminStaffSelect" type="checkbox" value="'+m[1]+'" onchange="tmssRefreshSelectedCount()">';tr.insertBefore(td,tr.firstElementChild)});
+      let bar=document.getElementById('tmssAdminBulkBar');if(!bar){bar=document.createElement('div');bar.id='tmssAdminBulkBar';bar.className='adminBulkBar';bar.innerHTML='<span id="tmssSelectedCount" class="bulkInfo">0 selected</span><button class="btn" onclick="tmssToggleAllStaff(true)">Select all visible</button><button class="btn bulkDanger" onclick="tmssDeleteSelectedStaff()">🗑 Delete selected</button>';host.insertBefore(bar,host.firstChild)}
+    },30);
+  };
+})();
+</script>
