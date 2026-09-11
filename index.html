@@ -1462,7 +1462,8 @@ function saveBranch(id){
 
   // Expose the same auth promise to chat/other modules so they do not start a second login.
   window.tmssFirebaseAuthReady=authReady;
-  start();
+  /* v18 legacy sync disabled; replaced by v19 authoritative engine below. */
+  // start();
 })();
 </script>\n
 <script>
