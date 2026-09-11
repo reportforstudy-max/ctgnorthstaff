@@ -1403,3 +1403,260 @@ function saveBranch(id){
   `;document.head.appendChild(style);
 })();
 </script>
+
+<script>
+/* TMSS FINAL PATCH — chat reliability, notice single-bar, branch-code persistence,
+   eye/detail action, and View Only access. No unrelated business rules changed. */
+(function(){
+  // ---------- Reliable cloud chat ----------
+  const CHATKEY='tmss_chat_v1';
+  let tmssChatPeer='';
+  function chatLocal(){try{return JSON.parse(localStorage.getItem(CHATKEY)||'[]')}catch(e){return[]}}
+  function chatMe(){return session?.role==='admin'?'ADMIN':session?.branchId||''}
+  function renderChatNow(){
+    const box=document.getElementById('chatMessages'); if(!box)return;
+    const me=chatMe(), peer=tmssChatPeer, arr=chatLocal().filter(x=>(x.from===me&&x.to===peer)||(x.from===peer&&x.to===me));
+    box.innerHTML=arr.map(x=>`<div class="chatMsg ${x.from===me?'mine':'theirs'}"><div>${esc(x.text)}</div><div class="chatMeta">${new Date(x.at).toLocaleString()}</div></div>`).join('')||'<div style="text-align:center;color:#8a96aa;font-size:12px;margin-top:120px">No messages yet.</div>';
+    box.scrollTop=box.scrollHeight;
+  }
+  function setLocalChat(arr){
+    try{
+      // Use the current localStorage API; the existing cloud bridge will see this and
+      // provide a fallback upload, while direct Firestore arrayUnion below is authoritative.
+      localStorage.setItem(CHATKEY,JSON.stringify(arr));
+      window.dispatchEvent(new StorageEvent('storage',{key:CHATKEY,newValue:JSON.stringify(arr)}));
+    }catch(e){console.error(e)}
+  }
+  window.openChat=function(){
+    modal('Live Chat',window.chatPanel?window.chatPanel(session.role):'<div class="card">Chat unavailable.</div>');
+    setTimeout(function(){
+      const first=document.querySelector('[data-chat-user]');
+      tmssChatPeer=first?.getAttribute('data-chat-user')||'';
+      if(first){const b=db.branches.find(x=>x.id===tmssChatPeer);const h=document.getElementById('chatHead');if(h)h.textContent=tmssChatPeer==='ADMIN'?'Admin Panel':b?.name||tmssChatPeer;}
+      renderChatNow(); document.getElementById('chatInput')?.focus();
+    },50);
+  };
+  window.selectChat=function(id){
+    tmssChatPeer=id||'';
+    document.querySelectorAll('[data-chat-user]').forEach(x=>x.classList.toggle('active',x.getAttribute('data-chat-user')===tmssChatPeer));
+    const b=db.branches.find(x=>x.id===tmssChatPeer),h=document.getElementById('chatHead');
+    if(h)h.textContent=tmssChatPeer==='ADMIN'?'Admin Panel':b?.name||tmssChatPeer;
+    renderChatNow(); document.getElementById('chatInput')?.focus();
+  };
+  window.sendChatMessage=async function(){
+    const input=document.getElementById('chatInput'), text=(input?.value||'').trim(), me=chatMe(), peer=tmssChatPeer;
+    if(!text||!me||!peer){return;}
+    const msg={id:(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random()),from:me,to:peer,text,at:new Date().toISOString()};
+    const arr=chatLocal();arr.push(msg);setLocalChat(arr);if(input)input.value='';renderChatNow();
+    try{
+      if(window.firebase && firebase.apps && firebase.apps.length){
+        const ref=firebase.firestore().collection('tmss').doc('centralChat');
+        await ref.set({messages:firebase.firestore.FieldValue.arrayUnion(msg),stamp:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+      }
+    }catch(e){console.error('Chat cloud send failed:',e);}
+  };
+  window.refreshChat=renderChatNow;
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Enter' && e.target && e.target.id==='chatInput'){e.preventDefault();window.sendChatMessage();}
+  });
+
+  // ---------- One notice bar only ----------
+  window.tmssFixNotice=function(){
+    const main=document.querySelector('.main'); if(!main)return;
+    main.querySelectorAll('.noticeBoard,.tmssNoticeBar').forEach(x=>x.remove());
+    if(session?.role==='branch'){
+      const b=db.branches.find(x=>x.id===session.branchId);
+      if(b){
+        main.querySelectorAll('.topline .eyebrow').forEach(x=>x.textContent=String(b.name||'')+(b.code?' ('+b.code+')':''));
+        main.querySelectorAll('.topline .stat b').forEach(x=>{if(x.textContent.includes(b.name)||x.closest('.stat')?.querySelector('small')?.textContent==='Branch')x.textContent=String(b.name||'')+(b.code?' ('+b.code+')':'')});
+      }
+    }
+    if(db.notice?.enabled && String(db.notice.text||'').trim()){
+      const n=document.createElement('div');n.className='tmssNoticeBar';
+      n.innerHTML='<div class="tmssNoticeTrack"><span>📢 '+esc(db.notice.text)+'</span></div>';
+      main.insertBefore(n,main.querySelector('.topline')||main.firstChild);
+    }
+  };
+  const oldRB=window.renderBranch;
+  window.renderBranch=function(){oldRB.apply(this,arguments);setTimeout(window.tmssFixNotice,20)};
+  setInterval(window.tmssFixNotice,1500);
+
+  // ---------- Eye/detail button inside the staff table ----------
+  const prevTable=window.table;
+  if(typeof prevTable==='function'){
+    window.table=function(rows,opts){
+      const html=prevTable(rows,opts);
+      if(!rows?.length)return html;
+      // Add a real eye button to the Actions column without replacing existing actions.
+      setTimeout(function(){
+        document.querySelectorAll('.tmssStaffTable tbody tr').forEach(function(tr,i){
+          if(tr.querySelector('.tmssEyeBtn'))return;
+          const s=rows.slice().sort(function(a,b){return (typeof designRank==='function'?designRank(a.designation):9999)-(typeof designRank==='function'?designRank(b.designation):9999)||String(a.nameEn||'').localeCompare(String(b.nameEn||''));})[i];
+          const cell=tr.querySelector('.actionCell'); if(!cell||!s)return;
+          const btn=document.createElement('button');btn.className='smallBtn tmssEyeBtn';btn.type='button';btn.textContent='👁️ View';btn.onclick=function(){window.tmssViewStaff(s.id)};
+          cell.querySelector('.actions')?.prepend(btn);
+        });
+      },0);
+      return html;
+    };
+  }
+  window.tmssViewStaff=function(id){
+    const s=db.staff.find(x=>x.id===id);if(!s)return;
+    const b=db.branches.find(x=>x.id===s.branchId);
+    modal('Staff Details',`<div class="card" style="box-shadow:none;border:0;padding:0"><div class="grid"><div><b>Employee ID</b><div>${esc(s.employeeId||'—')}</div></div><div><b>Name English</b><div>${esc(s.nameEn||'—')}</div></div><div><b>Name Bangla</b><div>${esc(s.nameBn||'—')}</div></div><div><b>Designation</b><div>${esc(s.designation||'—')}</div></div><div><b>Grade</b><div>${esc(s.grade||'—')}</div></div><div><b>Branch</b><div>${esc(b?.name||'—')}${b?.code?' ('+esc(b.code)+')':''}</div></div><div><b>Region</b><div>${esc(b?.region||s.region||'—')}</div></div><div><b>Joining Date (TMSS)</b><div>${bd(s.tmssJoin)}</div></div><div><b>Joining Date (Branch)</b><div>${bd(s.branchJoin)}</div></div><div><b>Personal Phone</b><div>${esc(s.phone||'—')}</div></div></div><hr><div><b>Address</b><div style="line-height:1.8;margin-top:6px">গ্রাম: ${esc(s.village||'—')}<br>ডাকঘর: ${esc(s.post||'—')}<br>থানা/উপজেলা: ${esc(s.thana||s.upazila||'—')}<br>জেলা: ${esc(s.district||'—')}</div></div></div><div class="modalActions"><button class="btn" onclick="closeTemp()">Close</button></div>`);
+  };
+
+  // ---------- Make View Only access unmistakable and persistent ----------
+  function ensureViewerAccess(){
+    db.viewerAccess=db.viewerAccess||{username:VIEWER.username,password:VIEWER.password};
+    VIEWER.username=db.viewerAccess.username||VIEWER.username;VIEWER.password=db.viewerAccess.password||VIEWER.password;
+  }
+  window.viewerAccessPanel=function(){ensureViewerAccess();return `<div class="card"><h3 style="margin-top:0">View Only Access</h3><p style="color:var(--muted);font-size:12px">Admin-only control. Change the View Only login username and password here.</p><div class="grid"><div class="field"><label>View Only Username *</label><input id="viewerUser" value="${esc(VIEWER.username)}" autocomplete="off"></div><div class="field"><label>View Only Password *</label><input id="viewerPass" value="${esc(VIEWER.password)}" autocomplete="new-password"></div></div><div id="viewerAccessErr" class="err"></div><div class="modalActions"><button class="btn primary" onclick="saveViewerAccess()">Save View Only Access</button></div></div>`};
+  window.saveViewerAccess=function(){
+    const u=(document.getElementById('viewerUser')?.value||'').trim(),p=document.getElementById('viewerPass')?.value||'',err=document.getElementById('viewerAccessErr');
+    if(!u||!p){if(err)err.textContent='Username and password are required.';return;}
+    VIEWER.username=u;VIEWER.password=p;db.viewerAccess={username:u,password:p};save();
+    try{window.tmssCloudSyncConfig&&window.tmssCloudSyncConfig();}catch(e){}
+    toast('View Only access updated successfully.');
+    const active=document.querySelector('.tab[data-access-tab]');if(active)window.adminTab(active,'access');
+  };
+  const oldRenderAdminFinal=window.renderAdmin;
+  window.renderAdmin=function(){oldRenderAdminFinal.apply(this,arguments);setTimeout(function(){
+    const tabs=document.querySelector('.tabs');if(!tabs)return;
+    if(!tabs.querySelector('[data-access-tab]')){const b=document.createElement('button');b.className='tab';b.setAttribute('data-access-tab','1');b.textContent='🔐 View Only Access';b.onclick=function(){window.adminTab(b,'access')};tabs.appendChild(b);}
+  },30)};
+
+  // ---------- Force config sync after branch/notice/viewer changes ----------
+  ['saveBranch','saveNotice'].forEach(function(name){
+    const fn=window[name];if(typeof fn!=='function')return;
+    window[name]=function(){const r=fn.apply(this,arguments);setTimeout(function(){try{window.tmssCloudSyncConfig&&window.tmssCloudSyncConfig()}catch(e){}},50);return r;};
+  });
+})();
+</script>
+
+<script>
+/* TMSS CHAT/CLOUD HARDENING — stop legacy whole-chat overwrites and sync config immediately. */
+(function(){
+  // Replace the cloud bridge's chat writer with a no-op by making its periodic
+  // upload function harmless through a direct, authoritative send path.
+  // Local chat remains the UI cache; Firestore arrayUnion is the shared source.
+  const originalSet=Storage.prototype.setItem;
+  // Keep database/config interception working, but avoid the old chat uploader by
+  // tagging chat writes. The final send function writes directly to Firestore.
+  window.tmssChatDirect=true;
+
+  window.tmssCloudSyncConfig=function(){
+    try{
+      if(!window.firebase||!firebase.apps||!firebase.apps.length)return;
+      const d=window.db||db;
+      const payload={
+        branches:Array.isArray(d.branches)?d.branches:[],
+        fieldRules:Array.isArray(d.fieldRules)?d.fieldRules:[],
+        customFields:Array.isArray(d.customFields)?d.customFields:[],
+        designations:Array.isArray(d.designations)?d.designations:[],
+        notice:d.notice||{enabled:false,text:''},
+        extraModules:Array.isArray(d.extraModules)?d.extraModules:[],
+        viewerAccess:d.viewerAccess||null
+      };
+      firebase.firestore().collection('tmss').doc('appConfig').set({payload,stamp:Date.now(),source:'config-'+Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}).catch(function(e){console.error('Config sync failed:',e)});
+    }catch(e){console.error('Config sync error:',e)}
+  };
+
+  // Authoritative chat send: read the latest Firestore document first, merge the new
+  // message with arrayUnion, then refresh the local cache from the resulting document.
+  window.sendChatMessage=async function(){
+    const input=document.getElementById('chatInput'),text=(input?.value||'').trim();
+    const me=session?.role==='admin'?'ADMIN':session?.branchId||'',peer=window.__tmssChatPeer||'';
+    // The selectChat override below keeps this variable current.
+    const actualPeer=peer||document.querySelector('[data-chat-user].active')?.getAttribute('data-chat-user')||'';
+    if(!text||!me||!actualPeer)return;
+    const msg={id:(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random()),from:me,to:actualPeer,text,at:new Date().toISOString()};
+    try{
+      if(window.firebase&&firebase.apps&&firebase.apps.length){
+        const ref=firebase.firestore().collection('tmss').doc('centralChat');
+        await ref.set({messages:firebase.firestore.FieldValue.arrayUnion(msg),stamp:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+        const snap=await ref.get();const data=snap.data()||{};const messages=Array.isArray(data.messages)?data.messages:[];
+        try{originalSet.call(localStorage,'tmss_chat_v1',JSON.stringify(messages));}catch(e){}
+      }else{
+        const a=JSON.parse(localStorage.getItem('tmss_chat_v1')||'[]');a.push(msg);originalSet.call(localStorage,'tmss_chat_v1',JSON.stringify(a));
+      }
+      if(input)input.value='';
+      if(typeof window.refreshChat==='function')window.refreshChat();
+    }catch(e){console.error('Unable to send chat:',e);alert('Message could not be sent. Please try again.');}
+  };
+  const oldSelect=window.selectChat;
+  window.selectChat=function(id){window.__tmssChatPeer=id||'';return oldSelect.apply(this,arguments)};
+  // Prevent the old wrapper from repeatedly uploading stale whole-chat arrays by
+  // replacing local chat writes with the native Storage setter inside our send path.
+  window.tmssNativeStorageSet=originalSet;
+})();
+</script>
+
+<script>
+/* TMSS FINAL-2 — global notice cleanup + guaranteed config persistence. */
+(function(){
+  window.tmssFixNotice=function(){
+    const main=document.querySelector('.main');if(!main)return;
+    // The old notice can be outside .main (inside the top app bar markup), so remove globally.
+    document.querySelectorAll('.noticeBoard,.tmssNoticeBar').forEach(x=>x.remove());
+    if(session?.role==='branch'){
+      const b=db.branches.find(x=>x.id===session.branchId);
+      if(b){
+        main.querySelectorAll('.topline .eyebrow').forEach(x=>x.textContent=String(b.name||'')+(b.code?' ('+b.code+')':''));
+        main.querySelectorAll('.stat').forEach(st=>{
+          const sm=st.querySelector('small'),bb=st.querySelector('b');
+          if(sm&&bb&&sm.textContent.trim()==='Branch')bb.textContent=String(b.name||'')+(b.code?' ('+b.code+')':'');
+          if(sm&&bb&&sm.textContent.trim()==='Branch code')bb.textContent=b.code||'—';
+        });
+      }
+    }
+    if(db.notice?.enabled&&String(db.notice.text||'').trim()){
+      const n=document.createElement('div');n.className='tmssNoticeBar';
+      n.innerHTML='<div class="tmssNoticeTrack"><span>📢 '+esc(db.notice.text)+'</span></div>';
+      main.insertBefore(n,main.querySelector('.topline')||main.firstChild);
+    }
+  };
+  // Keep only one bar, but do not restart it every few seconds unless an old duplicate exists.
+  setInterval(function(){
+    const bars=document.querySelectorAll('.tmssNoticeBar,.noticeBoard');
+    if(bars.length!==1 || (bars.length===1 && bars[0].parentElement!==document.querySelector('.main')))window.tmssFixNotice();
+  },1000);
+
+  // Config writer that is independent of the previous startup timing race.
+  window.tmssCloudSyncConfig=function(){
+    try{
+      if(!window.firebase||!firebase.apps||!firebase.apps.length)return;
+      const d=window.db||db;
+      const payload={branches:d.branches||[],fieldRules:d.fieldRules||[],customFields:d.customFields||[],designations:d.designations||[],notice:d.notice||{enabled:false,text:''},extraModules:d.extraModules||[],viewerAccess:d.viewerAccess||null};
+      firebase.firestore().collection('tmss').doc('appConfig').set({payload,stamp:Date.now(),source:'admin-config',updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}).then(function(){
+        // no-op; successful write is enough
+      }).catch(function(e){console.error('TMSS config write failed',e)});
+    }catch(e){console.error(e)}
+  };
+  // Ensure branch code and access are written after the actual save completes.
+  const sb=window.saveBranch;
+  if(typeof sb==='function')window.saveBranch=function(){const r=sb.apply(this,arguments);setTimeout(function(){window.tmssCloudSyncConfig()},300);return r};
+  const sv=window.saveViewerAccess;
+  if(typeof sv==='function')window.saveViewerAccess=function(){const r=sv.apply(this,arguments);setTimeout(function(){window.tmssCloudSyncConfig()},300);return r};
+})();
+</script>
+
+<script>
+/* TMSS FINAL-3 — put the eye/view control directly inside every staff row. */
+(function(){
+  const oldT=window.table;
+  window.table=function(rows,opts){
+    if(!rows||!rows.length)return oldT(rows,opts);
+    const list=rows.slice().sort(function(a,b){
+      const ra=typeof designRank==='function'?designRank(a.designation):9999,rb=typeof designRank==='function'?designRank(b.designation):9999;
+      return ra-rb||String(a.nameEn||'').localeCompare(String(b.nameEn||''));
+    });
+    const canAct=!!(opts&&opts.actions);
+    return `<div class="tablewrap staffAligned"><table class="table tmssStaffTable"><thead><tr><th>SL</th><th>Employee ID</th><th>Name</th><th>Designation</th><th>Grade</th><th>Zone</th><th>Region</th><th>Branch</th><th>Joining Date (TMSS)</th><th>Joining Date (Branch)</th><th>Address</th><th>Personal Phone</th><th>View${canAct?' / Actions':''}</th></tr></thead><tbody>${list.map(function(s,i){
+      const action=canAct?`<button class="smallBtn" onclick="openStaff('${s.id}')">✏️ Edit</button>${s.status==='Active'?`<button class="smallBtn" onclick="requestTransfer('${s.id}')">Transfer</button><button class="smallBtn red" onclick="openResign('${s.id}')">Resign</button>`:''}${session?.role==='admin'&&s.status==='Active'?`<button class="smallBtn" onclick="adminTransfer('${s.id}')">Admin Transfer</button>`:''}`:'';
+      return `<tr><td>${i+1}</td><td>${esc(s.employeeId||'—')}</td><td><b>${esc(s.nameEn||'—')}</b><br><small>${esc(s.nameBn||'—')}</small>${session?.role==='branch'&&typeof branchPendingLabel==='function'?(branchPendingLabel(s.id)?'<br>'+branchPendingLabel(s.id):''):''}</td><td><b>${esc(s.designation||'—')}</b></td><td>${esc(s.grade||'—')}</td><td>Op-05</td><td>${esc(region(s.branchId)||s.region||'—')}</td><td>${esc(branchDisplay(s.branchId))}${s.status!=='Active'?`<br><span class="pill red">${esc(s.status)}</span>`:''}</td><td>${bd(s.tmssJoin)}</td><td>${bd(s.branchJoin)}</td><td class="addressCell"><div>গ্রাম: ${esc(s.village||'—')}</div><div>ডাকঘর: ${esc(s.post||'—')}</div><div>থানা/উপজেলা: ${esc(s.thana||s.upazila||'—')}</div><div>জেলা: ${esc(s.district||'—')}</div></td><td class="phoneCell">${esc(s.phone||'—')}</td><td class="actionCell"><div class="actions"><button class="smallBtn tmssEyeBtn" type="button" onclick="tmssViewStaff('${s.id}')">👁️ View</button>${action}</div></td></tr>`;
+    }).join('')}</tbody></table></div>`;
+  };
+  const st=document.createElement('style');st.textContent=`.tmssEyeBtn{font-weight:800;background:#eef7ff;color:#1d5c8f;border:1px solid #cfe5f6}.tmssStaffTable th:last-child,.tmssStaffTable td:last-child{width:250px!important}.tmssStaffTable .actions{display:flex;gap:5px;flex-wrap:wrap;align-items:center}`;document.head.appendChild(st);
+})();
+</script>
