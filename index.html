@@ -239,7 +239,114 @@ function downloadCSV(branchId){let rows=db.staff.filter(s=>(s.status==='Active'|
   const oldRenderAdmin=window.renderAdmin; window.renderAdmin=function(){oldRenderAdmin();setTimeout(()=>{const tabs=document.querySelectorAll('.tab');const exists=[...tabs].some(t=>t.textContent.includes('Custom Fields'));if(!exists){const host=document.querySelector('.tabs');if(host){const b=document.createElement('button');b.className='tab';b.textContent='Custom Fields';b.onclick=function(){adminTab(this,'fields')};host.appendChild(b)}}},0)};
 })();
 </script>
-</body></html><script>
+</body>\n<style>
+/* Final targeted UI fixes */
+.tmssNoticeBar{width:100%;height:46px;overflow:hidden;position:relative;background:#fff8df;border:1px solid #efd98d;border-radius:12px;margin:0 0 16px;display:flex;align-items:center;box-sizing:border-box;}
+.tmssNoticeTrack{display:block;white-space:nowrap;position:absolute;left:100%;animation:tmssNoticeRTL 18s linear infinite;font-size:13px;font-weight:800;color:#705814;will-change:transform}
+.tmssNoticeTrack span{display:inline-block;padding-right:80px}
+@keyframes tmssNoticeRTL{from{transform:translateX(0)}to{transform:translateX(calc(-100% - 100vw))}}
+.bd-date-wrap{display:flex!important;align-items:stretch!important;gap:6px!important;position:relative!important;width:100%!important}
+.bd-date-wrap .bd-date-text{flex:1 1 auto!important;min-width:0!important;width:auto!important;box-sizing:border-box!important}
+.bd-date-wrap .tmssCalendarBtn{flex:0 0 42px;width:42px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:18px;cursor:pointer}
+.bd-date-wrap input.bd-date-native{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;left:0!important;top:0!important}
+.tmssStaffTable{table-layout:fixed!important;width:100%!important;min-width:1450px!important}
+.tmssStaffTable th,.tmssStaffTable td{box-sizing:border-box!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+.tmssStaffTable th:nth-child(1),.tmssStaffTable td:nth-child(1){width:45px!important}
+.tmssStaffTable th:nth-child(2),.tmssStaffTable td:nth-child(2){width:120px!important}
+.tmssStaffTable th:nth-child(3),.tmssStaffTable td:nth-child(3){width:190px!important}
+.tmssStaffTable th:nth-child(4),.tmssStaffTable td:nth-child(4){width:105px!important}
+.tmssStaffTable th:nth-child(5),.tmssStaffTable td:nth-child(5){width:75px!important}
+.tmssStaffTable th:nth-child(6),.tmssStaffTable td:nth-child(6){width:90px!important}
+.tmssStaffTable th:nth-child(7),.tmssStaffTable td:nth-child(7){width:125px!important}
+.tmssStaffTable th:nth-child(8),.tmssStaffTable td:nth-child(8){width:150px!important}
+.tmssStaffTable th:nth-child(9),.tmssStaffTable td:nth-child(9){width:125px!important}
+.tmssStaffTable th:nth-child(10),.tmssStaffTable td:nth-child(10){width:125px!important}
+.tmssStaffTable th:nth-child(11),.tmssStaffTable td:nth-child(11){width:270px!important}
+.tmssStaffTable th:nth-child(12),.tmssStaffTable td:nth-child(12){width:140px!important}
+.tmssStaffTable th:nth-child(13),.tmssStaffTable td:nth-child(13){width:240px!important}
+.tmssStaffTable td.addressCell{white-space:normal!important;line-height:1.55!important;overflow-wrap:anywhere!important;word-break:break-word!important}
+.tmssStaffTable td.phoneCell{white-space:nowrap!important}
+.tmssStaffTable th{position:sticky;top:0;z-index:2}
+.tmssStaffTable tbody tr:nth-child(even){background:#fcfdff}
+.tmssStaffTable tbody tr:hover{background:#f5f8ff}
+.staffAligned{overflow-x:auto!important;overflow-y:visible!important;scrollbar-width:auto!important}
+.tmssAccessCard{max-width:720px}
+@media(max-width:900px){.tmssStaffTable{min-width:1300px!important}}
+</style>
+<script>
+(function(){
+  // Keep config-managed data separate from the whole-state document. The centralState
+  // sync may contain an older copy, so never let it overwrite branches/fieldRules/notice/modules.
+  function patchCloudStateMerge(){
+    if(!window.firebase||!window.tmssCloud||!window.tmssCloud.enabled)return;
+  }
+
+  // One visible date field + one calendar button. The native picker remains the picker,
+  // but its hidden input never occupies visual space.
+  function bd(v){var m=String(v||'').match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);return m?m[3]+'-'+m[2]+'-'+m[1]:String(v||'')}
+  function toISO(v){var m=String(v||'').trim().match(/^(\\d{1,2})-(\\d{1,2})-(\\d{4})$/);if(!m)return '';var d=String(m[1]).padStart(2,'0'),mo=String(m[2]).padStart(2,'0'),y=m[3],dt=new Date(+y,+mo-1,+d);return dt.getFullYear()==+y&&dt.getMonth()==+mo-1&&dt.getDate()==+d?y+'-'+mo+'-'+d:''}
+  function enhanceDates(root){
+    (root||document).querySelectorAll('.bd-date-wrap').forEach(function(w){
+      var native=w.querySelector('input.bd-date-native'), text=w.querySelector('input.bd-date-text');
+      if(!native||!text)return;
+      native.classList.add('bd-date-native'); native.style.pointerEvents='none'; native.style.opacity='0';
+      var btn=w.querySelector('.tmssCalendarBtn');
+      if(!btn){btn=document.createElement('button');btn.type='button';btn.className='tmssCalendarBtn';btn.title='Choose date';btn.textContent='📅';w.appendChild(btn);}
+      text.value=bd(native.value);
+      text.placeholder='DD-MM-YYYY';
+      if(!text.dataset.tmssDateBound){
+        text.dataset.tmssDateBound='1';
+        text.addEventListener('input',function(){var raw=text.value.replace(/[^0-9]/g,'').slice(0,8);if(raw.length>4)raw=raw.slice(0,2)+'-'+raw.slice(2,4)+'-'+raw.slice(4);else if(raw.length>2)raw=raw.slice(0,2)+'-'+raw.slice(2);text.value=raw;var iso=toISO(raw);if(iso)native.value=iso;});
+        text.addEventListener('blur',function(){var iso=toISO(text.value);if(text.value.trim()&&!iso)text.setCustomValidity('Use DD-MM-YYYY');else{text.setCustomValidity('');if(iso)native.value=iso;}});
+        native.addEventListener('change',function(){text.value=bd(native.value);text.setCustomValidity('');});
+      }
+      btn.onclick=function(){try{if(native.showPicker)native.showPicker();else native.click();}catch(e){try{native.click()}catch(_){}}};
+    });
+    // Convert any plain date input that was inserted after the first pass using the app's original enhancer.
+    (root||document).querySelectorAll('input[type="date"]:not([data-bd-date])').forEach(function(n){
+      if(typeof window.tmssEnhanceBDDates==='function')window.tmssEnhanceBDDates(root||document);
+    });
+  }
+  var mo=new MutationObserver(function(){enhanceDates(document)}); if(document.body)mo.observe(document.body,{childList:true,subtree:true});
+  setTimeout(function(){enhanceDates(document)},30); window.addEventListener('load',function(){enhanceDates(document)});
+
+  // Remove duplicate notice markup and render exactly one full-width ticker.
+  function fixNotice(){
+    var main=document.querySelector('.main');if(!main)return;
+    main.querySelectorAll('.noticeBoard,.tmssNoticeBar').forEach(function(x){x.remove()});
+    if(session&&session.role==='branch'){var bb=db.branches.find(function(x){return x.id===session.branchId});if(bb){main.querySelectorAll('.topline .eyebrow').forEach(function(x){x.textContent=String(bb.name||'')+(bb.code?' ('+bb.code+')':'')});main.querySelectorAll('.topline .stat b').forEach(function(x){x.textContent=String(bb.name||'')+(bb.code?' ('+bb.code+')':'')})}}
+    if(db.notice&&db.notice.enabled&&String(db.notice.text||'').trim()){
+      var n=document.createElement('div');n.className='tmssNoticeBar';
+      var t=document.createElement('div');t.className='tmssNoticeTrack';
+      var sp=document.createElement('span');sp.textContent='📢 '+String(db.notice.text);t.appendChild(sp);n.appendChild(t);
+      var anchor=main.querySelector('.topline');main.insertBefore(n,anchor||main.firstChild);
+    }
+  }
+  var rr=window.renderBranch;if(typeof rr==='function')window.renderBranch=function(){rr.apply(this,arguments);setTimeout(fixNotice,35);setTimeout(enhanceDates,40)};
+  setTimeout(function(){if(session&&session.role==='branch')fixNotice()},50);
+
+  // Branch display helper: always show Name (Code) when a code exists.
+  window.branchDisplay=function(id){var b=db.branches.find(function(x){return x.id===id});if(!b)return '—';return String(b.name||'')+(b.code?' ('+String(b.code)+')':'')};
+  var oldTable=window.table;
+  if(typeof oldTable==='function')window.table=function(rows,opts){
+    if(!rows||!rows.length)return oldTable(rows,opts);
+    var list=[...rows].sort(function(a,b){var ra=typeof designRank==='function'?designRank(a.designation):9999,rb=typeof designRank==='function'?designRank(b.designation):9999;return ra-rb||String(a.nameEn||'').localeCompare(String(b.nameEn||''));});
+    return `<div class="tablewrap staffAligned"><table class="table tmssStaffTable"><thead><tr><th>SL</th><th>Employee ID</th><th>Name</th><th>Designation</th><th>Grade</th><th>Zone</th><th>Region</th><th>Branch</th><th>Joining Date (TMSS)</th><th>Joining Date (Branch)</th><th>Address</th><th>Personal Phone</th>${opts&&opts.actions?'<th>Actions</th>':''}</tr></thead><tbody>${list.map(function(s,i){return `<tr><td>${i+1}</td><td>${esc(s.employeeId||'—')}</td><td><b>${esc(s.nameEn||'—')}</b><br><small>${esc(s.nameBn||'—')}</small>${session?.role==='branch'&&typeof branchPendingLabel==='function'?(branchPendingLabel(s.id)?'<br>'+branchPendingLabel(s.id):''):''}</td><td><b>${esc(s.designation||'—')}</b></td><td>${esc(s.grade||'—')}</td><td>Op-05</td><td>${esc(region(s.branchId)||s.region||'—')}</td><td>${esc(branchDisplay(s.branchId))}${s.status!=='Active'?`<br><span class="pill red">${esc(s.status)}</span>`:''}</td><td>${bd(s.tmssJoin)}</td><td>${bd(s.branchJoin)}</td><td class="addressCell"><div>গ্রাম: ${esc(s.village||'—')}</div><div>ডাকঘর: ${esc(s.post||'—')}</div><div>থানা/উপজেলা: ${esc(s.thana||s.upazila||'—')}</div><div>জেলা: ${esc(s.district||'—')}</div></td><td class="phoneCell">${esc(s.phone||'—')}</td>${opts&&opts.actions?`<td class="actionCell"><div class="actions"><button class="smallBtn" onclick="openStaff('${s.id}')">✏️ Edit</button>${s.status==='Active'?`<button class="smallBtn" onclick="requestTransfer('${s.id}')">Transfer</button><button class="smallBtn red" onclick="openResign('${s.id}')">Resign</button>`:''}${session?.role==='admin'&&s.status==='Active'?`<button class="smallBtn" onclick="adminTransfer('${s.id}')">Admin Transfer</button>`:''}</div></td>`:''}</tr>`}).join('')}</tbody></table></div>`;
+  };
+
+  // Admin-only View Only access credentials.
+  window.viewerAccessPanel=function(){return `<div class="card tmssAccessCard"><h3>View Only Access</h3><p style="color:var(--muted);font-size:12px">Admin can change the View Only username and password here.</p><div class="grid"><div class="field"><label>View Only Username *</label><input id="viewerUser" value="${esc(VIEWER.username)}"></div><div class="field"><label>View Only Password *</label><input id="viewerPass" value="${esc(VIEWER.password)}"></div></div><div id="viewerAccessErr" class="err"></div><div class="modalActions"><button class="btn primary" onclick="saveViewerAccess()">Save View Only Access</button></div></div>`};
+  window.saveViewerAccess=function(){var u=(document.getElementById('viewerUser')?.value||'').trim(),p=document.getElementById('viewerPass')?.value||'';if(!u||!p){viewerAccessErr.textContent='Username and password are required.';return}VIEWER.username=u;VIEWER.password=p;db.viewerAccess={username:u,password:p};save();if(window.tmssCloudSyncConfig)window.tmssCloudSyncConfig();toast('View Only access updated.');adminTab(document.querySelector('.tab.active'),'access')};
+  // Load persisted viewer credentials before login.
+  if(db.viewerAccess){VIEWER.username=db.viewerAccess.username||VIEWER.username;VIEWER.password=db.viewerAccess.password||VIEWER.password}
+  document.addEventListener('tmss-cloud-status',function(){if(db.viewerAccess){VIEWER.username=db.viewerAccess.username||VIEWER.username;VIEWER.password=db.viewerAccess.password||VIEWER.password}});
+  var oa=window.adminTab;
+  window.adminTab=function(el,type){if(type==='access'){document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});if(el)el.classList.add('active');var c=document.getElementById('adminContent');if(c)c.innerHTML=viewerAccessPanel();return}return oa.apply(this,arguments)};
+  var or=window.renderAdmin;
+  window.renderAdmin=function(){or.apply(this,arguments);setTimeout(function(){var tabs=document.querySelector('.tabs');if(tabs&&!tabs.querySelector('[data-access-tab]')){var b=document.createElement('button');b.className='tab';b.setAttribute('data-access-tab','1');b.textContent='View Only Access';b.onclick=function(){adminTab(b,'access')};tabs.appendChild(b)}},0)};
+})();
+</script>
+</html><script>
 /* TMSS v4 final fixes */
 
 // ---------- Safe data migration ----------
@@ -630,29 +737,21 @@ save();
 })();
 </script>
 <script>
-// Final branch save fix: define slug helper and make Save reliable for both edit and add.
+// Final branch save fix: preserve admin-entered code + username + password.
 function slug(s){return String(s||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'').slice(0,40)||'branch';}
 function saveBranch(id){
   const name=(document.getElementById('bn')?.value||'').trim();
   const code=(document.getElementById('bc')?.value||'').trim();
   const reg=(document.getElementById('br')?.value||'').trim();
-  const err=document.getElementById('bErr');
-  if(err) err.textContent='';
-  if(!name||!code||!reg){if(err)err.textContent='Branch name, branch code and region are mandatory.';return;}
-  if(db.branches.some(b=>b.id!==id && String(b.name||'').trim().toLowerCase()===name.toLowerCase())){if(err)err.textContent='This branch already exists.';return;}
-  if(id){
-    const b=db.branches.find(x=>x.id===id);
-    if(!b){if(err)err.textContent='Branch not found.';return;}
-    b.name=name;b.code=code;b.region=reg;b.username='tmss_'+slug(name);
-  }else{
-    const nums=db.branches.map(b=>parseInt(String(b.id||'').replace(/\D/g,''),10)).filter(Number.isFinite);
-    const n=(nums.length?Math.max(...nums):0)+1;
-    db.branches.push({id:'B'+String(n).padStart(2,'0'),name,code,region:reg,username:'tmss_'+slug(name),password:'TMSS@'+String(n).padStart(2,'0')+'2026'});
-  }
-  save();
-  closeTemp();
-  toast(id?'Branch updated successfully.':'New branch created successfully.');
-  renderAdmin();
+  const username=(document.getElementById('bu')?.value||'').trim();
+  const password=document.getElementById('bp')?.value||'';
+  const err=document.getElementById('bErr'); if(err)err.textContent='';
+  if(!name||!code||!reg||!username||!password){if(err)err.textContent='Branch name, code, region, username and password are mandatory.';return;}
+  if(db.branches.some(b=>b.id!==id&&String(b.name||'').trim().toLowerCase()===name.toLowerCase())){if(err)err.textContent='This branch already exists.';return;}
+  if(db.branches.some(b=>b.id!==id&&String(b.username||'').trim().toLowerCase()===username.toLowerCase())){if(err)err.textContent='This username is already in use.';return;}
+  if(id){const b=db.branches.find(x=>x.id===id);if(!b){if(err)err.textContent='Branch not found.';return;}b.name=name;b.code=code;b.region=reg;b.username=username;b.password=password;}
+  else{const nums=db.branches.map(b=>parseInt(String(b.id||'').replace(/\D/g,''),10)).filter(Number.isFinite);const n=(nums.length?Math.max(...nums):0)+1;db.branches.push({id:'B'+String(n).padStart(2,'0'),name,code,region:reg,username,password});}
+  save(); if(window.tmssCloudSyncConfig)window.tmssCloudSyncConfig(); closeTemp(); toast(id?'Branch access updated successfully.':'New branch created successfully.'); renderAdmin();
 }
 </script>
 <script>
@@ -1105,8 +1204,10 @@ function saveBranch(id){
       if(!payload || applyingRemote || stamp<=lastStateStamp)return;
       applyingRemote=true; lastStateStamp=stamp; suppress=true;
       try{
-        window.db=payload; db=payload;
-        localStorage.setItem('tmss_db_v2',JSON.stringify(payload));
+        const current=db||{}; const cfgKeys=['branches','fieldRules','customFields','designations','notice','extraModules','viewerAccess'];
+        const merged=payload||{}; cfgKeys.forEach(function(k){if(current[k]!==undefined)merged[k]=current[k];});
+        window.db=merged; db=merged;
+        localStorage.setItem('tmss_db_v2',JSON.stringify(merged));
         suppress=false;
         if(typeof session!=='undefined' && session){
           if(session.role==='admin' && typeof renderAdmin==='function')renderAdmin();
@@ -1120,7 +1221,7 @@ function saveBranch(id){
     let configStarted=false, configDirty=false, lastConfigStamp=0, configUploadTimer=null;
     function cloneConfig(){
       const d=window.db||db;
-      return {branches:Array.isArray(d.branches)?d.branches:[],fieldRules:Array.isArray(d.fieldRules)?d.fieldRules:[],customFields:Array.isArray(d.customFields)?d.customFields:[],designations:Array.isArray(d.designations)?d.designations:[],notice:d.notice||{enabled:false,text:''},extraModules:Array.isArray(d.extraModules)?d.extraModules:[]};
+      return {branches:Array.isArray(d.branches)?d.branches:[],fieldRules:Array.isArray(d.fieldRules)?d.fieldRules:[],customFields:Array.isArray(d.customFields)?d.customFields:[],designations:Array.isArray(d.designations)?d.designations:[],notice:d.notice||{enabled:false,text:''},extraModules:Array.isArray(d.extraModules)?d.extraModules:[],viewerAccess:d.viewerAccess||null,viewerAccess:d.viewerAccess||null};
     }
     function uploadConfig(){
       if(!configStarted||!configDirty)return;
@@ -1137,7 +1238,7 @@ function saveBranch(id){
         if(Array.isArray(payload.customFields))db.customFields=payload.customFields;
         if(Array.isArray(payload.designations))db.designations=payload.designations;
         if(payload.notice)db.notice=payload.notice;
-        if(Array.isArray(payload.extraModules))db.extraModules=payload.extraModules;
+        if(Array.isArray(payload.extraModules))db.extraModules=payload.extraModules; if(payload.viewerAccess)db.viewerAccess=payload.viewerAccess;
         nativeSet.call(localStorage,'tmss_db_v2',JSON.stringify(db));
         if(session){if(session.role==='admin'&&typeof renderAdmin==='function')renderAdmin();else if(session.role==='branch'&&typeof renderBranch==='function')renderBranch();else if(session.role==='viewer'&&typeof renderViewer==='function')renderViewer();}
       }catch(e){console.error(e)} finally{suppress=false;}
