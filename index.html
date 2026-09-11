@@ -1954,3 +1954,66 @@ function saveBranch(id){
   };
 })();
 </script>
+<script>
+/* v10 — UI stability only: stop cloud refreshes from jumping to All Staff or shaking the page. */
+(function(){
+  'use strict';
+  let restoring=false;
+  function adminTypeFromText(t){
+    t=(t||'').replace(/\s+/g,' ').trim();
+    if(t.startsWith('All Staff'))return 'staff';
+    if(t.startsWith('Resign History'))return 'resign';
+    if(t.startsWith('Transfer History'))return 'transfer';
+    if(t.startsWith('Pending Approvals'))return 'pending';
+    if(t.startsWith('Branches & Access'))return 'branches';
+    if(t.startsWith('Custom Fields'))return 'fields';
+    if(t.startsWith('Designation Order'))return 'designations';
+    if(t.startsWith('Notice Board'))return 'notice';
+    if(t.startsWith('Main Options'))return 'modules';
+    if(t.startsWith('View Only Access'))return 'access';
+    if(t.includes('Chat'))return 'chat';
+    if(t.startsWith('Login History'))return 'logins';
+    return null;
+  }
+  function currentAdminTab(){
+    if(session?.role!=='admin')return null;
+    const active=document.querySelector('.tabs .tab.active');
+    return active?adminTypeFromText(active.textContent):null;
+  }
+  function restoreAdminTab(type){
+    if(!type||session?.role!=='admin')return;
+    setTimeout(function(){
+      const tabs=[...document.querySelectorAll('.tabs .tab')];
+      const target=tabs.find(t=>adminTypeFromText(t.textContent)===type);
+      if(target && typeof window.adminTab==='function'){
+        restoring=true;
+        try{window.adminTab(target,type)}catch(e){console.error(e)}
+        restoring=false;
+      }
+    },30);
+  }
+  const oldAdmin=window.renderAdmin;
+  if(typeof oldAdmin==='function'){
+    window.renderAdmin=function(){
+      const keep=currentAdminTab();
+      const r=oldAdmin.apply(this,arguments);
+      if(keep)restoreAdminTab(keep);
+      return r;
+    };
+  }
+  const oldBranch=window.renderBranch;
+  if(typeof oldBranch==='function'){
+    window.renderBranch=function(){
+      const y=window.scrollY||0;
+      const r=oldBranch.apply(this,arguments);
+      setTimeout(function(){
+        if(session?.role==='branch')window.scrollTo({top:y,behavior:'auto'});
+      },35);
+      return r;
+    };
+  }
+  // If a remote cloud snapshot arrives while an Admin tab is open, preserve that tab.
+  // This does not change any data or business logic.
+  window.tmssUiStability={restoreAdminTab};
+})();
+</script>
