@@ -239,6 +239,116 @@ function downloadCSV(branchId){let rows=db.staff.filter(s=>(s.status==='Active'|
   const oldRenderAdmin=window.renderAdmin; window.renderAdmin=function(){oldRenderAdmin();setTimeout(()=>{const tabs=document.querySelectorAll('.tab');const exists=[...tabs].some(t=>t.textContent.includes('Custom Fields'));if(!exists){const host=document.querySelector('.tabs');if(host){const b=document.createElement('button');b.className='tab';b.textContent='Custom Fields';b.onclick=function(){adminTab(this,'fields')};host.appendChild(b)}}},0)};
 })();
 </script>
+<script>
+(function(){
+  'use strict';
+  const E=(typeof esc==='function')?esc:(v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])));
+
+  // Designation master is exported as window.tmssDesignations(). The old v4 form
+  // accidentally called the private designs() function from another closure.
+  function designationList(){
+    try{
+      if(typeof window.tmssDesignations==='function'){
+        const a=window.tmssDesignations();
+        if(Array.isArray(a)&&a.length)return a;
+      }
+    }catch(e){}
+    return ['SBM','DSBM','BM','ABM','SS','DSS','FS','AFS','AYA'].map((name,i)=>({name,rank:i+1}));
+  }
+
+  // Stable staff form. One visible date text box + one calendar button + hidden ISO input.
+  window.staffForm=function(s={},allowBranch=true){
+    const branchId=s.branchId||((session?.role==='branch')?session.branchId:(db.branches[0]?.id||''));
+    const list=designationList();
+    const exists=list.some(d=>String(d.name).toLowerCase()===String(s.designation||'').trim().toLowerCase());
+    const selected=exists?String(s.designation||''):'__custom__';
+    const req=id=>{try{return typeof isReq==='function'?(isReq(id)?' *':''):''}catch(e){}return ''};
+    const showDate=v=>{const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?m[3]+'-'+m[2]+'-'+m[1]:''};
+    const date=(id,label,v)=>`<div class="field"><label>${E(label)}</label><div class="tmssDateField"><input id="${id}_display" class="tmssDateText" type="text" value="${E(showDate(v))}" placeholder="DD-MM-YYYY" inputmode="numeric" autocomplete="off"><button type="button" class="tmssDateBtn" data-for="${id}" title="Choose date">📅</button><input id="${id}" class="tmssDateNative" data-bd-date="1" type="date" value="${E(v||'')}"></div></div>`;
+    return `<div class="notice">Name must be exactly as per NID card. Enter the name in both English and Bangla. Address fields must be completed in Bangla.</div><div class="grid">
+      <div class="field"><label>Name — English (As per NID card)${req('nameEn')}</label><input id="f_en" value="${E(s.nameEn||'')}"></div>
+      <div class="field"><label>নাম — বাংলা (NID অনুযায়ী)${req('nameBn')}</label><input id="f_bn" value="${E(s.nameBn||'')}"></div>
+      <div class="field"><label>Personal Phone Only${req('phone')}</label><input id="f_phone" value="${E(s.phone||'')}"><div class="hint">Personal mobile only; no official number.</div></div>
+      <div class="field"><label>Employee ID${req('employeeId')}</label><input id="f_emp" value="${E(s.employeeId||s.staffId||'')}"></div>
+      <div class="field"><label>Designation${req('designation')}</label><select id="f_des" onchange="toggleCustomDesignation()">${list.map(d=>`<option value="${E(d.name)}" ${String(d.name).toLowerCase()===String(s.designation||'').trim().toLowerCase()?'selected':''}>${E(d.name)}</option>`).join('')}<option value="__custom__" ${selected==='__custom__'?'selected':''}>+ New / Custom Designation</option></select><div id="customDesBox" style="display:${selected==='__custom__'?'block':'none'};margin-top:6px"><input id="f_custom_des" value="${exists?'':E(s.designation||'')}" placeholder="Type new designation"><select id="f_custom_pos" style="margin-top:6px"><option value="top">Highest — above SBM</option><option value="after">Place after selected designation</option><option value="bottom">Lowest — below all</option></select><select id="f_custom_after" style="margin-top:6px;display:none">${list.map(d=>`<option value="${E(d.name)}">After ${E(d.name)}</option>`).join('')}</select></div></div>
+      <div class="field"><label>Grade${req('grade')}</label><input id="f_grade" value="${E(s.grade||'')}"></div>
+      <div class="field"><label>Department${req('department')}</label><input id="f_dept" value="${E(s.department||'')}"></div>
+      <div class="field"><label>Project${req('project')}</label><input id="f_project" value="${E(s.project||'')}"></div>
+      ${date('f_tmss','Joining date (TMSS)'+req('tmssJoin'),s.tmssJoin)}
+      ${date('f_branchdate','Joining Date (Branch)'+req('branchJoin'),s.branchJoin)}
+      <div class="field"><label>Domain name${req('domain')}</label><input value="Op-05" disabled></div>
+      <div class="field"><label>Zone${req('zone')}</label><input value="Ctg North" disabled></div>
+      <div class="field"><label>Region name${req('region')}</label><select id="f_region" disabled>${REGIONS.map(x=>`<option ${x===region(branchId)?'selected':''}>${E(x)}</option>`).join('')}</select></div>
+      <div class="field"><label>Branch${req('branch')}</label><select id="f_branchsel" ${session?.role==='branch'?'disabled':''} onchange="syncRegion()">${db.branches.map(b=>`<option value="${E(b.id)}" ${b.id===branchId?'selected':''}>${E(b.name)}${b.code?` (${E(b.code)})`:''}</option>`).join('')}</select></div>
+      <div class="field"><label>Village (বাংলায়)${req('village')}</label><input id="f_village" value="${E(s.village||'')}"></div>
+      <div class="field"><label>Post (বাংলায়)${req('post')}</label><input id="f_post" value="${E(s.post||'')}"></div>
+      <div class="field"><label>Thana / Upazila (বাংলায়)${req('thana')}</label><input id="f_thana" value="${E(s.thana||s.upazila||'')}"></div>
+      <div class="field"><label>District (বাংলায়)${req('district')}</label><input id="f_dist" value="${E(s.district||'')}"></div>
+      ${(db.customFields||[]).map(c=>`<div class="field"><label>${E(c.label)}${c.required?' *':''}</label>${c.type==='select'?`<select id="cf_${E(c.id)}"><option value="">Select</option>${(c.options||[]).map(o=>`<option value="${E(o)}" ${s.custom?.[c.id]===o?'selected':''}>${E(o)}</option>`).join('')}</select>`:`<input id="cf_${E(c.id)}" value="${E(s.custom?.[c.id]||'')}">`}</div>`).join('')}
+    </div><div id="formErr" class="err"></div><div class="modalActions"><button class="btn" type="button" onclick="closeTemp()">Cancel</button><button class="btn primary" type="button" onclick="saveStaff()">Save Staff</button></div>`;
+  };
+
+  function bindFinalDates(root){
+    (root||document).querySelectorAll('.tmssDateField').forEach(w=>{
+      const n=w.querySelector('.tmssDateNative'),t=w.querySelector('.tmssDateText'),b=w.querySelector('.tmssDateBtn');
+      if(!n||!t||!b||t.dataset.tmssBound==='1')return;
+      t.dataset.tmssBound='1';n.style.position='absolute';n.style.width='1px';n.style.height='1px';n.style.opacity='0';n.style.pointerEvents='none';n.tabIndex=-1;
+      const sync=()=>{const m=String(n.value||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);t.value=m?m[3]+'-'+m[2]+'-'+m[1]:''};
+      const picker=()=>{try{if(n.showPicker)n.showPicker();else n.click()}catch(e){try{n.click()}catch(_) {}}};
+      b.onclick=picker;t.onclick=picker;n.onchange=sync;
+      t.oninput=()=>{let r=t.value.replace(/\D/g,'').slice(0,8);if(r.length>4)r=r.slice(0,2)+'-'+r.slice(2,4)+'-'+r.slice(4);else if(r.length>2)r=r.slice(0,2)+'-'+r.slice(2);t.value=r;const m=r.match(/^(\d{2})-(\d{2})-(\d{4})$/);if(m)n.value=m[3]+'-'+m[2]+'-'+m[1]};
+      t.onblur=()=>{if(!t.value.trim()){n.value='';t.setCustomValidity('');return}const m=t.value.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);if(!m){t.setCustomValidity('Use DD-MM-YYYY');return}const d=new Date(+m[3],+m[2]-1,+m[1]);if(d.getFullYear()!=+m[3]||d.getMonth()!=+m[2]-1||d.getDate()!=+m[1]){t.setCustomValidity('Use DD-MM-YYYY');return}t.setCustomValidity('');n.value=m[3]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[1]).padStart(2,'0');sync()};
+      sync();
+    });
+  }
+  window.openStaff=function(id=''){editingId=id;const s=db.staff.find(x=>x.id===id)||{};modal(id?'Edit Staff':'Add New Staff',window.staffForm(s));setTimeout(()=>{try{toggleCustomDesignation()}catch(e){};bindFinalDates(document)},0)};
+  window.tmssBindFinalDates=bindFinalDates;
+
+  // Main Options/Notice/etc. must never fall back to All Staff because of a missing renderer.
+  function typeOfTab(text){const x=String(text||'').replace(/\s+/g,' ').trim().toLowerCase();if(x.includes('all staff'))return'staff';if(x.includes('resign'))return'resign';if(x.includes('transfer'))return'transfer';if(x.includes('pending'))return'pending';if(x.includes('branches'))return'branches';if(x.includes('custom fields'))return'fields';if(x.includes('designation'))return'designations';if(x.includes('notice'))return'notice';if(x.includes('main options'))return'modules';if(x.includes('view only access'))return'access';if(x.includes('login history'))return'logins';if(x.includes('chat'))return'chat';return''}
+  function ensureAdminTabs(){
+    const tabs=document.querySelector('.tabs');if(!tabs)return;
+    const need=[['staff','All Staff'],['resign','Resign History'],['transfer','Transfer History'],['pending','Pending Approvals'],['branches','Branches & Access'],['fields','Custom Fields'],['designations','Designation Order'],['notice','Notice Board'],['modules','Main Options'],['access','View Only Access'],['logins','Login History'],['chat','💬 Chat']];
+    const have={};[...tabs.querySelectorAll('.tab')].forEach(b=>{const typ=b.dataset.tmssType||typeOfTab(b.textContent);if(typ){b.dataset.tmssType=typ;have[typ]=b;b.onclick=function(e){if(e)e.preventDefault();window.adminTab(this,typ);return false}}});
+    need.forEach(([typ,label])=>{if(have[typ])return;const b=document.createElement('button');b.type='button';b.className='tab';b.dataset.tmssType=typ;b.innerHTML=label+(typ==='pending'?'<span class="badge" id="pendingApprovalBadge"></span>':'')+(typ==='chat'?'<span class="tmssChatBadge" hidden></span>':'');b.onclick=function(e){if(e)e.preventDefault();window.adminTab(this,typ);return false};tabs.appendChild(b)});
+    tabs.style.maxWidth='100%';tabs.style.overflowX='auto';tabs.style.overflowY='hidden';tabs.style.flexWrap='nowrap';
+    ensureChatBadgeElements();
+  }
+  const baseAdminTab=window.adminTab;
+  window.adminTab=function(el,type){const typ=type||typeOfTab(el?.textContent);if(['notice','modules','access','chat','designations','logins'].includes(typ)){document.querySelectorAll('.tabs .tab').forEach(x=>x.classList.remove('active'));if(el)el.classList.add('active');const c=document.getElementById('adminContent');if(!c)return false;if(typ==='notice')c.innerHTML=typeof noticePanel==='function'?noticePanel():'<div class="card">Notice Board unavailable.</div>';else if(typ==='modules')c.innerHTML=typeof modulePanel==='function'?modulePanel():'<div class="card">Main Options unavailable.</div>';else if(typ==='access')c.innerHTML=typeof viewerAccessPanel==='function'?viewerAccessPanel():'<div class="card">View Only Access unavailable.</div>';else if(typ==='chat')c.innerHTML=window.chatPanel?window.chatPanel('admin'):'<div class="card">Chat unavailable.</div>';else if(typ==='designations')c.innerHTML=typeof designationPanel==='function'?designationPanel():'<div class="card">Designation Order unavailable.</div>';else if(typ==='logins')c.innerHTML=typeof loginHistoryPanel==='function'?loginHistoryPanel():'<div class="card">Login History unavailable.</div>';if(typ==='chat')setTimeout(()=>{try{window.initChat('admin')}catch(e){};paintChatBadges()},20);return false}return baseAdminTab.apply(this,[el,typ])};
+  const oldRenderAdmin=window.renderAdmin;window.renderAdmin=function(){oldRenderAdmin.apply(this,arguments);setTimeout(ensureAdminTabs,0);setTimeout(ensureChatBadgeElements,40)};
+
+  // Chat notifications. Badge is attached to the actual top Chat option/button.
+  function ensureChatBadgeElements(){
+    document.querySelectorAll('.tab').forEach(b=>{if(typeOfTab(b.textContent)==='chat'&&!b.querySelector('.tmssChatBadge')){const s=document.createElement('span');s.className='tmssChatBadge';s.hidden=true;b.appendChild(s)}});
+    if(session?.role==='branch'){const main=document.querySelector('.main');if(main)[...main.querySelectorAll('button')].filter(b=>/chat/i.test(b.textContent)).forEach(b=>{if(!b.querySelector('.tmssChatBadge')){const s=document.createElement('span');s.className='tmssChatBadge';s.hidden=true;b.appendChild(s)}})}
+  }
+  function refreshBadges(){try{if(typeof paintChatBadges==='function')paintChatBadges()}catch(e){}ensureChatBadgeElements()}
+  const oldOpenChat=window.openChat;window.openChat=function(){const r=oldOpenChat?oldOpenChat.apply(this,arguments):null;setTimeout(()=>{try{window.initChat(session?.role)}catch(e){};refreshBadges()},30);return r};
+
+  // Explicitly cloud-sync Main Options creation and submissions.
+  if(typeof window.saveModule==='function'){const old=window.saveModule;window.saveModule=function(){const r=old.apply(this,arguments);setTimeout(()=>{try{window.tmssCloudSyncConfig&&window.tmssCloudSyncConfig()}catch(e){}},150);return r}}
+  if(typeof window.submitModuleEntry==='function'){const old=window.submitModuleEntry;window.submitModuleEntry=function(id){const r=old.apply(this,arguments);setTimeout(()=>{try{window.tmssCloudSyncConfig&&window.tmssCloudSyncConfig()}catch(e){}},250);return r}}
+
+  // Stable notice: only update when text/state changes; never remove/recreate every timer tick.
+  function stableNotice(){
+    const main=document.querySelector('.main');if(!main)return;
+    const bars=[...main.querySelectorAll('.tmssNoticeBar')];bars.slice(1).forEach(x=>x.remove());main.querySelectorAll('.noticeBoard').forEach(x=>x.remove());
+    const enabled=session?.role==='branch'&&db.notice?.enabled&&String(db.notice.text||'').trim();let bar=main.querySelector('.tmssNoticeBar');
+    if(!enabled){if(bar)bar.remove();return}
+    if(!bar){bar=document.createElement('div');bar.className='tmssNoticeBar';const top=main.querySelector('.topline');main.insertBefore(bar,top||main.firstChild)}
+    if(bar.dataset.text!==String(db.notice.text)){bar.dataset.text=String(db.notice.text);bar.innerHTML='<div class="tmssNoticeTrack"><span>📢 '+E(db.notice.text)+'</span></div>'}
+  }
+  window.tmssFixNotice=stableNotice;
+  const oldBranch=window.renderBranch;window.renderBranch=function(){oldBranch.apply(this,arguments);setTimeout(()=>{stableNotice();ensureChatBadgeElements();bindFinalDates(document)},30)};
+
+  // Realtime chat refresh + unread badges without touching other app state.
+  window.addEventListener('storage',e=>{if(e.key==='tmss_chat_reads_v1'||e.key==='tmss_chat_v1')refreshBadges()});
+  setTimeout(()=>{ensureAdminTabs();stableNotice();ensureChatBadgeElements();bindFinalDates(document);refreshBadges()},100);
+  setInterval(refreshBadges,2000);
+})();
+
+</script>
 </body>\n<style>
 /* Final targeted UI fixes */
 .tmssNoticeBar{width:100%;height:46px;overflow:hidden;position:relative;background:#fff8df;border:1px solid #efd98d;border-radius:12px;margin:0 0 16px;display:flex;align-items:center;box-sizing:border-box;}
@@ -1384,7 +1494,7 @@ function saveBranch(id){
   const oldRefreshHistory=window.refreshHistory; if(typeof oldRefreshHistory==='function')window.refreshHistory=function(){const r=oldRefreshHistory.apply(this,arguments);setTimeout(()=>formatIsoTextNodes(document.getElementById('history')||document.body),10);return r};
 
   // Date inputs: keep internal ISO for Firebase/data, but display DD-MM-YYYY everywhere.
-  function enhanceDates(root){(root||document).querySelectorAll('input[type="date"]:not([data-tmss-final-date])').forEach(native=>{native.setAttribute('data-tmss-final-date','1');const w=document.createElement('div');w.className='bd-date-wrap';native.parentNode.insertBefore(w,native);w.appendChild(native);native.style.pointerEvents='none';const t=document.createElement('input');t.type='text';t.className='bd-date-text';t.placeholder='DD-MM-YYYY';t.inputMode='numeric';t.value=bd(native.value);w.insertBefore(t,native);t.addEventListener('click',()=>{try{if(native.showPicker)native.showPicker();else native.focus()}catch(e){native.focus()}});t.addEventListener('input',()=>{let r=t.value.replace(/\D/g,'').slice(0,8);if(r.length>4)r=r.slice(0,2)+'-'+r.slice(2,4)+'-'+r.slice(4);else if(r.length>2)r=r.slice(0,2)+'-'+r.slice(2);t.value=r;const m=r.match(/^(\d{2})-(\d{2})-(\d{4})$/);if(m){const iso=`${m[3]}-${m[2]}-${m[1]}`;native.value=iso;native.dispatchEvent(new Event('change',{bubbles:true}));}});native.addEventListener('change',()=>{t.value=bd(native.value)});});}
+  function enhanceDates(root){(root||document).querySelectorAll('input[type="date"]:not([data-tmss-final-date]):not([data-bd-date])').forEach(native=>{native.setAttribute('data-tmss-final-date','1');const w=document.createElement('div');w.className='bd-date-wrap';native.parentNode.insertBefore(w,native);w.appendChild(native);native.style.pointerEvents='none';const t=document.createElement('input');t.type='text';t.className='bd-date-text';t.placeholder='DD-MM-YYYY';t.inputMode='numeric';t.value=bd(native.value);w.insertBefore(t,native);t.addEventListener('click',()=>{try{if(native.showPicker)native.showPicker();else native.focus()}catch(e){native.focus()}});t.addEventListener('input',()=>{let r=t.value.replace(/\D/g,'').slice(0,8);if(r.length>4)r=r.slice(0,2)+'-'+r.slice(2,4)+'-'+r.slice(4);else if(r.length>2)r=r.slice(0,2)+'-'+r.slice(2);t.value=r;const m=r.match(/^(\d{2})-(\d{2})-(\d{4})$/);if(m){const iso=`${m[3]}-${m[2]}-${m[1]}`;native.value=iso;native.dispatchEvent(new Event('change',{bubbles:true}));}});native.addEventListener('change',()=>{t.value=bd(native.value)});});}
   new MutationObserver(()=>enhanceDates(document)).observe(document.body,{childList:true,subtree:true}); enhanceDates(document);
 
   // Module branch forms: support text/date/number/dropdown fields created by Admin.
@@ -1597,151 +1707,6 @@ function saveBranch(id){
   // Start realtime chat once Firebase is ready, without disturbing the existing login/data sync.
   setTimeout(()=>{if(fsReady())attachChatRealtime();paintChatBadges()},1200);
   window.addEventListener('storage',e=>{if(e.key===CHATKEY){chatMessagesV4=localMsgs();renderChatMessages();paintChatBadges()}if(e.key==='tmss_chat_reads_v1')paintChatBadges()});
-  setInterval(()=>{paintChatBadges();if(session?.role==='branch')oneNotice()},1500);
-})();
-</script>
-
-<script>
-/* TMSS v6 — targeted fixes only. Preserve v4 UI/business logic. */
-(function(){
-  // 1) Notice: do NOT remove/recreate the bar on every timer tick (this caused page shaking).
-  window.tmssStableNotice=function(){
-    const main=document.querySelector('.main'); if(!main)return;
-    const wanted=session?.role==='branch' && db.notice?.enabled && String(db.notice.text||'').trim();
-    let bars=[...main.querySelectorAll('.tmssNoticeBar,.noticeBoard')];
-    if(!wanted){bars.forEach(x=>x.remove());return;}
-    let bar=bars.find(x=>x.classList.contains('tmssNoticeBar'));
-    bars.filter(x=>x!==bar).forEach(x=>x.remove());
-    if(!bar){
-      bar=document.createElement('div');bar.className='tmssNoticeBar';
-      bar.innerHTML='<div class="tmssNoticeTrack"><span>📢 '+escx(db.notice.text)+'</span></div>';
-      const top=main.querySelector('.topline'); main.insertBefore(bar,top||main.firstChild);
-    }else{
-      const sp=bar.querySelector('.tmssNoticeTrack span');
-      const txt='📢 '+String(db.notice.text||''); if(sp&&sp.textContent!==txt)sp.textContent=txt;
-    }
-  };
-  window.tmssFixNotice=window.tmssStableNotice;
-  window.oneNotice=window.tmssStableNotice;
-
-  // 2) Stop the old 1.5s notice recreation loop; use a stable checker instead.
-  if(window.__tmssV6Interval)clearInterval(window.__tmssV6Interval);
-  window.__tmssV6Interval=setInterval(function(){
-    if(document.querySelector('.main'))window.tmssStableNotice();
-    if(typeof paintChatBadges==='function')paintChatBadges();
-  },1500);
-
-  // 3) Designation list: always read the live master designation order, including custom designations.
-  const baseStaffForm=window.staffForm;
-  window.staffForm=function(s={},allowBranch=true){
-    const current=(typeof designs==='function'?designs():((db.designations||[]).length?db.designations:DESIGNATIONS.map((name,i)=>({name,rank:i+1}))));
-    const list=current.map(x=>typeof x==='string'?x:x.name).filter(Boolean);
-    const original=baseStaffForm.apply(this,arguments);
-    const replacement='<div class="field"><label>Designation *</label><select id="f_des">'+list.map(x=>'<option value="'+escx(x)+'" '+(x===(s.designation||'')?'selected':'')+'>'+escx(x)+'</option>').join('')+'</select></div>';
-    // Replace only the old designation field generated by the existing form.
-    return original.replace(/<div class="field"><label>Designation \*<\/label><select id="f_des">[\s\S]*?<\/select><\/div>/,replacement);
-  };
-
-  // 4) Prevent tab clicks from falling back to All Staff. Handle every known Admin tab directly.
-  const v6TabTypes={staff:1,resign:1,transfer:1,pending:1,branches:1,fields:1,designations:1,chat:1,notice:1,modules:1,access:1};
-  window.adminTab=function(el,type){
-    if(!v6TabTypes[type])return;
-    document.querySelectorAll('.tabs .tab').forEach(x=>x.classList.remove('active'));
-    if(el)el.classList.add('active');
-    const c=document.getElementById('adminContent');if(!c)return;
-    if(type==='staff'){
-      c.innerHTML='<div class="toolbar"><select id="af" onchange="refreshAdmin()"><option value="">All branches</option>'+(db.branches||[]).map(b=>'<option value="'+escx(b.id)+'">'+escx(b.name)+'</option>').join('')+'</select><select id="ast" onchange="refreshAdmin()"><option value="Active">Active</option><option value="">All statuses</option><option value="Resigned">Resigned</option></select><input id="aq" placeholder="Search…"><button type="button" class="btn" onclick="refreshAdmin()">Search</button><button type="button" class="btn" onclick="downloadCSV(\'ALL\')">Download Compiled CSV</button></div><div id="at"></div>';
-      refreshAdmin();
-    }else if(type==='resign')c.innerHTML=resignPanel();
-    else if(type==='transfer')c.innerHTML=historyPanel('Transfer');
-    else if(type==='pending')c.innerHTML=pendingPanel();
-    else if(type==='branches')c.innerHTML=branchesPanel();
-    else if(type==='fields')c.innerHTML=fieldsPanel();
-    else if(type==='designations')c.innerHTML=designationPanel();
-    else if(type==='notice')c.innerHTML=typeof noticePanel==='function'?noticePanel():'<div class="card">Notice Board unavailable.</div>';
-    else if(type==='modules')c.innerHTML=typeof modulePanel==='function'?modulePanel():'<div class="card">Main Options unavailable.</div>';
-    else if(type==='access')c.innerHTML=typeof viewerAccessPanel==='function'?viewerAccessPanel():'<div class="card">View Only Access unavailable.</div>';
-    else if(type==='chat'){c.innerHTML=window.chatPanel?window.chatPanel('admin'):'<div class="card">Chat unavailable.</div>';setTimeout(()=>window.initChat&&window.initChat('admin'),30)}
-    if(type==='pending'&&typeof refreshPending==='function')setTimeout(refreshPending,20);
-  };
-
-  // 5) Admin-created Main Options: submissions are configuration data, so explicitly sync them to appConfig.
-  const oldSubmitModule=window.submitModuleEntry;
-  window.submitModuleEntry=async function(id){
-    const m=db.extraModules?.find(x=>x.id===id);if(!m)return;
-    const data={};let ok=true;
-    (m.fields||[]).forEach(f=>{const v=val('mf_'+f.id);data[f.id]=v;if(f.required&&!v)ok=false});
-    if(!ok){const e=document.getElementById('mfErr');if(e)e.textContent='Please complete all required fields.';return;}
-    m.submissions=Array.isArray(m.submissions)?m.submissions:[];
-    m.submissions.push({id:(crypto.randomUUID?crypto.randomUUID():String(Date.now())),branchId:session?.branchId||null,branchName:session?.branchId?bname(session.branchId):'Admin',submittedBy:session?.role||'',submittedAt:new Date().toLocaleString(),data});
-    save();
-    if(window.tmssCloudSyncConfig)window.tmssCloudSyncConfig();
-    closeTemp();toast('Form submitted successfully.');
-    if(session?.role==='admin')renderAdmin();else renderBranch();
-  };
-
-  // 6) Chat read state: when a conversation is opened, mark it read and immediately clear its badge.
-  const oldSelectChat=window.selectChat;
-  window.selectChat=function(id){
-    const r=oldSelectChat&&oldSelectChat.apply(this,arguments);
-    try{localStorage.setItem('tmss_chat_reads_v1',JSON.stringify(Object.assign({},JSON.parse(localStorage.getItem('tmss_chat_reads_v1')||'{}'),{[me()+'|'+id]:Date.now()})));}catch(e){}
-    if(typeof paintChatBadges==='function')paintChatBadges();
-    return r;
-  };
-
-  // 7) Date picker: normalize every date wrapper to ONE visible DD-MM-YYYY box + ONE calendar button.
-  window.enhanceDates=function(root){
-    (root||document).querySelectorAll('input[type="date"]').forEach(native=>{
-      const existing=native.closest('.bd-date-wrap');
-      if(existing){
-        existing.querySelectorAll('input.bd-date-text').forEach((x,i)=>{if(i>0)x.remove()});
-        existing.querySelectorAll('button.tmssCalendarBtn').forEach((x,i)=>{if(i>0)x.remove()});
-        let t=existing.querySelector('input.bd-date-text');
-        if(!t){t=document.createElement('input');t.type='text';t.className='bd-date-text';t.placeholder='DD-MM-YYYY';t.inputMode='numeric';t.autocomplete='off';existing.insertBefore(t,native)}
-        let btn=existing.querySelector('button.tmssCalendarBtn');
-        if(!btn){btn=document.createElement('button');btn.type='button';btn.className='tmssCalendarBtn';btn.textContent='📅';btn.title='Choose date';existing.appendChild(btn)}
-        native.classList.add('bd-date-native');native.setAttribute('aria-hidden','true');native.tabIndex=-1;
-        t.value=bd(native.value);
-        if(!t.dataset.tmssBound){
-          t.dataset.tmssBound='1';
-          t.addEventListener('input',function(){let r=t.value.replace(/\D/g,'').slice(0,8);if(r.length>4)r=r.slice(0,2)+'-'+r.slice(2,4)+'-'+r.slice(4);else if(r.length>2)r=r.slice(0,2)+'-'+r.slice(2);t.value=r;const iso=toISO(r);if(iso){native.value=iso;native.dispatchEvent(new Event('change',{bubbles:true}))}});
-          native.addEventListener('change',function(){t.value=bd(native.value)});
-        }
-        if(!btn.dataset.tmssBound){btn.dataset.tmssBound='1';btn.addEventListener('click',function(e){e.preventDefault();try{if(native.showPicker)native.showPicker();else{native.style.pointerEvents='auto';native.click();native.style.pointerEvents='none'}}catch(e){try{native.click()}catch(_){} }})}
-        return;
-      }
-      const w=document.createElement('div');w.className='bd-date-wrap';native.parentNode.insertBefore(w,native);w.appendChild(native);
-      native.classList.add('bd-date-native');
-      native.setAttribute('aria-hidden','true');
-      native.tabIndex=-1;
-      const t=document.createElement('input');t.type='text';t.className='bd-date-text';t.placeholder='DD-MM-YYYY';t.inputMode='numeric';t.autocomplete='off';t.value=bd(native.value);
-      const btn=document.createElement('button');btn.type='button';btn.className='tmssCalendarBtn';btn.textContent='📅';btn.title='Choose date';
-      w.insertBefore(t,native);w.appendChild(btn);
-      function pick(){try{if(native.showPicker)native.showPicker();else{native.style.pointerEvents='auto';native.click();native.style.pointerEvents='none'}}catch(e){try{native.click()}catch(_){} }}
-      btn.addEventListener('click',pick);
-      t.addEventListener('input',function(){let r=t.value.replace(/\D/g,'').slice(0,8);if(r.length>4)r=r.slice(0,2)+'-'+r.slice(2,4)+'-'+r.slice(4);else if(r.length>2)r=r.slice(0,2)+'-'+r.slice(2);t.value=r;const iso=toISO(r);if(iso){native.value=iso;native.dispatchEvent(new Event('change',{bubbles:true}))}});
-      native.addEventListener('change',function(){t.value=bd(native.value)});
-    });
-  };
-  if(window.__tmssDateObserver)window.__tmssDateObserver.disconnect();
-  window.__tmssDateObserver=new MutationObserver(()=>enhanceDates(document));
-  if(document.body)window.__tmssDateObserver.observe(document.body,{childList:true,subtree:true});
-  enhanceDates(document);
-
-  // 8) Compact modal/form sizing only; do not alter the underlying form fields or data.
-  const st=document.createElement('style');st.id='tmss-v6-targeted';st.textContent=`
-    .bd-date-wrap{display:grid!important;grid-template-columns:minmax(0,1fr) 42px!important;gap:6px!important;width:100%!important;position:relative!important}
-    .bd-date-wrap .bd-date-text{width:100%!important;min-width:0!important;box-sizing:border-box!important}
-    .bd-date-wrap .bd-date-native{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;left:0!important;top:0!important;border:0!important;padding:0!important;margin:0!important}
-    .bd-date-wrap .tmssCalendarBtn{width:42px!important;height:38px!important;padding:0!important;border:1px solid var(--line)!important;border-radius:10px!important;background:#fff!important;cursor:pointer!important;font-size:17px!important}
-    .tmssChatBadge,.tmssContactBadge{display:inline-grid;place-items:center;min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:#e53935;color:#fff;font-size:9px;font-weight:900;margin-left:5px;vertical-align:middle}
-  `;document.head.appendChild(st);
-
-  // 9) Keep Branch Code and stable notice after branch render without repeatedly repainting the page.
-  const rb=window.renderBranch;
-  window.renderBranch=function(){const r=rb&&rb.apply(this,arguments);setTimeout(()=>{paintBranchCode&&paintBranchCode();window.tmssStableNotice();ensureBranchChatButton&&ensureBranchChatButton()},30);return r};
-
-  // 10) Do not let cloud config polling repaint the current screen when nothing changed locally.
-  window.tmssV6Loaded=true;
+  setInterval(()=>{paintChatBadges()},1500);
 })();
 </script>
