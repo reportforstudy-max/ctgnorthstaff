@@ -115,7 +115,7 @@ function deleteField(id){if(confirm("Delete this custom field?")){db.customField
 function renderViewer(){landing.classList.add("hidden");app.classList.remove("hidden");app.innerHTML=`${bar("View Only Panel")}<main class="main"><div class="topline"><div><span class="eyebrow">READ ONLY</span><h1 style="margin:8px 0">All Branches — At a Glance</h1><p style="color:var(--muted)">View and copy information only. No edit, delete, transfer or resign controls.</p></div></div><div class="toolbar"><select id="vf" onchange="refreshViewer()"><option value="">All branches</option>${db.branches.map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join("")}</select><input id="vq" placeholder="Search…"><button class="btn" onclick="refreshViewer()">Search</button></div><div id="vt"></div></main>`;refreshViewer()}
 function refreshViewer(){let q=(document.getElementById("vq")?.value||"").toLowerCase(),bid=vf.value||"",r=db.staff.filter(s=>(!bid||s.branchId===bid)&&[s.nameEn,s.nameBn,s.employeeId,s.designation,bname(s.branchId)].join(" ").toLowerCase().includes(q));vt.innerHTML=table(r,{readonly:true})}
 
-function downloadCSV(branchId){let rows=db.staff.filter(s=>s.status==="Active"&&(branchId==="ALL"||s.branchId===branchId));let out=[CSV_COLUMNS];rows.forEach((s,i)=>out.push([i+1,s.employeeId,`${s.nameEn} / ${s.nameBn}`,s.designation,s.grade,"Op-05",s.department,s.project,"Ctg North",region(s.branchId),bname(s.branchId),s.tmssJoin,s.branchJoin]));let csv=out.map(r=>r.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\r\n"),blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=branchId==="ALL"?"TMSS_CTg_North_All_Branches.csv":`TMSS_${bname(branchId)}.csv`;a.click();URL.revokeObjectURL(a.href)}
+function downloadCSV(branchId){let rows=db.staff.filter(s=>s.status==="Active"&&(branchId==="ALL"||s.branchId===branchId));let out=[CSV_COLUMNS];rows.forEach((s,i)=>out.push([i+1,s.employeeId,`${s.nameEn} / ${s.nameBn}`,s.designation,s.grade,"Op-05",s.department,s.project,"Ctg North",region(s.branchId),bname(s.branchId),fmtBDDate(s.tmssJoin),fmtBDDate(s.branchJoin)]));let csv=out.map(r=>r.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\r\n"),blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=branchId==="ALL"?"TMSS_CTg_North_All_Branches.csv":`TMSS_${bname(branchId)}.csv`;a.click();URL.revokeObjectURL(a.href)}
 function deleteStaff(id){if(session.role!=="admin")return;if(confirm("Delete this staff record permanently?")){db.staff=db.staff.filter(s=>s.id!==id);save();toast("Deleted.");renderAdmin()}}
 window.addEventListener("beforeunload",save);
 </script><style>
@@ -182,7 +182,7 @@ function loginHistoryPanel(){let r=[...db.loginHistory].reverse();return `<div c
 function renderViewer(){landing.classList.add('hidden');app.classList.remove('hidden');app.innerHTML=`${bar('View Only Panel')}<main class="main">${noticeMarkup()}<div class="topline"><div><span class="eyebrow">READ ONLY</span><h1 style="margin:8px 0">All Branches — At a Glance</h1><p style="color:var(--muted)">View and copy information only. No edit, delete, transfer or resign controls.</p></div></div><div class="toolbar"><select id="vf" onchange="refreshViewer()"><option value="">All branches</option>${db.branches.map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join('')}</select><input id="vq" placeholder="Search…"><button class="btn" onclick="refreshViewer()">Search</button></div><div id="vt"></div></main>`;refreshViewer()}
 function refreshViewer(){let q=(vq?.value||'').toLowerCase(),bid=vf.value||'',rows=db.staff.filter(s=>(!bid||s.branchId===bid)&&(s.status==='Active'||s.status==='Resigned')&&[s.nameEn,s.nameBn,s.employeeId,s.designation,bname(s.branchId)].join(' ').toLowerCase().includes(q));vt.innerHTML=table(rows,{readonly:true})}
 /* CSV: exact requested order; English name only; address and phone excluded. */
-function downloadCSV(branchId){let rows=db.staff.filter(s=>(s.status==='Active'||s.status==='Resigned')&&(branchId==='ALL'||s.branchId===branchId));let out=[CSV_COLUMNS];rows.forEach((s,i)=>out.push([i+1,s.employeeId,s.nameEn,s.designation,s.grade,'Op-05',s.department,s.project,'Ctg North',region(s.branchId),bname(s.branchId),s.tmssJoin,s.branchJoin]));let csv=out.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\r\n'),blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=branchId==='ALL'?'TMSS_CTG_North_All_Branches.csv':`TMSS_${bname(branchId)}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
+function downloadCSV(branchId){let rows=db.staff.filter(s=>(s.status==='Active'||s.status==='Resigned')&&(branchId==='ALL'||s.branchId===branchId));let out=[CSV_COLUMNS];rows.forEach((s,i)=>out.push([i+1,s.employeeId,s.nameEn,s.designation,s.grade,'Op-05',s.department,s.project,'Ctg North',region(s.branchId),bname(s.branchId),fmtBDDate(s.tmssJoin),fmtBDDate(s.branchJoin)]));let csv=out.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\r\n'),blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=branchId==='ALL'?'TMSS_CTG_North_All_Branches.csv':`TMSS_${bname(branchId)}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
 </script><style>.address-stack{line-height:1.65;white-space:normal}.address-stack div{margin:1px 0}</style><script>(function(){function addressHTML(s){const v=x=>String(x??'').trim();return `<div class="address-stack"><div><b>গ্রাম:</b> ${esc(v(s.village)||'—')}</div><div><b>ডাকঘর:</b> ${esc(v(s.post)||'—')}</div><div><b>থানা/উপজেলা:</b> ${esc(v(s.upazila)||'—')}</div><div><b>জেলা:</b> ${esc(v(s.district)||'—')}</div></div>`}window.refreshViewer=function(){const q=(document.getElementById('vq')?.value||'').trim().toLowerCase(),bid=document.getElementById('vf')?.value||'',target=document.getElementById('vt');if(!target)return;target.innerHTML=db.branches.map((b,i)=>{if(bid&&b.id!==bid)return '';const br=db.staff.filter(s=>s.status==='Active'&&s.branchId===b.id&&[s.nameEn,s.nameBn,s.employeeId,s.designation,b.name].join(' ').toLowerCase().includes(q));if(!br.length)return '';return `<section class="card" style="margin-bottom:16px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span class="badge">${String(i+1).padStart(2,'0')}</span><div><h3 style="margin:0">${esc(b.name)}</h3><small style="color:var(--muted)">${esc(b.region||'')} • Active staff: ${br.length}</small></div></div><div class="tablewrap"><table class="table"><thead><tr><th>SL</th><th>Employee ID</th><th>Name</th><th>Designation</th><th>Grade</th><th>Zone</th><th>Region</th><th>Branch</th><th>Joining Date (TMSS)</th><th>Joining Date (Branch)</th><th>Address</th><th>Personal Phone</th></tr></thead><tbody>${br.map((s,j)=>`<tr><td>${j+1}</td><td>${esc(s.employeeId||'—')}</td><td><b>${esc(s.nameEn||'—')}</b><br><small>${esc(s.nameBn||'')}</small></td><td>${esc(s.designation||'—')}</td><td>${esc(s.grade||'—')}</td><td>${esc(s.zone||'Ctg North')}</td><td>${esc(s.region||b.region||'—')}</td><td>${esc(b.name)}</td><td>${esc(s.joiningDateTmss||s.joinDate||'—')}</td><td>${esc(s.joiningDateBranch||s.branchJoinDate||'—')}</td><td>${addressHTML(s)}</td><td>${esc(s.phone||'—')}</td></tr>`).join('')}</tbody></table></div></section>`}).join('')||`<div class="card" style="text-align:center;color:var(--muted)">No active staff records found.</div>`};window.renderViewer=function(){landing.classList.add('hidden');app.classList.remove('hidden');app.innerHTML=`${bar("View Only Panel")}<main class="main"><div class="topline"><div><span class="eyebrow">READ ONLY</span><h1 style="margin:8px 0">All Branches — Active Staff</h1><p style="color:var(--muted)">Branches are displayed in serial order. Only Active staff are shown.</p></div></div><div class="toolbar"><select id="vf" onchange="refreshViewer()"><option value="">All branches — Serial order</option>${db.branches.map((b,i)=>`<option value="${b.id}">${String(i+1).padStart(2,'0')} — ${esc(b.name)}</option>`).join('')}</select><input id="vq" placeholder="Search name, ID or designation…" oninput="refreshViewer()"></div><div id="vt"></div></main>`;refreshViewer()};const oldTable=window.table;window.table=function(rows,opts={}){const out=oldTable(rows,opts);if(!out||!rows?.length)return out;return out.replace(/Village:\s*([^<]*)<br>\s*Post:\s*([^<]*),\s*([^<]*),\s*([^<]*)/g,(_,v,p,u,d)=>addressHTML({village:v,post:p,upazila:u,district:d}))}})();</script>
 <style>
 .custom-admin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}.required-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid #e8edf5;border-radius:12px;background:#fff}.required-row b{font-size:13px}.required-row small{display:block;color:#7b8799;font-size:11px;margin-top:2px}.switchMini{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-size:11px;font-weight:800}.fieldBoxAdmin{padding:14px;border:1px solid #e8edf5;border-radius:14px;background:#fff}</style>
@@ -584,7 +584,7 @@ save();
     const rows=db.staff.filter(s=>s.status==='Active'&&(!bid||s.branchId===bid)&&[s.nameEn,s.nameBn,s.employeeId,s.designation,bname(s.branchId),s.village,s.post,s.thana,s.upazila,s.district].join(' ').toLowerCase().includes(q));
     const cols=['SL','Employee ID',nameType==='bn'?'Name (Bangla)':'Name (English)','Designation','Grade','Domain name','Department','Project','Zone','Region name','Branch name','Joining date (Tmss)','Joining Date (Branch)'];
     const out=[cols];
-    rows.forEach((s,i)=>out.push([i+1,s.employeeId,nameType==='bn'?s.nameBn:s.nameEn,s.designation,s.grade,'Op-05',s.department,s.project,'Ctg North',region(s.branchId),bname(s.branchId),s.tmssJoin,s.branchJoin]));
+    rows.forEach((s,i)=>out.push([i+1,s.employeeId,nameType==='bn'?s.nameBn:s.nameEn,s.designation,s.grade,'Op-05',s.department,s.project,'Ctg North',region(s.branchId),bname(s.branchId),fmtBDDate(s.tmssJoin),fmtBDDate(s.branchJoin)]));
     const csv=out.map(r=>r.map(csvEscape).join(',')).join('\r\n');
     const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
     a.href=URL.createObjectURL(blob);
@@ -784,7 +784,7 @@ function saveBranch(id){
 /* Bangladesh date format: show/edit dates as DD/MM/YYYY while storing ISO values internally. */
 .bd-date-wrap{position:relative;width:100%}
 .bd-date-wrap input.bd-date-text{width:100%;box-sizing:border-box}
-.bd-date-wrap input.bd-date-native{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.bd-date-wrap input.bd-date-native{position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:none}
 </style>
 <script>
 (function(){
@@ -792,10 +792,10 @@ function saveBranch(id){
   function toBD(v){
     if(!v)return '';
     var m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    return m ? m[3]+'/'+m[2]+'/'+m[1] : String(v);
+    return m ? m[3]+'-'+m[2]+'-'+m[1] : String(v);
   }
   function toISO(v){
-    var m=String(v||'').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    var m=String(v||'').trim().match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
     if(!m)return '';
     var d=pad(m[1]),mo=pad(m[2]),y=m[3];
     var dt=new Date(Number(y),Number(mo)-1,Number(d));
@@ -809,19 +809,19 @@ function saveBranch(id){
       var wrap=document.createElement('div'); wrap.className='bd-date-wrap';
       native.parentNode.insertBefore(wrap,native); wrap.appendChild(native);
       var text=document.createElement('input'); text.type='text'; text.className='bd-date-text';
-      text.placeholder='DD/MM/YYYY'; text.inputMode='numeric'; text.autocomplete='off';
+      text.placeholder='DD-MM-YYYY'; text.inputMode='numeric'; text.autocomplete='off';
       text.value=toBD(native.value);
       wrap.insertBefore(text,native);
       text.addEventListener('input',function(){
         var raw=text.value.replace(/[^0-9]/g,'').slice(0,8);
-        if(raw.length>4) raw=raw.slice(0,2)+'/'+raw.slice(2,4)+'/'+raw.slice(4);
-        else if(raw.length>2) raw=raw.slice(0,2)+'/'+raw.slice(2);
+        if(raw.length>4) raw=raw.slice(0,2)+'-'+raw.slice(2,4)+'-'+raw.slice(4);
+        else if(raw.length>2) raw=raw.slice(0,2)+'-'+raw.slice(2);
         text.value=raw;
         var iso=toISO(raw); if(iso) native.value=iso;
       });
       text.addEventListener('blur',function(){
         var iso=toISO(text.value);
-        if(text.value.trim() && !iso){text.setCustomValidity('Please enter date as DD/MM/YYYY.');}
+        if(text.value.trim() && !iso){text.setCustomValidity('Please enter date as DD-MM-YYYY.');}
         else {text.setCustomValidity(''); if(iso)native.value=iso;}
       });
       native.addEventListener('change',function(){text.value=toBD(native.value);text.setCustomValidity('');});
@@ -950,7 +950,7 @@ function saveBranch(id){
   function csvEscape(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}
   function csvRows(branchId){return db.staff.filter(s=>(branchId==='ALL'||s.branchId===branchId)&&(s.status==='Active'||s.status==='Resigned'))}
   window.downloadCSVTemplate=function(){
-    const rows=[CSV_COLUMNS,['1','EMP001','Example Name','SBM','1','Op-05','Department','Project','Ctg North','Pahartoli Region','Pahartoli','01/01/2026','01/01/2026']];
+    const rows=[CSV_COLUMNS,['1','EMP001','Example Name','SBM','1','Op-05','Department','Project','Ctg North','Pahartoli Region','Pahartoli','01-01-2026','01-01-2026']];
     const csv='\ufeff'+rows.map(r=>r.map(csvEscape).join(',')).join('\r\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='TMSS_Staff_Import_Template.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);
   };
   window.downloadBranchCSV=function(){downloadCSV(session.branchId)};
@@ -959,7 +959,7 @@ function saveBranch(id){
     for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(c==='"'){if(q&&n==='"'){cell+='"';i++;}else q=!q}else if(c===','&&!q){row.push(cell);cell=''}else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&n==='\n')i++;row.push(cell);if(row.some(x=>x.trim()!==''))rows.push(row);row=[];cell=''}else cell+=c}if(cell!==''||row.length){row.push(cell);rows.push(row)}return rows}
   function normHeader(x){return String(x||'').trim().toLowerCase().replace(/\s+/g,' ')}
   window.importStaffCSV=function(input,forcedBranchId){const file=input?.files?.[0];if(!file)return;const reader=new FileReader();reader.onload=function(){try{const rows=parseCSV(reader.result);if(rows.length<2)throw Error('CSV has no staff rows.');const head=rows[0].map(normHeader);const idx={};head.forEach((h,i)=>idx[h]=i);const required=['employee id','name','designation','grade','domain name','department','project','zone','region name','branch name','joining date (tmss)','joining date (branch)'];const missing=required.filter(h=>idx[h]===undefined);if(missing.length)throw Error('Missing columns: '+missing.join(', '));let added=0,updated=0,skipped=0;rows.slice(1).forEach(r=>{const get=h=>String(r[idx[h]]??'').trim();if(!get('employee id')&&!get('name'))return;const branchName=get('branch name');let b=forcedBranchId?db.branches.find(x=>x.id===forcedBranchId):db.branches.find(x=>x.name.toLowerCase()===branchName.toLowerCase());if(!b){skipped++;return}let des=get('designation');if(!des){skipped++;return}if(!designs().some(d=>d.name.toLowerCase()===des.toLowerCase())){const arr=designs();arr.push({name:des,rank:arr.length+1});arr.forEach((x,i)=>x.rank=i+1);db.designations=arr}let existing=db.staff.find(s=>s.employeeId===get('employee id'));let obj={nameEn:get('name'),nameBn:existing?.nameBn||'',phone:existing?.phone||'',employeeId:get('employee id'),designation:des,grade:get('grade'),department:get('department'),project:get('project'),domain:'Op-05',zone:'Ctg North',region:b.region,branchId:b.id,village:existing?.village||'',post:existing?.post||'',thana:existing?.thana||existing?.upazila||'',district:existing?.district||'',tmssJoin:toISOImport(get('joining date (tmss)')),branchJoin:toISOImport(get('joining date (branch)')),status:existing?.status||'Active',custom:existing?.custom||{}};if(!obj.tmssJoin||!obj.branchJoin){skipped++;return}if(existing){Object.assign(existing,obj);updated++}else{obj.id=crypto.randomUUID();db.staff.push(obj);added++}});save();toast(`CSV import: ${added} added, ${updated} updated, ${skipped} skipped.`);if(session.role==='admin')renderAdmin();else renderBranch();}catch(e){alert('CSV import failed: '+e.message)}finally{input.value=''}};reader.readAsText(file,'utf-8')};
-  function toISOImport(v){v=String(v||'').trim();let m=v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);if(m){let d=String(m[1]).padStart(2,'0'),mo=String(m[2]).padStart(2,'0');return `${m[3]}-${mo}-${d}`}m=v.match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?v:''}
+  function toISOImport(v){v=String(v||'').trim();let m=v.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);if(m){let d=String(m[1]).padStart(2,'0'),mo=String(m[2]).padStart(2,'0');return `${m[3]}-${mo}-${d}`}m=v.match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?v:''}
 
   // ---------- Branch render: CSV import/export + designation order + chat ----------
   const oldRenderBranch=window.renderBranch;
@@ -1116,6 +1116,35 @@ function saveBranch(id){
       }catch(e){console.error(e)}
       suppress=false; applyingRemote=false;
     }
+    const configRef=fs.collection('tmss').doc('appConfig');
+    let configStarted=false, configDirty=false, lastConfigStamp=0, configUploadTimer=null;
+    function cloneConfig(){
+      const d=window.db||db;
+      return {branches:Array.isArray(d.branches)?d.branches:[],fieldRules:Array.isArray(d.fieldRules)?d.fieldRules:[],customFields:Array.isArray(d.customFields)?d.customFields:[],designations:Array.isArray(d.designations)?d.designations:[],notice:d.notice||{enabled:false,text:''},extraModules:Array.isArray(d.extraModules)?d.extraModules:[]};
+    }
+    function uploadConfig(){
+      if(!configStarted||!configDirty)return;
+      const payload=cloneConfig(),stamp=Date.now(); lastConfigStamp=Math.max(lastConfigStamp,stamp); configDirty=false;
+      configRef.set({payload,stamp,source:clientId,updatedAt:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{configDirty=true});
+    }
+    function scheduleConfigUpload(){clearTimeout(configUploadTimer);configUploadTimer=setTimeout(uploadConfig,200);}
+    function applyConfig(payload,stamp){
+      if(!payload||stamp<=lastConfigStamp)return;
+      lastConfigStamp=stamp; suppress=true;
+      try{
+        if(Array.isArray(payload.branches))db.branches=payload.branches;
+        if(Array.isArray(payload.fieldRules))db.fieldRules=payload.fieldRules;
+        if(Array.isArray(payload.customFields))db.customFields=payload.customFields;
+        if(Array.isArray(payload.designations))db.designations=payload.designations;
+        if(payload.notice)db.notice=payload.notice;
+        if(Array.isArray(payload.extraModules))db.extraModules=payload.extraModules;
+        nativeSet.call(localStorage,'tmss_db_v2',JSON.stringify(db));
+        if(session){if(session.role==='admin'&&typeof renderAdmin==='function')renderAdmin();else if(session.role==='branch'&&typeof renderBranch==='function')renderBranch();else if(session.role==='viewer'&&typeof renderViewer==='function')renderViewer();}
+      }catch(e){console.error(e)} finally{suppress=false;}
+    }
+    window.tmssCloudSyncConfig=function(){configDirty=true;scheduleConfigUpload()};
+    window.tmssCloudPullConfig=function(){configRef.get().then(s=>{if(s.exists){const d=s.data()||{};applyConfig(d.payload,Number(d.stamp||0))}}).catch(()=>{})};
+
     function initialState(){
       stateRef.get().then(snap=>{
         if(snap.exists){
@@ -1155,9 +1184,13 @@ function saveBranch(id){
     auth.signInAnonymously().then(()=>{
       markStatus('Cloud connected');
       initialState();
+      configRef.get().then(s=>{if(s.exists){const d=s.data()||{};applyConfig(d.payload,Number(d.stamp||0));}else{configDirty=true;scheduleConfigUpload();}configStarted=true;}).catch(()=>{configStarted=true});
       chatRef.get().then(s=>{if(s.exists){const d=s.data()||{};applyChat(d.messages,Number(d.stamp||0))}}).catch(()=>{});
       setInterval(()=>{
         stateRef.get().then(s=>{if(!s.exists)return;const d=s.data()||{};if(Number(d.stamp||0)>lastStateStamp)applyState(d.payload,Number(d.stamp||0))}).catch(()=>{});
+      },2500);
+      setInterval(()=>{
+        configRef.get().then(s=>{if(!s.exists)return;const d=s.data()||{};if(Number(d.stamp||0)>lastConfigStamp)applyConfig(d.payload,Number(d.stamp||0))}).catch(()=>{});
       },2500);
       setInterval(()=>{
         chatRef.get().then(s=>{if(!s.exists)return;const d=s.data()||{};if(Number(d.stamp||0)>lastChatStamp)applyChat(d.messages,Number(d.stamp||0))}).catch(()=>{});
@@ -1170,3 +1203,102 @@ function saveBranch(id){
   }
 })();
 </script>\n
+<script>
+/* TMSS v5 — requested fixes only: cloud config sync, notice ticker, DD-MM-YYYY, aligned tables, module access. */
+(function(){
+  const bd=v=>{const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${m[3]}-${m[2]}-${m[1]}`:String(v||'')};
+  window.fmtBDDate=bd;
+
+  // Admin configuration changes are mirrored to a dedicated Firestore config document,
+  // so a branch's staff save cannot overwrite Required/Optional, branches, notice, etc.
+  function cloudConfig(){try{if(window.tmssCloudSyncConfig)window.tmssCloudSyncConfig()}catch(e){}}
+  const wrap=(name)=>{const old=window[name];if(typeof old!=='function')return;window[name]=function(){const r=old.apply(this,arguments);cloudConfig();return r};};
+  ['setStandardRequired','setCustomFieldRequired','saveField','saveBranch','saveNotice','saveModule','deleteField','deleteModule','addMasterDesignation','removeMasterDesignation'].forEach(wrap);
+
+  // Ensure admin can see Notice Board and Main Options without changing existing tabs.
+  const oldRenderAdmin=window.renderAdmin;
+  window.renderAdmin=function(){
+    oldRenderAdmin.apply(this,arguments);
+    setTimeout(()=>{
+      const tabs=document.querySelector('.tabs'); if(!tabs)return;
+      const add=(type,label)=>{if([...tabs.querySelectorAll('.tab')].some(x=>x.getAttribute('data-tmss-type')===type))return;const b=document.createElement('button');b.className='tab';b.setAttribute('data-tmss-type',type);b.textContent=label;b.onclick=()=>window.adminTab(b,type);tabs.appendChild(b)};
+      add('notice','Notice Board'); add('modules','Main Options');
+    },0);
+  };
+
+  // Admin tab handler for the two requested areas.
+  const oldAdminTab=window.adminTab;
+  window.adminTab=function(el,type){
+    if(type==='notice'){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));el?.classList.add('active');const c=document.getElementById('adminContent');if(c)c.innerHTML=window.noticePanel?window.noticePanel():'<div class="card">Notice Board unavailable.</div>';return;}
+    if(type==='modules'){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));el?.classList.add('active');const c=document.getElementById('adminContent');if(c)c.innerHTML=window.modulePanel?window.modulePanel():'<div class="card">Main Options unavailable.</div>';return;}
+    return oldAdminTab.apply(this,arguments);
+  };
+
+  // Branch portal: show active notice as a full-width right-to-left ticker and all admin-created forms.
+  const oldRenderBranch=window.renderBranch;
+  window.renderBranch=function(){
+    oldRenderBranch.apply(this,arguments);
+    setTimeout(()=>{
+      const main=document.querySelector('.main'); if(!main)return;
+      const oldNotice=main.querySelector('.noticeBoard'); if(oldNotice)oldNotice.remove();
+      if(db.notice?.enabled && db.notice?.text){
+        const n=document.createElement('div'); n.className='tmssNoticeBar'; n.innerHTML=`<div class="tmssNoticeTrack"><span>📢 ${esc(db.notice.text)}</span></div>`;
+        main.insertBefore(n,main.firstElementChild?.nextElementSibling||main.firstElementChild);
+      }
+      const modules=db.extraModules||[];
+      let box=main.querySelector('[data-tmss-modules]');
+      if(!box && modules.length){box=document.createElement('div');box.setAttribute('data-tmss-modules','1');box.className='card tmssModules';box.innerHTML='<h3>Available Forms</h3><p style="color:var(--muted)">Admin-created forms</p>'+modules.map(m=>`<button class="btn" style="margin:5px" onclick="openModuleEntry('${m.id}')">${esc(m.name)}</button>`).join('');main.appendChild(box)}
+    },20);
+  };
+
+  // Universal aligned staff table: address and phone remain in their own fixed columns.
+  const oldTable=window.table;
+  window.table=function(rows,opts={}){
+    if(!rows?.length)return '<div class="card" style="text-align:center;color:var(--muted)">No records found.</div>';
+    const list=[...rows].sort((a,b)=>(typeof designRank==='function'?designRank(a.designation)-designRank(b.designation):0)||String(a.nameEn||'').localeCompare(String(b.nameEn||'')));
+    return `<div class="tablewrap staffAligned"><table class="table tmssStaffTable"><thead><tr><th>SL</th><th>Employee ID</th><th>Name</th><th>Designation</th><th>Grade</th><th>Zone</th><th>Region</th><th>Branch</th><th>Joining Date (TMSS)</th><th>Joining Date (Branch)</th><th>Address</th><th>Personal Phone</th>${opts.actions?'<th>Actions</th>':''}</tr></thead><tbody>${list.map((s,i)=>`<tr><td>${i+1}</td><td>${esc(s.employeeId)}</td><td><b>${esc(s.nameEn)}</b><br><small>${esc(s.nameBn)}</small>${session?.role==='branch'&&typeof branchPendingLabel==='function'?(branchPendingLabel(s.id)?'<br>'+branchPendingLabel(s.id):''):''}</td><td><b>${esc(s.designation||'—')}</b></td><td>${esc(s.grade||'—')}</td><td>Op-05</td><td>${esc(region(s.branchId)||s.region||'—')}</td><td>${esc(bname(s.branchId))}${s.status!=='Active'?`<br><span class="pill red">${esc(s.status)}</span>`:''}</td><td>${bd(s.tmssJoin)}</td><td>${bd(s.branchJoin)}</td><td class="addressCell">${esc(s.village||'—')}<br>${esc(s.post||'—')}<br>${esc(s.thana||s.upazila||'—')}<br>${esc(s.district||'—')}</td><td class="phoneCell">${esc(s.phone||'—')}</td>${opts.actions?`<td class="actionCell"><div class="actions"><button class="smallBtn" onclick="openStaff('${s.id}')">✏️ Edit</button>${s.status==='Active'?`<button class="smallBtn" onclick="requestTransfer('${s.id}')">Transfer</button><button class="smallBtn red" onclick="openResign('${s.id}')">Resign</button>`:''}${session?.role==='admin'&&s.status==='Active'?`<button class="smallBtn" onclick="adminTransfer('${s.id}')">Admin Transfer</button>`:''}</div></td>`:''}</tr>`).join('')}</tbody></table></div>`;
+  };
+
+  // Repaint branch code labels everywhere in Branches & Access.
+  const oldBranchesPanel=window.branchesPanel;
+  window.branchesPanel=function(){
+    return `<div class="branchGrid">${db.branches.map(b=>`<div class="branchBox"><b>${esc(b.name)}${b.code?` (${esc(b.code)})`:''}</b><small>${esc(b.region||'')}<br>${esc(b.username||'')}<br>${esc(b.password||'')}</small><div style="margin-top:9px"><button class="smallBtn" onclick="editBranch('${b.id}')">Edit</button> <button class="smallBtn red" onclick="removeBranch('${b.id}')">Remove</button></div></div>`).join('')}</div>`;
+  };
+
+  // Make the admin Branch Edit dialog retain the code and credentials already entered.
+  const oldOpenBranch=window.openBranch;
+  window.openBranch=function(id=''){
+    const b=db.branches.find(x=>x.id===id)||{name:'',region:REGIONS[0]||'Pahartoli Region',code:'',username:'',password:''};
+    modal(id?'Edit Branch':'Add New Branch',`<div class="grid"><div class="field"><label>Branch name *</label><input id="bn" value="${esc(b.name||'')}"></div><div class="field"><label>Branch code *</label><input id="bc" value="${esc(b.code||'')}" placeholder="0485"></div><div class="field"><label>Region *</label><select id="br">${REGIONS.map(x=>`<option value="${esc(x)}" ${x===b.region?'selected':''}>${esc(x)}</option>`).join('')}</select></div><div class="field"><label>Branch Username *</label><input id="bu" value="${esc(b.username||'')}"></div><div class="field"><label>Branch Password *</label><input id="bp" value="${esc(b.password||'')}"></div></div><div id="bErr" class="err"></div><div class="modalActions"><button class="btn" onclick="closeTemp()">Cancel</button><button class="btn primary" onclick="saveBranch('${id}')">${id?'Save Changes':'Create Branch'}</button></div>`);
+  };
+
+  // Required/Optional: force an immediate config upload after admin changes.
+  const oldReq=window.setStandardRequired;
+  window.setStandardRequired=function(id,checked){const r=db.fieldRules?.find(x=>x.id===id);if(!r)return;r.required=!!checked;save();toast((r.required?'Required: ':'Optional: ')+r.label);cloudConfig();};
+
+  function formatIsoTextNodes(root){
+    const w=document.createTreeWalker(root||document.body,NodeFilter.SHOW_TEXT); const nodes=[]; while(w.nextNode())nodes.push(w.currentNode); nodes.forEach(n=>{if(n.parentElement?.matches('input,textarea,script,style'))return;n.nodeValue=n.nodeValue.replace(/\b(\d{4})-(\d{2})-(\d{2})\b/g,'$3-$2-$1')});
+  }
+  const oldRefreshResign=window.refreshResign; if(typeof oldRefreshResign==='function')window.refreshResign=function(){const r=oldRefreshResign.apply(this,arguments);setTimeout(()=>formatIsoTextNodes(document.getElementById('resignStats')||document.body),10);return r};
+  const oldRefreshHistory=window.refreshHistory; if(typeof oldRefreshHistory==='function')window.refreshHistory=function(){const r=oldRefreshHistory.apply(this,arguments);setTimeout(()=>formatIsoTextNodes(document.getElementById('history')||document.body),10);return r};
+
+  // Date inputs: keep internal ISO for Firebase/data, but display DD-MM-YYYY everywhere.
+  function enhanceDates(root){(root||document).querySelectorAll('input[type="date"]:not([data-tmss-final-date])').forEach(native=>{native.setAttribute('data-tmss-final-date','1');const w=document.createElement('div');w.className='bd-date-wrap';native.parentNode.insertBefore(w,native);w.appendChild(native);native.style.pointerEvents='none';const t=document.createElement('input');t.type='text';t.className='bd-date-text';t.placeholder='DD-MM-YYYY';t.inputMode='numeric';t.value=bd(native.value);w.insertBefore(t,native);t.addEventListener('click',()=>{try{if(native.showPicker)native.showPicker();else native.focus()}catch(e){native.focus()}});t.addEventListener('input',()=>{let r=t.value.replace(/\D/g,'').slice(0,8);if(r.length>4)r=r.slice(0,2)+'-'+r.slice(2,4)+'-'+r.slice(4);else if(r.length>2)r=r.slice(0,2)+'-'+r.slice(2);t.value=r;const m=r.match(/^(\d{2})-(\d{2})-(\d{4})$/);if(m){const iso=`${m[3]}-${m[2]}-${m[1]}`;native.value=iso;native.dispatchEvent(new Event('change',{bubbles:true}));}});native.addEventListener('change',()=>{t.value=bd(native.value)});});}
+  new MutationObserver(()=>enhanceDates(document)).observe(document.body,{childList:true,subtree:true}); enhanceDates(document);
+
+  // Module branch forms: support text/date/number/dropdown fields created by Admin.
+  window.openModuleEntry=function(id){const m=db.extraModules?.find(x=>x.id===id);if(!m)return;modal(m.name,`<div class="notice">Branch: ${session.role==='branch'?esc(bname(session.branchId)):'Admin'}</div><div class="grid">${(m.fields||[]).map(f=>`<div class="field"><label>${esc(f.label)}${f.required?' *':''}</label>${f.type==='select'?`<select id="mf_${f.id}"><option value="">Select</option>${(f.options||[]).map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select>`:`<input id="mf_${f.id}" type="${f.type==='date'?'date':f.type==='number'?'number':'text'}">`}</div>`).join('')}</div><div id="mfErr" class="err"></div><div class="modalActions"><button class="btn" onclick="closeTemp()">Cancel</button><button class="btn primary" onclick="submitModuleEntry('${id}')">Submit Form</button></div>`);};
+
+  // Clear old notice/module duplicates before rendering.
+  const style=document.createElement('style');style.id='tmss-v5-style';style.textContent=`
+    .tmssNoticeBar{width:100%;overflow:hidden;margin:0 0 16px;border:1px solid #f0d98d;border-radius:12px;background:#fff8dc;box-shadow:0 4px 14px rgba(0,0,0,.05);height:42px;display:flex;align-items:center;position:relative}
+    .tmssNoticeTrack{display:block;white-space:nowrap;will-change:transform;animation:tmssNoticeMove 16s linear infinite;min-width:max-content}
+    .tmssNoticeTrack span{display:inline-block;padding-left:100vw;padding-right:80px;font-weight:800;color:#8a6500;font-size:13px}
+    @keyframes tmssNoticeMove{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+    .tmssStaffTable{table-layout:fixed;width:max-content;min-width:1450px}
+    .tmssStaffTable th:nth-child(1),.tmssStaffTable td:nth-child(1){width:45px}.tmssStaffTable th:nth-child(2),.tmssStaffTable td:nth-child(2){width:115px}.tmssStaffTable th:nth-child(3),.tmssStaffTable td:nth-child(3){width:210px}.tmssStaffTable th:nth-child(4),.tmssStaffTable td:nth-child(4){width:120px}.tmssStaffTable th:nth-child(5),.tmssStaffTable td:nth-child(5){width:70px}.tmssStaffTable th:nth-child(6),.tmssStaffTable td:nth-child(6){width:80px}.tmssStaffTable th:nth-child(7),.tmssStaffTable td:nth-child(7){width:125px}.tmssStaffTable th:nth-child(8),.tmssStaffTable td:nth-child(8){width:125px}.tmssStaffTable th:nth-child(9),.tmssStaffTable td:nth-child(9),.tmssStaffTable th:nth-child(10),.tmssStaffTable td:nth-child(10){width:120px}.tmssStaffTable th:nth-child(11),.tmssStaffTable td:nth-child(11){width:220px}.tmssStaffTable th:nth-child(12),.tmssStaffTable td:nth-child(12){width:130px}.tmssStaffTable th:nth-child(13),.tmssStaffTable td:nth-child(13){width:230px}.tmssStaffTable td,.tmssStaffTable th{box-sizing:border-box;vertical-align:top;overflow-wrap:anywhere}.tmssStaffTable .phoneCell{white-space:nowrap;overflow-wrap:normal}.tmssStaffTable .addressCell{line-height:1.55}.tmssStaffTable .actionCell .actions{display:flex;gap:5px;flex-wrap:wrap}
+    .bd-date-wrap{position:relative;width:100%}.bd-date-wrap .bd-date-text{width:100%;box-sizing:border-box}.bd-date-wrap input.bd-date-native{position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:none}
+    .tmssModules{margin-top:16px}
+  `;document.head.appendChild(style);
+})();
+</script>
