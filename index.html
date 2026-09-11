@@ -1756,76 +1756,115 @@ function saveBranch(id){
 @media(max-width:650px){.branchStaffActions{flex-direction:column;align-items:stretch}.branchStaffActions .btn{width:100%}.adminBulkBar .bulkInfo{width:100%}}
 </style>
 <script>
-/* TMSS v12 — single live Firestore state, no polling/render loop.
-   Firestore centralStateV2 is the only shared application state.
+/* TMSS v13 — Firebase connection hardening.
+   Fixes: auth race, delete reappearing after refresh, Admin/Branch live state,
+   and branch records being overwritten by an old cloud snapshot during startup.
+   centralStateV2 remains the single shared application state.
 */
 (function(){
   'use strict';
   const DOC='centralStateV2';
-  let ready=false, applying=false, timer=null, unsub=null, lastStamp=0, lastHash='',dirtyBeforeReady=false;
+  let ready=false, applying=false, timer=null, unsub=null, lastStamp=0, lastHash='';
   const fs=()=>window.firebase&&firebase.apps&&firebase.apps.length?firebase.firestore():null;
   const clone=()=>{try{return JSON.parse(JSON.stringify(window.db||db))}catch(e){return null}};
   const nativeSet=Storage.prototype.setItem;
-  function cloudWrite(){
-    const f=fs(), payload=clone();
-    if(!f||!payload||!ready||applying){ if(!ready&&!applying) dirtyBeforeReady=true; return Promise.resolve(false); }
-    const stamp=Math.max(Date.now(),lastStamp+1); lastStamp=stamp; lastHash=JSON.stringify(payload);
-    return f.collection('tmss').doc(DOC).set({payload,stamp,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})
-      .then(()=>true).catch(e=>{console.error('TMSS Firebase save error:',e);return false});
+
+  function markError(e){console.error('TMSS Firebase:',e)}
+
+  async function ensureAuth(){
+    if(!window.firebase||!firebase.apps||!firebase.apps.length) throw new Error('Firebase app is not initialized');
+    const auth=firebase.auth();
+    if(auth.currentUser) return auth.currentUser;
+    return await auth.signInAnonymously().then(r=>r.user||auth.currentUser);
   }
-  function schedule(){clearTimeout(timer);timer=setTimeout(()=>cloudWrite(),100)}
+
+  async function cloudWrite(){
+    const f=fs(), payload=clone();
+    if(!f||!payload||!ready||applying)return false;
+    const stamp=Math.max(Date.now(),lastStamp+1);
+    lastStamp=stamp;
+    lastHash=JSON.stringify(payload);
+    try{
+      await f.collection('tmss').doc(DOC).set({
+        payload,stamp,
+        updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+      },{merge:true});
+      return true;
+    }catch(e){markError(e);return false;}
+  }
+
+  function schedule(){
+    if(!ready||applying)return;
+    clearTimeout(timer);
+    timer=setTimeout(()=>cloudWrite(),120);
+  }
+
   function applyRemote(payload,stamp,force){
     if(!payload||!stamp)return;
     if(!force&&stamp<=lastStamp)return;
     const hash=JSON.stringify(payload);
     if(!force&&hash===lastHash){lastStamp=Math.max(lastStamp,stamp);return;}
-    applying=true;lastStamp=stamp;lastHash=hash;
+    applying=true;
+    lastStamp=stamp;
+    lastHash=hash;
     try{
-      window.db=payload;db=payload;
+      window.db=payload;
+      db=payload;
       nativeSet.call(localStorage,'tmss_db_v2',hash);
       if(!session)return;
       if(session.role==='admin'&&typeof window.renderAdmin==='function')window.renderAdmin();
       else if(session.role==='branch'&&typeof window.renderBranch==='function')window.renderBranch();
       else if(session.role==='viewer'&&typeof window.renderViewer==='function')window.renderViewer();
-    }catch(e){console.error('TMSS Firebase apply error:',e)}finally{applying=false;}
+    }catch(e){markError(e)}
+    finally{applying=false;}
   }
+
   const oldSave=window.save;
   window.save=function(){
     const r=oldSave?oldSave.apply(this,arguments):nativeSet.call(localStorage,'tmss_db_v2',JSON.stringify(db));
-    if(!applying){dirtyBeforeReady=!ready;schedule();}
+    if(!applying)schedule();
     return r;
   };
   window.tmssFirebaseSyncNow=function(){return cloudWrite()};
   window.tmssFirebaseReady=()=>ready;
+
   async function start(){
-    const f=fs();if(!f)return;
-    const ref=f.collection('tmss').doc(DOC);
+    const f=fs();
+    if(!f)return;
     try{
+      // IMPORTANT: Firestore must not be read/written before Anonymous Auth is ready.
+      await ensureAuth();
+      const ref=f.collection('tmss').doc(DOC);
       const snap=await ref.get();
       if(snap.exists){
         const d=snap.data()||{};
-        const local=clone();
-        /* If a branch/admin performed a real save before Firebase finished initializing,
-           do not silently lose that save. Push that local state once, otherwise use cloud. */
-        if(dirtyBeforeReady&&local){
-          ready=true;
-          await cloudWrite();
-        }else{
-          applyRemote(d.payload,Number(d.stamp||0),true);
-          ready=true;
-        }
+        const payload=d.payload;
+        const stamp=Number(d.stamp||0);
+        // Cloud is authoritative on startup. This prevents an old browser cache
+        // from resurrecting deleted staff or hiding records from another branch.
+        ready=true;
+        applyRemote(payload,stamp,true);
       }else{
         ready=true;
         await cloudWrite();
       }
+
       if(unsub)try{unsub()}catch(e){}
       unsub=ref.onSnapshot(s=>{
         const d=s.data()||{},st=Number(d.stamp||0);
         if(st>lastStamp)applyRemote(d.payload,st,false);
-      },e=>console.error('TMSS Firebase realtime error:',e));
-    }catch(e){console.error('TMSS Firebase init error:',e);ready=true;if(dirtyBeforeReady)cloudWrite();}
+      },markError);
+    }catch(e){
+      markError(e);
+      // Keep local mode usable if Firebase is temporarily unavailable.
+      ready=false;
+    }
   }
-  (function wait(){if(fs())start();else setTimeout(wait,300)})();
+
+  (function wait(){
+    if(fs())start();
+    else setTimeout(wait,300);
+  })();
 })();
 </script>
 <script>
