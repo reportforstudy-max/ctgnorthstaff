@@ -1300,144 +1300,23 @@ function saveBranch(id){
 })();
 </script>
 \n<script>
-/*
- TMSS CLOUD SYNC — preserves the existing UI/business logic and moves shared data
- from browser-only localStorage to Firebase Firestore so 21 branch PCs + Admin can
- use the same live database.
-
- Firebase Web App config is already configured. Enable Anonymous Authentication + Firestore in Firebase Console before testing.
-*/
+/* TMSS legacy Firebase bridge disabled. centralStateV2 is the ONLY shared state. */
 (function(){
-  const TMSS_FIREBASE_CONFIG = window.TMSS_FIREBASE_CONFIG || {
-    apiKey: "AIzaSyAkosG1bjn35H7Ji10LrQbUBeXoroivPvw",
-    authDomain: "ctg-north-staff.firebaseapp.com",
-    projectId: "ctg-north-staff",
-    storageBucket: "ctg-north-staff.firebasestorage.app",
-    messagingSenderId: "87936835698",
-    appId: "1:87936835698:web:d6601915c19ccdaf41a2eb"
+  const cfg=window.TMSS_FIREBASE_CONFIG||{
+    apiKey:"AIzaSyAkosG1bjn35H7Ji10LrQbUeXoroivPvw",
+    authDomain:"ctg-north-staff.firebaseapp.com",
+    projectId:"ctg-north-staff",
+    storageBucket:"ctg-north-staff.firebasestorage.app",
+    messagingSenderId:"87936835698",
+    appId:"1:87936835698:web:d6601915c19ccdaf41a2eb"
   };
-  const configured=TMSS_FIREBASE_CONFIG.apiKey && !String(TMSS_FIREBASE_CONFIG.apiKey).startsWith('PASTE_') && TMSS_FIREBASE_CONFIG.projectId && !String(TMSS_FIREBASE_CONFIG.projectId).startsWith('PASTE_');
-  if(!configured){
-    console.warn('TMSS Cloud Sync is not configured. Add Firebase web config to enable multi-PC sync.');
-    window.tmssCloud={enabled:false,status:'Not configured'};
-    return;
-  }
   try{
-    if(!firebase.apps.length) firebase.initializeApp(TMSS_FIREBASE_CONFIG);
-    const auth=firebase.auth(), fs=firebase.firestore();
-    const stateRef=fs.collection('tmss').doc('centralState');
-    const chatRef=fs.collection('tmss').doc('centralChat');
-    const clientId=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random());
-    let suppress=false, applyingRemote=false, started=false, lastStateStamp=0, lastChatStamp=0, uploadTimer=null, chatTimer=null;
-    window.tmssCloud={enabled:true,status:'Connecting…',clientId};
-
-    function markStatus(text){window.tmssCloud.status=text;document.dispatchEvent(new CustomEvent('tmss-cloud-status',{detail:text}));}
-    function cloneDb(){try{return JSON.parse(JSON.stringify(window.db||db));}catch(e){return null}}
-    function uploadState(){
-      const payload=cloneDb(); if(!payload)return;
-      const stamp=Date.now(); lastStateStamp=Math.max(lastStateStamp,stamp);
-      stateRef.set({payload,stamp,source:clientId,updatedAt:firebase.firestore.FieldValue.serverTimestamp()})
-        .then(()=>markStatus('Cloud synced'))
-        .catch(e=>markStatus('Cloud sync error: '+(e.message||e)));
+    if(window.firebase){
+      if(!firebase.apps.length) firebase.initializeApp(cfg);
+      window.tmssCloud={enabled:true,status:'Connecting…'};
+      firebase.auth().signInAnonymously().then(()=>{window.tmssCloud.status='Cloud connected';document.dispatchEvent(new CustomEvent('tmss-cloud-status',{detail:'Cloud connected'}));}).catch(e=>{console.error('TMSS Firebase auth:',e);window.tmssCloud.status='Cloud login failed';});
     }
-    function scheduleStateUpload(){
-      if(suppress)return;
-      clearTimeout(uploadTimer); uploadTimer=setTimeout(uploadState,250);
-    }
-    function applyState(payload,stamp){
-      if(!payload || applyingRemote || stamp<=lastStateStamp)return;
-      applyingRemote=true; lastStateStamp=stamp; suppress=true;
-      try{
-        const current=db||{}; const cfgKeys=['branches','fieldRules','customFields','designations','notice','extraModules','viewerAccess'];
-        const merged=payload||{}; cfgKeys.forEach(function(k){if(current[k]!==undefined)merged[k]=current[k];});
-        window.db=merged; db=merged;
-        localStorage.setItem('tmss_db_v2',JSON.stringify(merged));
-        suppress=false;
-        if(typeof session!=='undefined' && session){
-          if(session.role==='admin' && typeof renderAdmin==='function')renderAdmin();
-          else if(session.role==='viewer' && typeof renderViewer==='function')renderViewer();
-          else if(session.role==='branch' && typeof renderBranch==='function')renderBranch();
-        }
-      }catch(e){console.error(e)}
-      suppress=false; applyingRemote=false;
-    }
-    const configRef=fs.collection('tmss').doc('appConfig');
-    let configStarted=false, configDirty=false, lastConfigStamp=0, configUploadTimer=null;
-    function cloneConfig(){
-      const d=window.db||db;
-      return {branches:Array.isArray(d.branches)?d.branches:[],fieldRules:Array.isArray(d.fieldRules)?d.fieldRules:[],customFields:Array.isArray(d.customFields)?d.customFields:[],designations:Array.isArray(d.designations)?d.designations:[],notice:d.notice||{enabled:false,text:''},extraModules:Array.isArray(d.extraModules)?d.extraModules:[],viewerAccess:d.viewerAccess||null,viewerAccess:d.viewerAccess||null};
-    }
-    function uploadConfig(){
-      if(!configStarted||!configDirty)return;
-      const payload=cloneConfig(),stamp=Date.now(); lastConfigStamp=Math.max(lastConfigStamp,stamp); configDirty=false;
-      configRef.set({payload,stamp,source:clientId,updatedAt:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{configDirty=true});
-    }
-    function scheduleConfigUpload(){clearTimeout(configUploadTimer);configUploadTimer=setTimeout(uploadConfig,200);}
-    function applyConfig(payload,stamp){
-      if(!payload||stamp<=lastConfigStamp)return;
-      lastConfigStamp=stamp; suppress=true;
-      try{
-        if(Array.isArray(payload.branches))db.branches=payload.branches;
-        if(Array.isArray(payload.fieldRules))db.fieldRules=payload.fieldRules;
-        if(Array.isArray(payload.customFields))db.customFields=payload.customFields;
-        if(Array.isArray(payload.designations))db.designations=payload.designations;
-        if(payload.notice)db.notice=payload.notice;
-        if(Array.isArray(payload.extraModules))db.extraModules=payload.extraModules; if(payload.viewerAccess)db.viewerAccess=payload.viewerAccess;
-        nativeSet.call(localStorage,'tmss_db_v2',JSON.stringify(db));
-        if(session){if(session.role==='admin'&&typeof renderAdmin==='function')renderAdmin();else if(session.role==='branch'&&typeof renderBranch==='function')renderBranch();else if(session.role==='viewer'&&typeof renderViewer==='function')renderViewer();}
-      }catch(e){console.error(e)} finally{suppress=false;}
-    }
-    window.tmssCloudSyncConfig=function(){configDirty=true;scheduleConfigUpload()};
-    window.tmssCloudPullConfig=function(){configRef.get().then(s=>{if(s.exists){const d=s.data()||{};applyConfig(d.payload,Number(d.stamp||0))}}).catch(()=>{})};
-
-    function initialState(){
-      stateRef.get().then(snap=>{
-        if(snap.exists){
-          const d=snap.data()||{}; applyState(d.payload,Number(d.stamp||0)); markStatus('Cloud connected');
-        }else{
-          uploadState(); markStatus('Cloud initialized from this browser');
-        }
-        started=true;
-      }).catch(e=>{started=true;markStatus('Cloud connection failed: '+(e.message||e))});
-    }
-
-    function uploadChat(){
-      try{
-        const raw=localStorage.getItem('tmss_chat_v1'); if(!raw)return;
-        const messages=JSON.parse(raw); const stamp=Date.now(); lastChatStamp=Math.max(lastChatStamp,stamp);
-        chatRef.set({messages,stamp,source:clientId,updatedAt:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{});
-      }catch(e){}
-    }
-    function scheduleChatUpload(){clearTimeout(chatTimer);chatTimer=setTimeout(uploadChat,250)}
-    function applyChat(messages,stamp){
-      if(!Array.isArray(messages)||stamp<=lastChatStamp)return;
-      lastChatStamp=stamp; suppress=true;
-      try{localStorage.setItem('tmss_chat_v1',JSON.stringify(messages));window.dispatchEvent(new StorageEvent('storage',{key:'tmss_chat_v1',newValue:JSON.stringify(messages)}));}catch(e){}
-      suppress=false;
-    }
-
-    // Intercept ONLY the two existing shared localStorage keys. All other localStorage
-    // behavior (login/session/etc.) remains unchanged.
-    const nativeSet=Storage.prototype.setItem;
-    Storage.prototype.setItem=function(key,value){
-      nativeSet.call(this,key,value);
-      if(suppress)return;
-      if(key==='tmss_db_v2' && started)scheduleStateUpload();
-      if(key==='tmss_chat_v1' && started)scheduleChatUpload();
-    };
-
-    auth.signInAnonymously().then(()=>{
-      // v10.1: Firebase authentication only. Shared application data is now handled
-      // exclusively by centralStateV2 below, so the legacy 2.5s polling/render loop
-      // cannot overwrite a newer approval or cause the UI to refresh/shake.
-      markStatus('Cloud connected');
-      started=true;
-    }).catch(e=>markStatus('Cloud login failed: '+(e.message||e)));
-
-    // Legacy state/chat uploads disabled; centralStateV2 + tmssChatMessagesV2 are authoritative.
-  }catch(e){
-    console.error(e); window.tmssCloud={enabled:false,status:'Firebase error'};
-  }
+  }catch(e){console.error('TMSS Firebase init:',e);window.tmssCloud={enabled:false,status:'Firebase error'};}
 })();
 </script>\n
 <script>
@@ -1764,7 +1643,7 @@ function saveBranch(id){
 (function(){
   'use strict';
   const DOC='centralStateV2';
-  let ready=false, applying=false, timer=null, unsub=null, lastStamp=0, lastHash='';
+  let ready=false, applying=false, timer=null, unsub=null, lastStamp=0, lastHash='', pendingLocalSave=false;
   const fs=()=>window.firebase&&firebase.apps&&firebase.apps.length?firebase.firestore():null;
   const clone=()=>{try{return JSON.parse(JSON.stringify(window.db||db))}catch(e){return null}};
   const nativeSet=Storage.prototype.setItem;
@@ -1794,8 +1673,9 @@ function saveBranch(id){
   }
 
   function schedule(){
-    if(!ready||applying)return;
+    if(applying)return;
     clearTimeout(timer);
+    if(!ready){ pendingLocalSave=true; return; }
     timer=setTimeout(()=>cloudWrite(),120);
   }
 
@@ -1822,7 +1702,7 @@ function saveBranch(id){
   const oldSave=window.save;
   window.save=function(){
     const r=oldSave?oldSave.apply(this,arguments):nativeSet.call(localStorage,'tmss_db_v2',JSON.stringify(db));
-    if(!applying)schedule();
+    if(!applying){ pendingLocalSave=true; schedule(); }
     return r;
   };
   window.tmssFirebaseSyncNow=function(){return cloudWrite()};
@@ -1840,13 +1720,19 @@ function saveBranch(id){
         const d=snap.data()||{};
         const payload=d.payload;
         const stamp=Number(d.stamp||0);
-        // Cloud is authoritative on startup. This prevents an old browser cache
-        // from resurrecting deleted staff or hiding records from another branch.
         ready=true;
-        applyRemote(payload,stamp,true);
+        if(pendingLocalSave){
+          // A real user action happened before cloud initialization finished;
+          // preserve that local action instead of silently replacing it.
+          await cloudWrite();
+          pendingLocalSave=false;
+        }else{
+          applyRemote(payload,stamp,true);
+        }
       }else{
         ready=true;
         await cloudWrite();
+        pendingLocalSave=false;
       }
 
       if(unsub)try{unsub()}catch(e){}
