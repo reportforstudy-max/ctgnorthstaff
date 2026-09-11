@@ -1429,22 +1429,14 @@ function saveBranch(id){
     };
 
     auth.signInAnonymously().then(()=>{
+      // v10.1: Firebase authentication only. Shared application data is now handled
+      // exclusively by centralStateV2 below, so the legacy 2.5s polling/render loop
+      // cannot overwrite a newer approval or cause the UI to refresh/shake.
       markStatus('Cloud connected');
-      initialState();
-      configRef.get().then(s=>{if(s.exists){const d=s.data()||{};applyConfig(d.payload,Number(d.stamp||0));}else{configDirty=true;scheduleConfigUpload();}configStarted=true;}).catch(()=>{configStarted=true});
-      chatRef.get().then(s=>{if(s.exists){const d=s.data()||{};applyChat(d.messages,Number(d.stamp||0))}}).catch(()=>{});
-      setInterval(()=>{
-        stateRef.get().then(s=>{if(!s.exists)return;const d=s.data()||{};if(Number(d.stamp||0)>lastStateStamp)applyState(d.payload,Number(d.stamp||0))}).catch(()=>{});
-      },2500);
-      setInterval(()=>{
-        configRef.get().then(s=>{if(!s.exists)return;const d=s.data()||{};if(Number(d.stamp||0)>lastConfigStamp)applyConfig(d.payload,Number(d.stamp||0))}).catch(()=>{});
-      },2500);
-      setInterval(()=>{
-        chatRef.get().then(s=>{if(!s.exists)return;const d=s.data()||{};if(Number(d.stamp||0)>lastChatStamp)applyChat(d.messages,Number(d.stamp||0))}).catch(()=>{});
-      },2500);
+      started=true;
     }).catch(e=>markStatus('Cloud login failed: '+(e.message||e)));
 
-    window.addEventListener('beforeunload',()=>{try{uploadState();uploadChat()}catch(e){}});
+    // Legacy state/chat uploads disabled; centralStateV2 + tmssChatMessagesV2 are authoritative.
   }catch(e){
     console.error(e); window.tmssCloud={enabled:false,status:'Firebase error'};
   }
@@ -1775,7 +1767,7 @@ function saveBranch(id){
 (function(){
   'use strict';
   const V2DOC='centralStateV2';
-  let v2Ready=false,v2Applying=false,v2Timer=null,v2Unsub=null,lastV2Stamp=0;
+  let v2Ready=false,v2Applying=false,v2Timer=null,v2Unsub=null,lastV2Stamp=0,lastV2Hash='';
   function fs(){return window.firebase&&firebase.apps&&firebase.apps.length?firebase.firestore():null}
   function clone(){try{return JSON.parse(JSON.stringify(window.db||db))}catch(e){return null}}
   function writeCloud(){
@@ -1792,9 +1784,12 @@ function saveBranch(id){
     if(!payload||!stamp||stamp<=lastV2Stamp||v2Applying)return;
     v2Applying=true;lastV2Stamp=stamp;
     try{
+      const incomingHash=JSON.stringify(payload);
+      const changed=incomingHash!==lastV2Hash;
       window.db=payload;db=payload;
-      nativeLocal(JSON.stringify(payload));
-      if(session){
+      nativeLocal(incomingHash);
+      if(session && changed){
+        lastV2Hash=incomingHash;
         if(session.role==='admin'&&typeof renderAdmin==='function')renderAdmin();
         else if(session.role==='branch'&&typeof renderBranch==='function')renderBranch();
         else if(session.role==='viewer'&&typeof renderViewer==='function')renderViewer();
