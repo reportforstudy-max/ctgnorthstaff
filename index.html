@@ -26,19 +26,20 @@
 const INITIAL_BRANCHES=[{"id": "B01", "name": "Pahartoli", "region": "Pahartoli Region", "code": "", "username": "tmss_pahartoli", "password": "TMSS@012026"}, {"id": "B02", "name": "Katgor", "region": "Pahartoli Region", "code": "", "username": "tmss_katgor", "password": "TMSS@022026"}, {"id": "B03", "name": "Bandartila", "region": "Pahartoli Region", "code": "", "username": "tmss_bandartila", "password": "TMSS@032026"}, {"id": "B04", "name": "Halishahar", "region": "Pahartoli Region", "code": "", "username": "tmss_halishahar", "password": "TMSS@042026"}, {"id": "B05", "name": "Boropole", "region": "Pahartoli Region", "code": "", "username": "tmss_boropole", "password": "TMSS@052026"}, {"id": "B06", "name": "Foujdarhat", "region": "Pahartoli Region", "code": "", "username": "tmss_foujdarhat", "password": "TMSS@062026"}, {"id": "B07", "name": "Kotwali", "region": "Kotwali Region", "code": "", "username": "tmss_kotwali", "password": "TMSS@072026"}, {"id": "B08", "name": "Patharghata", "region": "Kotwali Region", "code": "", "username": "tmss_patharghata", "password": "TMSS@082026"}, {"id": "B09", "name": "Chawkbazar", "region": "Kotwali Region", "code": "", "username": "tmss_chawkbazar", "password": "TMSS@092026"}, {"id": "B10", "name": "Chittagong", "region": "Kotwali Region", "code": "", "username": "tmss_chittagong", "password": "TMSS@102026"}, {"id": "B11", "name": "Khulshi", "region": "Kotwali Region", "code": "", "username": "tmss_khulshi", "password": "TMSS@112026"}, {"id": "B12", "name": "Banglabajar 3", "region": "Kotwali Region", "code": "", "username": "tmss_banglabajar3", "password": "TMSS@122026"}, {"id": "B13", "name": "Kumira", "region": "Sandwip Region", "code": "", "username": "tmss_kumira", "password": "TMSS@132026"}, {"id": "B14", "name": "Enamnahar", "region": "Sandwip Region", "code": "", "username": "tmss_enamnahar", "password": "TMSS@142026"}, {"id": "B15", "name": "Shiberhat", "region": "Sandwip Region", "code": "", "username": "tmss_shiberhat", "password": "TMSS@152026"}, {"id": "B16", "name": "Sandwip", "region": "Sandwip Region", "code": "", "username": "tmss_sandwip", "password": "TMSS@162026"}, {"id": "B17", "name": "Mirsarai", "region": "Mirsarai Region", "code": "", "username": "tmss_mirsarai", "password": "TMSS@172026"}, {"id": "B18", "name": "Barayerhat", "region": "Mirsarai Region", "code": "", "username": "tmss_barayerhat", "password": "TMSS@182026"}, {"id": "B19", "name": "Borodarogarhat", "region": "Mirsarai Region", "code": "", "username": "tmss_borodarogarhat", "password": "TMSS@192026"}, {"id": "B20", "name": "Abu Torab", "region": "Mirsarai Region", "code": "", "username": "tmss_abutorab", "password": "TMSS@202026"}, {"id": "B21", "name": "Sitakunda", "region": "Mirsarai Region", "code": "", "username": "tmss_sitakunda", "password": "TMSS@212026"}], DESIGNATIONS=["SBM", "DSBM", "BM", "ABM", "SS", "DSS", "FS", "AFS", "AYA"], REGIONS=["Pahartoli Region", "Kotwali Region", "Sandwip Region", "Mirsarai Region"], CSV_COLUMNS=["SL", "Employee ID", "Name", "Designation", "Grade", "Domain name", "Department", "Project", "Zone", "Region name", "Branch name", "Joining date (Tmss)", "Joining Date (Branch)"];
 const ADMIN={username:"admin",password:"TMSS#Admin2026"};
 const VIEWER={username:"viewer",password:"TMSS#Viewer2026"};
-let db=JSON.parse(localStorage.getItem("tmss_db_v2")||"null");
-if(!db)db={branches:INITIAL_BRANCHES,staff:[],movements:[],transferRequests:[],resignHistory:[],customFields:[]};
+const tmssRuntimeStore=(()=>{const m=new Map();return {getItem:k=>m.has(k)?m.get(k):null,setItem:(k,v)=>m.set(k,String(v)),removeItem:k=>m.delete(k),clear:()=>m.clear()}})();
+// Application data is Firebase-only. This is an in-memory seed used only before the first Firestore response.
+let db={branches:JSON.parse(JSON.stringify(INITIAL_BRANCHES)),staff:[],movements:[],transferRequests:[],resignHistory:[],customFields:[],resignRequests:[],designations:DESIGNATIONS.map((name,i)=>({name,rank:i+1})),notice:{enabled:false,text:""},extraModules:[]};
 let session=null,mode="branch",editingId=null;
 
-function save(){localStorage.setItem("tmss_db_v2",JSON.stringify(db))}
+function save(){}
 function esc(x){return String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 function bname(id){return db.branches.find(b=>b.id===id)?.name||"—"} function region(id){return db.branches.find(b=>b.id===id)?.region||"—"}
 function toast(x){let t=document.getElementById("toast");t.textContent=x;t.classList.remove("hidden");setTimeout(()=>t.classList.add("hidden"),2300)}
 function loginOpen(m){mode=m;document.getElementById("login").classList.remove("hidden");document.getElementById("loginTitle").textContent=m==="admin"?"Admin Panel":m==="viewer"?"View Only Panel":"Branch Sign In";document.getElementById("loginSub").textContent=m==="viewer"?"Read-only: no edit, delete or change access.":m==="admin"?"Full access.":"Your branch only.";document.getElementById("loginErr").textContent="";document.getElementById("lu").value="";document.getElementById("lp").value="";document.getElementById("remember").checked=false;setTimeout(()=>document.getElementById("lu").focus(),30)}
 function closeLogin(){document.getElementById("login").classList.add("hidden")}
 function doLogin(){let u=lu.value.trim(),p=lp.value,ok=null;if(mode==="admin"&&u===ADMIN.username&&p===ADMIN.password)ok={role:"admin"};else if(mode==="viewer"&&u===VIEWER.username&&p===VIEWER.password)ok={role:"viewer"};else {let b=db.branches.find(x=>x.username===u&&x.password===p);if(b&&mode==="branch")ok={role:"branch",branchId:b.id}}
-if(!ok){loginErr.textContent="Invalid username or password.";return}session=ok;if(remember.checked)localStorage.setItem("tmss_saved_login",JSON.stringify({u,p,mode}));closeLogin();session.role==="admin"?renderAdmin():session.role==="viewer"?renderViewer():renderBranch()}
-(function(){let x=JSON.parse(localStorage.getItem("tmss_saved_login")||"null");if(x){mode=x.mode;document.getElementById("lu").value=x.u;document.getElementById("lp").value=x.p}})();
+if(!ok){loginErr.textContent="Invalid username or password.";return}session=ok;if(remember.checked)tmssRuntimeStore.setItem("tmss_saved_login",JSON.stringify({u,p,mode}));closeLogin();session.role==="admin"?renderAdmin():session.role==="viewer"?renderViewer():renderBranch()}
+(function(){let x=JSON.parse(tmssRuntimeStore.getItem("tmss_saved_login")||"null");if(x){mode=x.mode;document.getElementById("lu").value=x.u;document.getElementById("lp").value=x.p}})();
 function logout(){session=null;app.classList.add("hidden");landing.classList.remove("hidden")}
 function modal(title,body){document.getElementById("modalHost").innerHTML=`<div id="temp" class="overlay"><div class="modal"><div style="display:flex;justify-content:space-between;align-items:start"><div><h2>${title}</h2></div><button class="btn" onclick="closeTemp()">✕</button></div>${body}</div></div>`}
 function closeTemp(){document.getElementById("temp")?.remove()}
@@ -152,9 +153,9 @@ function hasPending(id,type){let a=type==='transfer'?db.transferRequests:db.resi
 function noticeMarkup(){return db.notice.enabled&&db.notice.text?`<div class="noticeBoard"><div class="ticker">📢 ${esc(db.notice.text)}</div></div>`:""}
 const _oldDoLogin=doLogin;
 doLogin=function(){let u=lu.value.trim(),p=lp.value,ok=null;if(mode==='admin'&&u===ADMIN.username&&p===ADMIN.password)ok={role:'admin'};else if(mode==='viewer'&&u===VIEWER.username&&p===VIEWER.password)ok={role:'viewer'};else{let b=db.branches.find(x=>x.username===u&&x.password===p);if(b&&mode==='branch')ok={role:'branch',branchId:b.id}}
-if(!ok){loginErr.textContent='Invalid username or password.';return}session=ok;localStorage.setItem('tmss_current_session',JSON.stringify(ok));if(remember.checked)localStorage.setItem('tmss_saved_login',JSON.stringify({u,p,mode}));else localStorage.removeItem('tmss_saved_login');db.loginHistory.push({id:crypto.randomUUID(),username:u,role:ok.role,branchId:ok.branchId||null,date:new Date().toLocaleString()});save();closeLogin();ok.role==='admin'?renderAdmin():ok.role==='viewer'?renderViewer():renderBranch()}
-function logout(){session=null;localStorage.removeItem('tmss_current_session');app.classList.add('hidden');landing.classList.remove('hidden')}
-(function(){let x=JSON.parse(localStorage.getItem('tmss_saved_login')||'null');if(x){mode=x.mode;lu.value=x.u;lp.value=x.p;remember.checked=true}})();
+if(!ok){loginErr.textContent='Invalid username or password.';return}session=ok;tmssRuntimeStore.setItem('tmss_current_session',JSON.stringify(ok));if(remember.checked)tmssRuntimeStore.setItem('tmss_saved_login',JSON.stringify({u,p,mode}));else tmssRuntimeStore.removeItem('tmss_saved_login');db.loginHistory.push({id:crypto.randomUUID(),username:u,role:ok.role,branchId:ok.branchId||null,date:new Date().toLocaleString()});save();closeLogin();ok.role==='admin'?renderAdmin():ok.role==='viewer'?renderViewer():renderBranch()}
+function logout(){session=null;tmssRuntimeStore.removeItem('tmss_current_session');app.classList.add('hidden');landing.classList.remove('hidden')}
+(function(){let x=JSON.parse(tmssRuntimeStore.getItem('tmss_saved_login')||'null');if(x){mode=x.mode;lu.value=x.u;lp.value=x.p;remember.checked=true}})();
 function table(rows,opts={}){if(!rows.length)return `<div class="card" style="text-align:center;color:var(--muted)">No records found.</div>`;return `<div class="tablewrap"><table class="table ${opts.readonly?'readonly':''}"><thead><tr><th>SL</th><th>Employee ID</th><th>Name</th><th>Designation</th><th>Grade</th><th>Domain</th><th>Department</th><th>Project</th><th>Zone</th><th>Region</th><th>Branch</th><th>Joining (TMSS)</th><th>Joining (Branch)</th><th>Address</th><th>Personal Phone</th>${opts.actions?'<th>Actions</th>':''}</tr></thead><tbody>${rows.map((s,i)=>{let acts='';if(opts.actions&&s.status==='Active'){acts+=session.role==='admin'?`<button class="smallBtn" onclick="adminTransfer('${s.id}')">Transfer</button>`:(hasPending(s.id,'transfer')?'<span class="requestSent">✓ Transfer request sent</span>':`<button class="smallBtn" onclick="requestTransfer('${s.id}')">Transfer</button>`);acts+=' ';acts+=session.role==='admin'?(hasPending(s.id,'resign')?'<span class="requestSent">✓ Resign request pending</span>':`<button class="smallBtn red" onclick="openResign('${s.id}')">Resign</button>`):(hasPending(s.id,'resign')?'<span class="requestSent">✓ Resign request sent</span>':`<button class="smallBtn red" onclick="openResign('${s.id}')">Resign</button>`)}if(opts.actions&&session.role==='admin')acts+=` <button class="smallBtn" onclick="openStaff('${s.id}')">Edit</button> <button class="smallBtn red" onclick="deleteStaff('${s.id}')">Delete</button>`;return `<tr><td>${i+1}</td><td>${esc(s.employeeId)}</td><td><b>${esc(s.nameEn)}</b><br>${esc(s.nameBn)}</td><td>${esc(s.designation)}</td><td>${esc(s.grade)}</td><td>Op-05</td><td>${esc(s.department)}</td><td>${esc(s.project)}</td><td>Ctg North</td><td>${esc(region(s.branchId))}</td><td>${esc(bname(s.branchId))}${s.status!=='Active'?`<br><span class="pill red">${esc(s.status)}</span>`:''}</td><td>${esc(s.tmssJoin)}</td><td>${esc(s.branchJoin)}</td><td>Village: ${esc(s.village)}<br>Post: ${esc(s.post)}<br>Thana: ${esc(s.thana)}<br>District: ${esc(s.district)}</td><td>${esc(s.phone)}</td>${opts.actions?`<td>${acts}</td>`:''}</tr>`}).join('')}</tbody></table></div>`}
 function renderBranch(){let b=db.branches.find(x=>x.id===session.branchId);landing.classList.add('hidden');app.classList.remove('hidden');app.innerHTML=`${bar(b.name+' Branch Portal')}${noticeMarkup()}<main class="main"><div class="topline"><div><span class="eyebrow">PRIVATE BRANCH</span><h1 style="margin:8px 0">Staff Directory</h1><p style="color:var(--muted)">Only your branch records are accessible.</p></div><button class="btn primary" onclick="openStaff()">+ Add Staff</button></div><div class="stats"><div class="stat"><small>Active staff</small><b>${db.staff.filter(s=>s.branchId===b.id&&s.status==='Active').length}</b></div><div class="stat"><small>Branch code</small><b>${b.code||'—'}</b></div><div class="stat"><small>Region</small><b style="font-size:15px">${esc(b.region)}</b></div><div class="stat"><small>Pending requests</small><b>${badge(db.resignRequests.filter(x=>x.branchId===b.id&&x.status==='Pending').length+db.transferRequests.filter(x=>x.from===b.id&&x.status==='Pending').length)||'0'}</b></div></div><div class="toolbar"><input id="bs" placeholder="Search staff / ID / designation…" oninput="refreshBranch()"><button class="btn" onclick="downloadCSV(session.branchId)">Download CSV</button></div><div id="bt"></div></main>`;refreshBranch()}
 function refreshBranch(){let q=(bs?.value||'').toLowerCase(),id=session.branchId;r=db.staff.filter(s=>s.branchId===id&&s.status==='Active'&&[s.nameEn,s.nameBn,s.employeeId,s.designation].join(' ').toLowerCase().includes(q));bt.innerHTML=table(r,{actions:true})}
@@ -352,7 +353,7 @@ function downloadCSV(branchId){let rows=db.staff.filter(s=>(s.status==='Active'|
 /* FINAL v8 — only Chat Seen notification + Branch Staff Add placement. */
 (function(){
   function currentMe(){return session?.role==='admin'?'ADMIN':session?.branchId||''}
-  function readStore(){try{return JSON.parse(localStorage.getItem('tmss_chat_reads_v1')||'{}')}catch(e){return{}}}
+  function readStore(){try{return JSON.parse(tmssRuntimeStore.getItem('tmss_chat_reads_v1')||'{}')}catch(e){return{}}}
   function msgStamp(x){const t=Date.parse(x?.at||'');return Number.isFinite(t)?t:0}
   function forceSeen(peer){
     if(!peer)return;
@@ -362,7 +363,7 @@ function downloadCSV(branchId){let rows=db.staff.filter(s=>(s.status==='Active'|
       const incoming=msgs.filter(x=>x.to===meId&&x.from===peer).map(msgStamp).filter(Boolean);
       const reads=readStore();
       if(incoming.length) reads[meId+'|'+peer]=Math.max.apply(null,incoming);
-      localStorage.setItem('tmss_chat_reads_v1',JSON.stringify(reads));
+      tmssRuntimeStore.setItem('tmss_chat_reads_v1',JSON.stringify(reads));
       if(typeof paintChatBadges==='function')paintChatBadges();
     }catch(e){}
   }
@@ -727,7 +728,7 @@ renderBranch=function(){
 };
 
 // Ensure saved login is restored when opening the app.
-(function(){try{const x=JSON.parse(localStorage.getItem('tmss_saved_login')||'null');if(x&&typeof mode!=='undefined'){mode=x.mode;if(typeof lu!=='undefined')lu.value=x.u||'';if(typeof lp!=='undefined')lp.value=x.p||'';if(typeof remember!=='undefined')remember.checked=true}}catch(e){}})();
+(function(){try{const x=JSON.parse(tmssRuntimeStore.getItem('tmss_saved_login')||'null');if(x&&typeof mode!=='undefined'){mode=x.mode;if(typeof lu!=='undefined')lu.value=x.u||'';if(typeof lp!=='undefined')lp.value=x.p||'';if(typeof remember!=='undefined')remember.checked=true}}catch(e){}})();
 
 // CSS for request-sent labels and compact custom forms.
 if(!document.getElementById('tmss-v4-css')){const st=document.createElement('style');st.id='tmss-v4-css';st.textContent='.requestSent{display:inline-block;margin-top:5px;padding:4px 8px;border-radius:8px;background:#fff0f1;color:#c51f2a;font-size:11px;font-weight:800}.badge{display:inline-flex;min-width:20px;height:20px;padding:0 6px;align-items:center;justify-content:center;border-radius:999px;background:#e12632;color:#fff;font-size:11px;font-weight:800;margin-left:4px}.tabs{flex-wrap:wrap}.table td,.table th{vertical-align:top}';document.head.appendChild(st)}
@@ -963,11 +964,11 @@ function saveBranch(id){
     }
 
     session=ok;
-    localStorage.setItem('tmss_current_session',JSON.stringify(ok));
+    tmssRuntimeStore.setItem('tmss_current_session',JSON.stringify(ok));
     if(rem?.checked){
-      localStorage.setItem('tmss_saved_login',JSON.stringify({u:u,p:p,mode:mode}));
+      tmssRuntimeStore.setItem('tmss_saved_login',JSON.stringify({u:u,p:p,mode:mode}));
     }else{
-      localStorage.removeItem('tmss_saved_login');
+      tmssRuntimeStore.removeItem('tmss_saved_login');
     }
     db.loginHistory=Array.isArray(db.loginHistory)?db.loginHistory:[];
     db.loginHistory.push({id:crypto.randomUUID(),username:u,role:ok.role,branchId:ok.branchId||null,date:new Date().toLocaleString()});
@@ -980,7 +981,7 @@ function saveBranch(id){
 
   /* Re-load remembered credentials safely, without forcing a broken mode. */
   try{
-    const x=JSON.parse(localStorage.getItem('tmss_saved_login')||'null');
+    const x=JSON.parse(tmssRuntimeStore.getItem('tmss_saved_login')||'null');
     if(x){
       mode=x.mode||'branch';
       const u=el('lu'),p=el('lp'),r=el('remember');
@@ -988,7 +989,7 @@ function saveBranch(id){
       if(p)p.value=x.p||'';
       if(r)r.checked=true;
     }
-  }catch(e){ localStorage.removeItem('tmss_saved_login'); }
+  }catch(e){ tmssRuntimeStore.removeItem('tmss_saved_login'); }
 })();
 </script>
 <script>
@@ -1116,16 +1117,16 @@ function saveBranch(id){
 
   // ---------- Persistent login: stay signed in after tab/browser close ----------
   try{
-    const saved=JSON.parse(localStorage.getItem('tmss_current_session')||'null');
+    const saved=JSON.parse(tmssRuntimeStore.getItem('tmss_current_session')||'null');
     if(saved && saved.role && (saved.role==='admin'||saved.role==='viewer'||db.branches.some(b=>b.id===saved.branchId))){
       session=saved; mode=saved.role;
       setTimeout(()=>{try{document.getElementById('landing').classList.add('hidden');document.getElementById('app').classList.remove('hidden');saved.role==='admin'?renderAdmin():saved.role==='viewer'?renderViewer():renderBranch()}catch(e){}},0);
     }
-  }catch(e){localStorage.removeItem('tmss_current_session')}
+  }catch(e){tmssRuntimeStore.removeItem('tmss_current_session')}
   const oldLogin=window.doLogin;
-  window.doLogin=function(){oldLogin(); if(session){localStorage.setItem('tmss_current_session',JSON.stringify(session));}}
+  window.doLogin=function(){oldLogin(); if(session){tmssRuntimeStore.setItem('tmss_current_session',JSON.stringify(session));}}
   const oldLogout=window.logout;
-  window.logout=function(){localStorage.removeItem('tmss_current_session');localStorage.removeItem('tmss_saved_login');oldLogout();}
+  window.logout=function(){tmssRuntimeStore.removeItem('tmss_current_session');tmssRuntimeStore.removeItem('tmss_saved_login');oldLogout();}
 
   // ---------- Mobile-friendly landing/login ----------
   window.loginOpen=function(m){
@@ -1229,8 +1230,8 @@ function saveBranch(id){
 
   // ---------- Chat: persistent per-browser, cross-tab live sync ----------
   const CHATKEY='tmss_chat_v1';
-  function chats(){try{return JSON.parse(localStorage.getItem(CHATKEY)||'[]')}catch(e){return[]}}
-  function saveChats(a){localStorage.setItem(CHATKEY,JSON.stringify(a));try{window.dispatchEvent(new StorageEvent('storage',{key:CHATKEY,newValue:JSON.stringify(a)}))}catch(e){}}
+  function chats(){try{return JSON.parse(tmssRuntimeStore.getItem(CHATKEY)||'[]')}catch(e){return[]}}
+  function saveChats(a){tmssRuntimeStore.setItem(CHATKEY,JSON.stringify(a));try{window.dispatchEvent(new StorageEvent('storage',{key:CHATKEY,newValue:JSON.stringify(a)}))}catch(e){}}
   function meId(){return session?.role==='admin'?'ADMIN':session?.branchId||''}
   window.openChat=function(){modal('Live Chat',chatPanel(session.role));setTimeout(()=>{initChat(session.role)},0)};
   window.chatPanel=function(role){const users=[{id:'ADMIN',name:'Admin Panel'}].concat(db.branches.map(b=>({id:b.id,name:b.name}))).filter(u=>u.id!==meId());return `<div class="chatWrap"><div class="chatUsers"><b style="font-size:12px">Contacts</b><div style="margin-top:8px">${users.map((u,i)=>`<button class="chatUser ${i===0?'active':''}" data-chat-user="${esc(u.id)}" onclick="selectChat('${esc(u.id)}')">${esc(u.name)}</button>`).join('')}</div></div><div class="chatBox"><div class="chatHead" id="chatHead">${esc(users[0]?.name||'Select contact')}</div><div class="chatMessages" id="chatMessages"></div><div class="chatComposer"><input id="chatInput" placeholder="Type message…" onkeydown="if(event.key==='Enter'){event.preventDefault();sendChatMessage()}"><button class="btn primary" onclick="sendChatMessage()">Send</button></div></div></div>`}
@@ -1261,7 +1262,7 @@ function saveBranch(id){
   }
   function refresh(){
     let d=window.db;
-    try{const raw=localStorage.getItem('tmss_db_v2');if(raw)d=JSON.parse(raw);}catch(e){}
+    try{const raw=tmssRuntimeStore.getItem('tmss_db_v2');if(raw)d=JSON.parse(raw);}catch(e){}
     paint(countPending(d));
   }
   const _renderAdmin=window.renderAdmin;
@@ -1317,7 +1318,7 @@ function saveBranch(id){
   let appReady=false, syncing=false, applying=false, timer=null, unsub=null;
   let lastStamp=0, lastHash='', baseline=null, pendingLocalSave=false;
   const DOC='centralStateV2';
-  const nativeSet=Storage.prototype.setItem;
+  const nativeSet=()=>{};
   const fs=()=>window.firebase&&firebase.apps&&firebase.apps.length?firebase.firestore():null;
   const clone=v=>{try{return JSON.parse(JSON.stringify(v))}catch(e){return null}};
   const localDb=()=>clone(window.db||db);
@@ -1403,7 +1404,6 @@ function saveBranch(id){
     applying=true;
     try{
       window.db=clone(payload); db=window.db;
-      nativeSet.call(localStorage,'tmss_db_v2',JSON.stringify(window.db));
       baseline=clone(window.db); lastStamp=Math.max(lastStamp,Number(stamp||0)); lastHash=hash; pendingLocalSave=false;
       if(session?.role==='admin'&&typeof window.renderAdmin==='function')window.renderAdmin();
       else if(session?.role==='branch'&&typeof window.renderBranch==='function')window.renderBranch();
@@ -1413,7 +1413,7 @@ function saveBranch(id){
 
   const oldSave=window.save;
   window.save=function(){
-    const r=oldSave?oldSave.apply(this,arguments):nativeSet.call(localStorage,'tmss_db_v2',JSON.stringify(db));
+    const r=oldSave?oldSave.apply(this,arguments):nativeSet.call(tmssRuntimeStore,'tmss_db_v2',JSON.stringify(db));
     if(!applying)schedule();
     return r;
   };
@@ -1439,19 +1439,17 @@ function saveBranch(id){
           lastStamp=Math.max(Date.now(),lastStamp+1); lastHash=JSON.stringify(merged); baseline=clone(merged); pendingLocalSave=false;
         }else{applyRemote(d.payload,lastStamp);}
       }else{
-        // One-time fallback: older builds stored the shared state in centralState.
-        const legacy=await f.collection('tmss').doc('centralState').get();
-        if(legacy.exists&&legacy.data()?.payload){
-          const d=legacy.data(); window.db=clone(d.payload);db=window.db;
-          await ref.set({payload:window.db,stamp:Number(d.stamp||Date.now()),updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
-          lastStamp=Number(d.stamp||Date.now());lastHash=JSON.stringify(window.db);baseline=clone(window.db);
-          nativeSet.call(localStorage,'tmss_db_v2',JSON.stringify(window.db));
-        }else if(local){
-          await ref.set({payload:local,stamp:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
-          lastStamp=Date.now();lastHash=JSON.stringify(local);baseline=clone(local);
+        // centralStateV2 is the only application source. If it does not exist yet, seed it once.
+        if(local){
+          const stamp=Date.now();
+          await ref.set({payload:local,stamp,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+          lastStamp=stamp;lastHash=JSON.stringify(local);baseline=clone(local);
         }
       }
       appReady=true; status('Cloud connected');
+      if(session?.role==='admin'&&typeof window.renderAdmin==='function')window.renderAdmin();
+      else if(session?.role==='branch'&&typeof window.renderBranch==='function')window.renderBranch();
+      else if(session?.role==='viewer'&&typeof window.renderViewer==='function')window.renderViewer();
       if(unsub)try{unsub()}catch(e){}
       unsub=ref.onSnapshot(s=>{
         const d=s.data()||{},st=Number(d.stamp||0),p=d.payload;
@@ -1737,10 +1735,10 @@ function saveBranch(id){
   const CHATKEY='tmss_chat_v1';
   let chatPeerV4='';let chatMessagesV4=[];let chatUnsubV4=null;
   function me(){return session?.role==='admin'?'ADMIN':session?.branchId||''}
-  function localMsgs(){try{return JSON.parse(localStorage.getItem(CHATKEY)||'[]')}catch(e){return[]}}
+  function localMsgs(){try{return JSON.parse(tmssRuntimeStore.getItem(CHATKEY)||'[]')}catch(e){return[]}}
   function fsReady(){return window.firebase&&firebase.apps&&firebase.apps.length}
   async function chatRefV4(){if(!fsReady())return null;const a=firebase.auth();if(!a.currentUser){try{await a.signInAnonymously()}catch(e){} }return firebase.firestore().collection('tmss').doc('centralChat')}
-  async function loadReads(){try{return JSON.parse(localStorage.getItem('tmss_chat_reads_v1')||'{}')}catch(e){return{}}}
+  async function loadReads(){try{return JSON.parse(tmssRuntimeStore.getItem('tmss_chat_reads_v1')||'{}')}catch(e){return{}}}
   function msgTime(x){const t=Date.parse(x?.at||'');return Number.isFinite(t)?t:0}
   function unreadFor(peer){const reads=loadReads();const stamp=Number(reads[me()+'|'+peer]||0);return chatMessagesV4.filter(x=>x.to===me()&&x.from===peer&&msgTime(x)>stamp).length}
   function paintChatBadges(){
@@ -1755,17 +1753,17 @@ function saveBranch(id){
     const latest=received.length?Math.max.apply(null,received):Date.now();
     const reads=loadReads();
     reads[me()+'|'+peer]=latest;
-    localStorage.setItem('tmss_chat_reads_v1',JSON.stringify(reads));
+    tmssRuntimeStore.setItem('tmss_chat_reads_v1',JSON.stringify(reads));
     paintChatBadges();
   }
   function renderChatMessages(){const box=document.getElementById('chatMessages');if(!box)return;const arr=chatMessagesV4.filter(x=>(x.from===me()&&x.to===chatPeerV4)||(x.from===chatPeerV4&&x.to===me()));box.innerHTML=arr.map(x=>`<div class="chatMsg ${x.from===me()?'mine':'theirs'}"><div>${escx(x.text)}</div><div class="chatMeta">${new Date(x.at).toLocaleString()}</div></div>`).join('')||'<div style="text-align:center;color:#8a96aa;font-size:12px;margin-top:120px">No messages yet.</div>';box.scrollTop=box.scrollHeight;paintChatBadges()}
-  function attachChatRealtime(){if(chatUnsubV4)try{chatUnsubV4()}catch(e){};if(!fsReady())return;try{chatUnsubV4=firebase.firestore().collection('tmss').doc('centralChat').onSnapshot(s=>{const d=s.data()||{};chatMessagesV4=Array.isArray(d.messages)?d.messages:[];try{localStorage.setItem(CHATKEY,JSON.stringify(chatMessagesV4))}catch(e){};renderChatMessages();paintChatBadges()})}catch(e){chatMessagesV4=localMsgs();renderChatMessages()}}
+  function attachChatRealtime(){if(chatUnsubV4)try{chatUnsubV4()}catch(e){};if(!fsReady())return;try{chatUnsubV4=firebase.firestore().collection('tmss').doc('centralChat').onSnapshot(s=>{const d=s.data()||{};chatMessagesV4=Array.isArray(d.messages)?d.messages:[];try{tmssRuntimeStore.setItem(CHATKEY,JSON.stringify(chatMessagesV4))}catch(e){};renderChatMessages();paintChatBadges()})}catch(e){chatMessagesV4=localMsgs();renderChatMessages()}}
   window.chatPanel=function(role){const meId=me();const users=[{id:'ADMIN',name:'Admin Panel'}].concat((db.branches||[]).map(b=>({id:b.id,name:b.name}))).filter(u=>u.id!==meId);return `<div class="chatWrap"><div class="chatUsers"><b style="font-size:12px">Contacts</b><div style="margin-top:8px">${users.map((u,i)=>`<button class="chatUser ${i===0?'active':''}" data-chat-user="${escx(u.id)}" onclick="selectChat('${escx(u.id)}')"><span class="tmssChatUserLine"><span>${escx(u.name)}</span><span class="tmssContactBadge" hidden></span></span></button>`).join('')}</div></div><div class="chatBox"><div class="chatHead" id="chatHead">${escx(users[0]?.name||'Select contact')}</div><div class="chatMessages" id="chatMessages"></div><div class="chatComposer"><input id="chatInput" placeholder="Type message…"><button type="button" class="btn primary" id="chatSendBtn" onclick="sendChatMessage()">Send</button></div></div></div>`}
   window.openChat=function(){modal('Live Chat',window.chatPanel(session.role));setTimeout(()=>window.initChat(session.role),20)};
   window.initChat=function(){const first=document.querySelector('[data-chat-user]');chatPeerV4=first?.getAttribute('data-chat-user')||'';attachChatRealtime();if(chatPeerV4)markRead(chatPeerV4);renderChatMessages();const inp=document.getElementById('chatInput');if(inp){inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();window.sendChatMessage()}};inp.focus()}paintChatBadges()};
   window.selectChat=function(id){chatPeerV4=id||'';document.querySelectorAll('[data-chat-user]').forEach(x=>x.classList.toggle('active',x.getAttribute('data-chat-user')===chatPeerV4));const b=db.branches.find(x=>x.id===chatPeerV4);const h=document.getElementById('chatHead');if(h)h.textContent=chatPeerV4==='ADMIN'?'Admin Panel':b?.name||chatPeerV4;markRead(chatPeerV4);renderChatMessages();document.getElementById('chatInput')?.focus()};
   window.refreshChat=renderChatMessages;
-  window.sendChatMessage=async function(){const input=document.getElementById('chatInput');const text=(input?.value||'').trim();if(!text||!chatPeerV4)return;const msg={id:crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random(),from:me(),to:chatPeerV4,text,at:new Date().toISOString()};try{const ref=await chatRefV4();if(ref){await ref.set({messages:firebase.firestore.FieldValue.arrayUnion(msg),stamp:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});chatMessagesV4=[...chatMessagesV4,msg];}else{chatMessagesV4=[...localMsgs(),msg];localStorage.setItem(CHATKEY,JSON.stringify(chatMessagesV4))}if(input)input.value='';renderChatMessages();paintChatBadges()}catch(e){console.error(e);alert('Message could not be sent. Please try again.')}};
+  window.sendChatMessage=async function(){const input=document.getElementById('chatInput');const text=(input?.value||'').trim();if(!text||!chatPeerV4)return;const msg={id:crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random(),from:me(),to:chatPeerV4,text,at:new Date().toISOString()};try{const ref=await chatRefV4();if(ref){await ref.set({messages:firebase.firestore.FieldValue.arrayUnion(msg),stamp:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});chatMessagesV4=[...chatMessagesV4,msg];}else{chatMessagesV4=[...localMsgs(),msg];tmssRuntimeStore.setItem(CHATKEY,JSON.stringify(chatMessagesV4))}if(input)input.value='';renderChatMessages();paintChatBadges()}catch(e){console.error(e);alert('Message could not be sent. Please try again.')}};
 
   // Start realtime chat once Firebase is ready, without disturbing the existing login/data sync.
   setTimeout(()=>{if(fsReady())attachChatRealtime();paintChatBadges()},1200);
@@ -1857,8 +1855,8 @@ window.tmssFirebaseSecondSyncRemoved=true;
   let peer='',unsub=null,msgs=[];
   const readKey=()=> 'tmss_chat_seen_v2_'+(session?.role==='admin'?'ADMIN':session?.branchId||'');
   const me2=()=>session?.role==='admin'?'ADMIN':session?.branchId||'';
-  const reads=()=>{try{return JSON.parse(localStorage.getItem(readKey())||'{}')}catch(e){return{}}};
-  const saveReads=x=>localStorage.setItem(readKey(),JSON.stringify(x));
+  const reads=()=>{try{return JSON.parse(tmssRuntimeStore.getItem(readKey())||'{}')}catch(e){return{}}};
+  const saveReads=x=>tmssRuntimeStore.setItem(readKey(),JSON.stringify(x));
   const stamp=m=>Date.parse(m.at||'')||0;
   function unreadFor(p){const r=reads();return msgs.filter(m=>m.to===me2()&&m.from===p&&stamp(m)>Number(r[p]||0)).length}
   function paint(){
