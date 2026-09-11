@@ -1921,3 +1921,26 @@ window.tmssFirebaseSecondSyncRemoved=true;
   };
 })();
 </script>
+
+
+<script>
+/* v17 — GUARANTEED cloud save queue. */
+(function(){
+  'use strict';
+  let retryTimer=null, attempts=0;
+  function push(){
+    if(typeof window.tmssFirebaseSyncNow!=='function'){ retryTimer=setTimeout(push,500); return; }
+    try{
+      const ready=typeof window.tmssFirebaseReady==='function' ? window.tmssFirebaseReady() : false;
+      if(ready){
+        Promise.resolve(window.tmssFirebaseSyncNow()).then(function(ok){
+          if(!ok && attempts<40){attempts++;retryTimer=setTimeout(push,500);}
+        }).catch(function(){if(attempts<40){attempts++;retryTimer=setTimeout(push,500);}});
+      }else if(attempts<40){attempts++;retryTimer=setTimeout(push,500);}
+    }catch(e){if(attempts<40){attempts++;retryTimer=setTimeout(push,500);}}
+  }
+  const oldSave=window.save;
+  window.save=function(){const r=oldSave?oldSave.apply(this,arguments):undefined;clearTimeout(retryTimer);attempts=0;push();return r;};
+  window.tmssCloudForceSave=function(){clearTimeout(retryTimer);attempts=0;push();};
+})();
+</script>
