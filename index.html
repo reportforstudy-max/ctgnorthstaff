@@ -78,7 +78,7 @@ save();closeTemp();toast(editingId?"Staff updated":"Staff added");session.role==
 
 function table(rows,opts={}){if(!rows.length)return `<div class="card" style="text-align:center;color:var(--muted)">No records found.</div>`;return `<div class="tablewrap"><table class="table ${opts.readonly?"readonly":""}"><thead><tr><th>SL</th><th>Employee ID</th><th>Name</th><th>Designation</th><th>Grade</th><th>Domain</th><th>Department</th><th>Project</th><th>Zone</th><th>Region</th><th>Branch</th><th>Joining (TMSS)</th><th>Joining (Branch)</th>${opts.actions?"<th>Actions</th>":""}</tr></thead><tbody>${rows.map((s,i)=>`<tr><td>${i+1}</td><td>${esc(s.employeeId)}</td><td><b>${esc(s.nameEn)}</b><br>${esc(s.nameBn)}</td><td>${esc(s.designation)}</td><td>${esc(s.grade)}</td><td>Op-05</td><td>${esc(s.department)}</td><td>${esc(s.project)}</td><td>Ctg North</td><td>${esc(region(s.branchId))}</td><td>${esc(bname(s.branchId))}${s.status!=="Active"?`<br><span class="pill red">${esc(s.status)}</span>`:""}</td><td>${esc(s.tmssJoin)}</td><td>${esc(s.branchJoin)}</td>${opts.actions?`<td><div class="actions"><button class="smallBtn" onclick="openStaff('${s.id}')">Edit</button>${s.status==="Active"?`<button class="smallBtn" onclick="requestTransfer('${s.id}')">Transfer</button><button class="smallBtn red" onclick="openResign('${s.id}')">Resign</button>`:""}<button class="smallBtn red" onclick="deleteStaff('${s.id}')">Delete</button></div></td>`:""}</tr>`).join("")}</tbody></table></div>`}
 
-function renderBranch(){let b=db.branches.find(x=>x.id===session.branchId);landing.classList.add("hidden");app.classList.remove("hidden");app.innerHTML=`${bar(b.name+" Branch Portal")}<main class="main"><div class="topline"><div><span class="eyebrow">PRIVATE BRANCH</span><h1 style="margin:8px 0">Staff Directory</h1><p style="color:var(--muted)">Only your branch records are accessible.</p></div><button class="btn primary" onclick="openStaff()">+ Add Staff</button></div><div class="stats"><div class="stat"><small>Active staff</small><b>${db.staff.filter(s=>s.branchId===b.id&&s.status==="Active").length}</b></div><div class="stat"><small>Branch code</small><b>${b.code||"—"}</b></div><div class="stat"><small>Region</small><b style="font-size:15px">${esc(b.region)}</b></div><div class="stat"><small>Access</small><b>Private</b></div></div><div class="toolbar"><input id="bs" placeholder="Search staff / ID / designation…" oninput="refreshBranch()"><button class="btn" onclick="downloadCSV(session.branchId)">Download CSV</button></div><div id="bt"></div></main>`;refreshBranch()}
+function renderBranch(){let b=db.branches.find(x=>x.id===session.branchId);landing.classList.add("hidden");app.classList.remove("hidden");app.innerHTML=`${bar(b.name+" Branch Portal")}<main class="main"><div class="topline"><div><span class="eyebrow">PRIVATE BRANCH</span><h1 style="margin:8px 0">Staff Directory</h1><p style="color:var(--muted)">Only your branch records are accessible.</p></div></div><div class="branchQuickActions"><div class="branchQuickText"><span class="branchQuickIcon">👥</span><div><b>Staff Management</b><small>Add a new staff member to your branch directory</small></div></div><button class="btn primary branchAddBtn" type="button" onclick="openStaff()">＋ Add Staff</button></div><div class="stats"><div class="stat"><small>Active staff</small><b>${db.staff.filter(s=>s.branchId===b.id&&s.status==="Active").length}</b></div><div class="stat"><small>Branch code</small><b>${b.code||"—"}</b></div><div class="stat"><small>Region</small><b style="font-size:15px">${esc(b.region)}</b></div><div class="stat"><small>Access</small><b>Private</b></div></div><div class="toolbar"><input id="bs" placeholder="Search staff / ID / designation…" oninput="refreshBranch()"><button class="btn" onclick="downloadCSV(session.branchId)">Download CSV</button></div><div id="bt"></div></main>`;refreshBranch()}
 function refreshBranch(){let q=(document.getElementById("bs")?.value||"").toLowerCase(),id=session.branchId;let r=db.staff.filter(s=>s.branchId===id&&s.status==="Active"&&[s.nameEn,s.nameBn,s.employeeId,s.designation].join(" ").toLowerCase().includes(q));bt.innerHTML=table(r,{actions:true})}
 
 function renderAdmin(){landing.classList.add("hidden");app.classList.remove("hidden");app.innerHTML=`${bar("Central Admin Control")}<main class="main"><div class="topline"><div><span class="eyebrow">MASTER ADMIN</span><h1 style="margin:8px 0">Staff Control Center</h1><p style="color:var(--muted)">Full access: staff, branches, approvals, histories, fields and reports.</p></div><div class="actions"><button class="btn primary" onclick="openStaff()">+ Add Staff</button><button class="btn" onclick="openBranch()">+ New Branch</button><button class="btn" onclick="openField()">+ Add Field</button></div></div><div class="stats"><div class="stat"><small>Branches</small><b>${db.branches.length}</b></div><div class="stat"><small>Active</small><b>${db.staff.filter(s=>s.status==="Active").length}</b></div><div class="stat"><small>Resigned</small><b>${db.staff.filter(s=>s.status==="Resigned").length}</b></div><div class="stat"><small>Pending Transfers</small><b>${db.transferRequests.filter(x=>x.status==="Pending").length}</b></div></div>
@@ -349,7 +349,43 @@ function downloadCSV(branchId){let rows=db.staff.filter(s=>(s.status==='Active'|
 })();
 
 </script>
+<script>
+/* FINAL v8 — only Chat Seen notification + Branch Staff Add placement. */
+(function(){
+  function currentMe(){return session?.role==='admin'?'ADMIN':session?.branchId||''}
+  function readStore(){try{return JSON.parse(localStorage.getItem('tmss_chat_reads_v1')||'{}')}catch(e){return{}}}
+  function msgStamp(x){const t=Date.parse(x?.at||'');return Number.isFinite(t)?t:0}
+  function forceSeen(peer){
+    if(!peer)return;
+    try{
+      const msgs=typeof chatMessagesV4!=='undefined'?chatMessagesV4:[];
+      const meId=currentMe();
+      const incoming=msgs.filter(x=>x.to===meId&&x.from===peer).map(msgStamp).filter(Boolean);
+      const reads=readStore();
+      if(incoming.length) reads[meId+'|'+peer]=Math.max.apply(null,incoming);
+      localStorage.setItem('tmss_chat_reads_v1',JSON.stringify(reads));
+      if(typeof paintChatBadges==='function')paintChatBadges();
+    }catch(e){}
+  }
+  const oldSelect=window.selectChat;
+  window.selectChat=function(id){
+    const r=oldSelect?oldSelect.apply(this,arguments):null;
+    setTimeout(function(){forceSeen(id||'')},120);
+    return r;
+  };
+  const oldInit=window.initChat;
+  window.initChat=function(){
+    const r=oldInit?oldInit.apply(this,arguments):null;
+    setTimeout(function(){
+      const peer=typeof chatPeerV4!=='undefined'?chatPeerV4:'';
+      if(peer)forceSeen(peer);
+    },180);
+    return r;
+  };
+})();
+</script>
 </body>\n<style>
+.branchQuickActions{margin:0 0 16px;padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,#ffffff,#f8fbff);display:flex;align-items:center;justify-content:space-between;gap:14px;box-shadow:0 5px 18px rgba(35,72,120,.07)}.branchQuickText{display:flex;align-items:center;gap:12px;min-width:0}.branchQuickText b{display:block;font-size:14px}.branchQuickText small{display:block;color:var(--muted);font-size:11px;margin-top:3px}.branchQuickIcon{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:#eef5ff;font-size:20px;flex:0 0 38px}.branchAddBtn{min-width:135px;white-space:nowrap}@media(max-width:650px){.branchQuickActions{align-items:stretch;flex-direction:column}.branchAddBtn{width:100%}}
 /* Final targeted UI fixes */
 .tmssNoticeBar{width:100%;height:46px;overflow:hidden;position:relative;background:#fff8df;border:1px solid #efd98d;border-radius:12px;margin:0 0 16px;display:flex;align-items:center;box-sizing:border-box;}
 .tmssNoticeTrack{display:block;white-space:nowrap;position:absolute;left:100%;animation:tmssNoticeRTL 18s linear infinite;font-size:13px;font-weight:800;color:#705814;will-change:transform}
@@ -1706,7 +1742,7 @@ function saveBranch(id){
     paintChatBadges();
   }
   function renderChatMessages(){const box=document.getElementById('chatMessages');if(!box)return;const arr=chatMessagesV4.filter(x=>(x.from===me()&&x.to===chatPeerV4)||(x.from===chatPeerV4&&x.to===me()));box.innerHTML=arr.map(x=>`<div class="chatMsg ${x.from===me()?'mine':'theirs'}"><div>${escx(x.text)}</div><div class="chatMeta">${new Date(x.at).toLocaleString()}</div></div>`).join('')||'<div style="text-align:center;color:#8a96aa;font-size:12px;margin-top:120px">No messages yet.</div>';box.scrollTop=box.scrollHeight;paintChatBadges()}
-  function attachChatRealtime(){if(chatUnsubV4)try{chatUnsubV4()}catch(e){};if(!fsReady())return;try{chatUnsubV4=firebase.firestore().collection('tmss').doc('centralChat').onSnapshot(s=>{const d=s.data()||{};chatMessagesV4=Array.isArray(d.messages)?d.messages:[];try{localStorage.setItem(CHATKEY,JSON.stringify(chatMessagesV4))}catch(e){};if(chatPeerV4&&document.getElementById('chatMessages'))markRead(chatPeerV4);renderChatMessages();paintChatBadges()})}catch(e){chatMessagesV4=localMsgs();renderChatMessages()}}
+  function attachChatRealtime(){if(chatUnsubV4)try{chatUnsubV4()}catch(e){};if(!fsReady())return;try{chatUnsubV4=firebase.firestore().collection('tmss').doc('centralChat').onSnapshot(s=>{const d=s.data()||{};chatMessagesV4=Array.isArray(d.messages)?d.messages:[];try{localStorage.setItem(CHATKEY,JSON.stringify(chatMessagesV4))}catch(e){};renderChatMessages();paintChatBadges()})}catch(e){chatMessagesV4=localMsgs();renderChatMessages()}}
   window.chatPanel=function(role){const meId=me();const users=[{id:'ADMIN',name:'Admin Panel'}].concat((db.branches||[]).map(b=>({id:b.id,name:b.name}))).filter(u=>u.id!==meId);return `<div class="chatWrap"><div class="chatUsers"><b style="font-size:12px">Contacts</b><div style="margin-top:8px">${users.map((u,i)=>`<button class="chatUser ${i===0?'active':''}" data-chat-user="${escx(u.id)}" onclick="selectChat('${escx(u.id)}')"><span class="tmssChatUserLine"><span>${escx(u.name)}</span><span class="tmssContactBadge" hidden></span></span></button>`).join('')}</div></div><div class="chatBox"><div class="chatHead" id="chatHead">${escx(users[0]?.name||'Select contact')}</div><div class="chatMessages" id="chatMessages"></div><div class="chatComposer"><input id="chatInput" placeholder="Type message…"><button type="button" class="btn primary" id="chatSendBtn" onclick="sendChatMessage()">Send</button></div></div></div>`}
   window.openChat=function(){modal('Live Chat',window.chatPanel(session.role));setTimeout(()=>window.initChat(session.role),20)};
   window.initChat=function(){const first=document.querySelector('[data-chat-user]');chatPeerV4=first?.getAttribute('data-chat-user')||'';attachChatRealtime();if(chatPeerV4)markRead(chatPeerV4);renderChatMessages();const inp=document.getElementById('chatInput');if(inp){inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();window.sendChatMessage()}};inp.focus()}paintChatBadges()};
