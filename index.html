@@ -345,7 +345,6 @@ function downloadCSV(branchId){let rows=db.staff.filter(s=>(s.status==='Active'|
   // Realtime chat refresh + unread badges without touching other app state.
   window.addEventListener('storage',e=>{if(e.key==='tmss_chat_reads_v1'||e.key==='tmss_chat_v1')refreshBadges()});
   setTimeout(()=>{ensureAdminTabs();stableNotice();ensureChatBadgeElements();bindFinalDates(document);refreshBadges()},100);
-  setInterval(refreshBadges,2000);
 })();
 
 </script>
@@ -1270,7 +1269,6 @@ function saveBranch(id){
     window.renderAdmin=function(){const r=_renderAdmin.apply(this,arguments);setTimeout(refresh,20);return r;};
   }
   window.addEventListener('storage',function(e){if(e.key==='tmss_db_v2')refresh();});
-  setInterval(function(){if(document.getElementById('pendingApprovalBadge'))refresh();},1000);
   setTimeout(refresh,50);
 })();
 </script>
@@ -1745,7 +1743,6 @@ function saveBranch(id){
   // Start realtime chat once Firebase is ready, without disturbing the existing login/data sync.
   setTimeout(()=>{if(fsReady())attachChatRealtime();paintChatBadges()},1200);
   window.addEventListener('storage',e=>{if(e.key===CHATKEY){chatMessagesV4=localMsgs();renderChatMessages();paintChatBadges()}if(e.key==='tmss_chat_reads_v1')paintChatBadges()});
-  setInterval(()=>{paintChatBadges()},1500);
 })();
 <!-- v7 targeted fixes: restore designation master in final Staff form + reliably clear chat notifications when conversation is viewed -->
 </script>
@@ -1759,71 +1756,76 @@ function saveBranch(id){
 @media(max-width:650px){.branchStaffActions{flex-direction:column;align-items:stretch}.branchStaffActions .btn{width:100%}.adminBulkBar .bulkInfo{width:100%}}
 </style>
 <script>
-/* TMSS v9 FINAL CORRECTION
-   Shared-data rule: every application save is mirrored to Firestore centralStateV2.
-   centralStateV2 is the single source of truth for staff, requests, histories,
-   modules/submissions and admin configuration. Existing v8 UI/business logic stays intact.
+/* TMSS v12 — single live Firestore state, no polling/render loop.
+   Firestore centralStateV2 is the only shared application state.
 */
 (function(){
   'use strict';
-  const V2DOC='centralStateV2';
-  let v2Ready=false,v2Applying=false,v2Timer=null,v2Unsub=null,lastV2Stamp=0,lastV2Hash='';
-  function fs(){return window.firebase&&firebase.apps&&firebase.apps.length?firebase.firestore():null}
-  function clone(){try{return JSON.parse(JSON.stringify(window.db||db))}catch(e){return null}}
-  function writeCloud(){
-    const f=fs(),d=clone(); if(!f||!d||!v2Ready||v2Applying)return;
-    const stamp=Date.now(); lastV2Stamp=Math.max(lastV2Stamp,stamp);
-    Promise.all([
-      f.collection('tmss').doc(V2DOC).set({payload:d,stamp,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}),
-      f.collection('tmss').doc('centralState').set({payload:d,stamp,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}),
-      f.collection('tmss').doc('appConfig').set({payload:{branches:d.branches||[],fieldRules:d.fieldRules||[],customFields:d.customFields||[],designations:d.designations||[],notice:d.notice||{enabled:false,text:''},extraModules:d.extraModules||[],viewerAccess:d.viewerAccess||null},stamp,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})
-    ]).catch(e=>console.error('TMSS Firebase save error:',e));
+  const DOC='centralStateV2';
+  let ready=false, applying=false, timer=null, unsub=null, lastStamp=0, lastHash='',dirtyBeforeReady=false;
+  const fs=()=>window.firebase&&firebase.apps&&firebase.apps.length?firebase.firestore():null;
+  const clone=()=>{try{return JSON.parse(JSON.stringify(window.db||db))}catch(e){return null}};
+  const nativeSet=Storage.prototype.setItem;
+  function cloudWrite(){
+    const f=fs(), payload=clone();
+    if(!f||!payload||!ready||applying){ if(!ready&&!applying) dirtyBeforeReady=true; return Promise.resolve(false); }
+    const stamp=Math.max(Date.now(),lastStamp+1); lastStamp=stamp; lastHash=JSON.stringify(payload);
+    return f.collection('tmss').doc(DOC).set({payload,stamp,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})
+      .then(()=>true).catch(e=>{console.error('TMSS Firebase save error:',e);return false});
   }
-  function schedule(){clearTimeout(v2Timer);v2Timer=setTimeout(writeCloud,80)}
-  function apply(payload,stamp){
-    if(!payload||!stamp||stamp<=lastV2Stamp||v2Applying)return;
-    v2Applying=true;lastV2Stamp=stamp;
+  function schedule(){clearTimeout(timer);timer=setTimeout(()=>cloudWrite(),100)}
+  function applyRemote(payload,stamp,force){
+    if(!payload||!stamp)return;
+    if(!force&&stamp<=lastStamp)return;
+    const hash=JSON.stringify(payload);
+    if(!force&&hash===lastHash){lastStamp=Math.max(lastStamp,stamp);return;}
+    applying=true;lastStamp=stamp;lastHash=hash;
     try{
-      const incomingHash=JSON.stringify(payload);
-      const changed=incomingHash!==lastV2Hash;
       window.db=payload;db=payload;
-      nativeLocal(incomingHash);
-      if(session && changed){
-        lastV2Hash=incomingHash;
-        if(session.role==='admin'&&typeof renderAdmin==='function')renderAdmin();
-        else if(session.role==='branch'&&typeof renderBranch==='function')renderBranch();
-        else if(session.role==='viewer'&&typeof renderViewer==='function')renderViewer();
-      }
-    }catch(e){console.error('TMSS Firebase apply error:',e)}finally{v2Applying=false}
+      nativeSet.call(localStorage,'tmss_db_v2',hash);
+      if(!session)return;
+      if(session.role==='admin'&&typeof window.renderAdmin==='function')window.renderAdmin();
+      else if(session.role==='branch'&&typeof window.renderBranch==='function')window.renderBranch();
+      else if(session.role==='viewer'&&typeof window.renderViewer==='function')window.renderViewer();
+    }catch(e){console.error('TMSS Firebase apply error:',e)}finally{applying=false;}
   }
-  const nativeLocal=Storage.prototype.setItem;
-  // One authoritative save hook: all existing actions already call save().
   const oldSave=window.save;
   window.save=function(){
-    const r=oldSave?oldSave.apply(this,arguments):nativeLocal.call(localStorage,'tmss_db_v2',JSON.stringify(db));
-    if(!v2Applying)schedule();
+    const r=oldSave?oldSave.apply(this,arguments):nativeSet.call(localStorage,'tmss_db_v2',JSON.stringify(db));
+    if(!applying){dirtyBeforeReady=!ready;schedule();}
     return r;
   };
-  window.tmssFirebaseSyncNow=function(){writeCloud()};
-
-  function start(){
+  window.tmssFirebaseSyncNow=function(){return cloudWrite()};
+  window.tmssFirebaseReady=()=>ready;
+  async function start(){
     const f=fs();if(!f)return;
-    const ref=f.collection('tmss').doc(V2DOC);
-    ref.get().then(s=>{
-      if(s.exists){const d=s.data()||{};apply(d.payload,Number(d.stamp||0));}
-      else{v2Ready=true;writeCloud();return;}
-      v2Ready=true;
-      // Make the current cloud snapshot the source immediately, then keep it realtime.
-      ref.get().catch(()=>{});
-      if(v2Unsub)try{v2Unsub()}catch(e){}
-      v2Unsub=ref.onSnapshot(snap=>{
-        const d=snap.data()||{};const st=Number(d.stamp||0);
-        if(st>lastV2Stamp)apply(d.payload,st);
+    const ref=f.collection('tmss').doc(DOC);
+    try{
+      const snap=await ref.get();
+      if(snap.exists){
+        const d=snap.data()||{};
+        const local=clone();
+        /* If a branch/admin performed a real save before Firebase finished initializing,
+           do not silently lose that save. Push that local state once, otherwise use cloud. */
+        if(dirtyBeforeReady&&local){
+          ready=true;
+          await cloudWrite();
+        }else{
+          applyRemote(d.payload,Number(d.stamp||0),true);
+          ready=true;
+        }
+      }else{
+        ready=true;
+        await cloudWrite();
+      }
+      if(unsub)try{unsub()}catch(e){}
+      unsub=ref.onSnapshot(s=>{
+        const d=s.data()||{},st=Number(d.stamp||0);
+        if(st>lastStamp)applyRemote(d.payload,st,false);
       },e=>console.error('TMSS Firebase realtime error:',e));
-    }).catch(e=>{console.error('TMSS Firebase V2 init error:',e);v2Ready=true;writeCloud();});
+    }catch(e){console.error('TMSS Firebase init error:',e);ready=true;if(dirtyBeforeReady)cloudWrite();}
   }
-  function wait(){if(fs())start();else setTimeout(wait,500)}
-  wait();
+  (function wait(){if(fs())start();else setTimeout(wait,300)})();
 })();
 </script>
 <script>
@@ -1885,22 +1887,7 @@ function saveBranch(id){
   };
 })();
 </script>
-<script>
-/* v9 — Branch Staff Add gets its own dedicated action card, separated from CSV tools. */
-(function(){
-  const oldBranch=window.renderBranch;if(typeof oldBranch!=='function')return;
-  window.renderBranch=function(){
-    oldBranch.apply(this,arguments);
-    setTimeout(function(){
-      const main=document.querySelector('.main');if(!main)return;
-      const old=main.querySelector('.branchStaffActions');if(old)old.remove();
-      const top=main.querySelector('.topline');if(top)top.querySelectorAll('button').forEach(b=>{if(/add staff/i.test(b.textContent))b.remove()});
-      const card=document.createElement('div');card.className='branchStaffActions';card.innerHTML='<div class="bsCopy"><span class="bsIcon">👥</span><div><b>Staff Management</b><small>Add a new staff member to this branch directory</small></div></div><button class="btn primary" type="button" onclick="openStaff()">＋ Add Staff</button>';
-      const stats=main.querySelector('.stats');if(stats)main.insertBefore(card,stats);else if(top)main.insertBefore(card,top.nextSibling);else main.insertBefore(card,main.firstChild);
-    },35);
-  };
-})();
-</script>
+
 
 <script>
 /* v9 — chat reliability: one Firestore document per message, realtime query, explicit Seen. */
@@ -1949,66 +1936,28 @@ function saveBranch(id){
   };
 })();
 </script>
+
+
+<style>
+/* v12 — branch staff table: fixed, unambiguous column order */
+.branchStaffTable{table-layout:fixed;min-width:1380px!important}.branchStaffTable th:nth-child(1),.branchStaffTable td:nth-child(1){width:45px}.branchStaffTable th:nth-child(2),.branchStaffTable td:nth-child(2){width:110px}.branchStaffTable th:nth-child(3),.branchStaffTable td:nth-child(3){width:190px}.branchStaffTable th:nth-child(4),.branchStaffTable td:nth-child(4){width:105px}.branchStaffTable th:nth-child(5),.branchStaffTable td:nth-child(5){width:65px}.branchStaffTable th:nth-child(6),.branchStaffTable td:nth-child(6){width:80px}.branchStaffTable th:nth-child(7),.branchStaffTable td:nth-child(7){width:145px}.branchStaffTable th:nth-child(8),.branchStaffTable td:nth-child(8){width:150px}.branchStaffTable th:nth-child(9),.branchStaffTable td:nth-child(9){width:125px}.branchStaffTable th:nth-child(10),.branchStaffTable td:nth-child(10){width:125px}.branchStaffTable th:nth-child(11),.branchStaffTable td:nth-child(11){width:220px}.branchStaffTable th:nth-child(12),.branchStaffTable td:nth-child(12){width:120px}.branchStaffTable th:nth-child(13),.branchStaffTable td:nth-child(13){width:220px}.branchStaffTable td{overflow-wrap:anywhere}
+</style>
 <script>
-/* v10 — UI stability only: stop cloud refreshes from jumping to All Staff or shaking the page. */
+/* v12 — branch list is explicitly rendered in the requested order. */
 (function(){
-  'use strict';
-  let restoring=false;
-  function adminTypeFromText(t){
-    t=(t||'').replace(/\s+/g,' ').trim();
-    if(t.startsWith('All Staff'))return 'staff';
-    if(t.startsWith('Resign History'))return 'resign';
-    if(t.startsWith('Transfer History'))return 'transfer';
-    if(t.startsWith('Pending Approvals'))return 'pending';
-    if(t.startsWith('Branches & Access'))return 'branches';
-    if(t.startsWith('Custom Fields'))return 'fields';
-    if(t.startsWith('Designation Order'))return 'designations';
-    if(t.startsWith('Notice Board'))return 'notice';
-    if(t.startsWith('Main Options'))return 'modules';
-    if(t.startsWith('View Only Access'))return 'access';
-    if(t.includes('Chat'))return 'chat';
-    if(t.startsWith('Login History'))return 'logins';
-    return null;
-  }
-  function currentAdminTab(){
-    if(session?.role!=='admin')return null;
-    const active=document.querySelector('.tabs .tab.active');
-    return active?adminTypeFromText(active.textContent):null;
-  }
-  function restoreAdminTab(type){
-    if(!type||session?.role!=='admin')return;
-    setTimeout(function(){
-      const tabs=[...document.querySelectorAll('.tabs .tab')];
-      const target=tabs.find(t=>adminTypeFromText(t.textContent)===type);
-      if(target && typeof window.adminTab==='function'){
-        restoring=true;
-        try{window.adminTab(target,type)}catch(e){console.error(e)}
-        restoring=false;
-      }
-    },30);
-  }
-  const oldAdmin=window.renderAdmin;
-  if(typeof oldAdmin==='function'){
-    window.renderAdmin=function(){
-      const keep=currentAdminTab();
-      const r=oldAdmin.apply(this,arguments);
-      if(keep)restoreAdminTab(keep);
-      return r;
-    };
-  }
-  const oldBranch=window.renderBranch;
-  if(typeof oldBranch==='function'){
-    window.renderBranch=function(){
-      const y=window.scrollY||0;
-      const r=oldBranch.apply(this,arguments);
-      setTimeout(function(){
-        if(session?.role==='branch')window.scrollTo({top:y,behavior:'auto'});
-      },35);
-      return r;
-    };
-  }
-  // If a remote cloud snapshot arrives while an Admin tab is open, preserve that tab.
-  // This does not change any data or business logic.
-  window.tmssUiStability={restoreAdminTab};
+  window.refreshBranch=function(){
+    const q=(document.getElementById('bs')?.value||'').trim().toLowerCase(), bid=session?.branchId;
+    const rows=(db.staff||[]).filter(s=>s.branchId===bid&&s.status==='Active'&&[s.nameEn,s.nameBn,s.employeeId,s.designation].join(' ').toLowerCase().includes(q));
+    rows.sort((a,b)=>(typeof designRank==='function'?designRank(a.designation)-designRank(b.designation):0)||String(a.nameEn||'').localeCompare(String(b.nameEn||'')));
+    const target=document.getElementById('bt'); if(!target)return;
+    if(!rows.length){target.innerHTML='<div class="card" style="text-align:center;color:var(--muted)">No records found.</div>';return;}
+    const E=window.esc||((x)=>String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])));
+    target.innerHTML=`<div class="tablewrap"><table class="table branchStaffTable"><thead><tr><th>SL</th><th>Employee ID</th><th>Name</th><th>Designation</th><th>Grade</th><th>Zone</th><th>Region</th><th>Branch</th><th>Joining Date (TMSS)</th><th>Joining Date (Branch)</th><th>Address</th><th>Personal Phone</th><th>Actions</th></tr></thead><tbody>${rows.map((s,i)=>{
+      const b=(db.branches||[]).find(x=>x.id===s.branchId);
+      const address=`<div>গ্রাম: ${E(s.village||'—')}</div><div>ডাকঘর: ${E(s.post||'—')}</div><div>থানা/উপজেলা: ${E(s.thana||s.upazila||'—')}</div><div>জেলা: ${E(s.district||'—')}</div>`;
+      const pending=typeof branchPendingLabel==='function'?branchPendingLabel(s.id):'';
+      return `<tr><td>${i+1}</td><td>${E(s.employeeId||'—')}</td><td><b>${E(s.nameEn||'—')}</b><br><small>${E(s.nameBn||'—')}</small>${pending?'<br>'+pending:''}</td><td><b>${E(s.designation||'—')}</b></td><td>${E(s.grade||'—')}</td><td>Op-05</td><td>${E(region(s.branchId)||s.region||'—')}</td><td>${E((b?.name||'—')+(b?.code?' ('+b.code+')':''))}</td><td>${E(fmt(s.tmssJoin))}</td><td>${E(fmt(s.branchJoin))}</td><td>${address}</td><td>${E(s.phone||'—')}</td><td><div class="actions"><button class="smallBtn tmssEyeBtn" type="button" onclick="tmssViewStaff('${E(s.id)}')">👁️ View</button><button class="smallBtn" type="button" onclick="openStaff('${E(s.id)}')">✏️ Edit</button><button class="smallBtn" type="button" onclick="requestTransfer('${E(s.id)}')">Transfer</button><button class="smallBtn red" type="button" onclick="openResign('${E(s.id)}')">Resign</button></div></td></tr>`;
+    }).join('')}</tbody></table></div>`;
+  };
 })();
 </script>
