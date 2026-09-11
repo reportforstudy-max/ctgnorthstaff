@@ -78,7 +78,7 @@ save();closeTemp();toast(editingId?"Staff updated":"Staff added");session.role==
 
 function table(rows,opts={}){if(!rows.length)return `<div class="card" style="text-align:center;color:var(--muted)">No records found.</div>`;return `<div class="tablewrap"><table class="table ${opts.readonly?"readonly":""}"><thead><tr><th>SL</th><th>Employee ID</th><th>Name</th><th>Designation</th><th>Grade</th><th>Domain</th><th>Department</th><th>Project</th><th>Zone</th><th>Region</th><th>Branch</th><th>Joining (TMSS)</th><th>Joining (Branch)</th>${opts.actions?"<th>Actions</th>":""}</tr></thead><tbody>${rows.map((s,i)=>`<tr><td>${i+1}</td><td>${esc(s.employeeId)}</td><td><b>${esc(s.nameEn)}</b><br>${esc(s.nameBn)}</td><td>${esc(s.designation)}</td><td>${esc(s.grade)}</td><td>Op-05</td><td>${esc(s.department)}</td><td>${esc(s.project)}</td><td>Ctg North</td><td>${esc(region(s.branchId))}</td><td>${esc(bname(s.branchId))}${s.status!=="Active"?`<br><span class="pill red">${esc(s.status)}</span>`:""}</td><td>${esc(s.tmssJoin)}</td><td>${esc(s.branchJoin)}</td>${opts.actions?`<td><div class="actions"><button class="smallBtn" onclick="openStaff('${s.id}')">Edit</button>${s.status==="Active"?`<button class="smallBtn" onclick="requestTransfer('${s.id}')">Transfer</button><button class="smallBtn red" onclick="openResign('${s.id}')">Resign</button>`:""}<button class="smallBtn red" onclick="deleteStaff('${s.id}')">Delete</button></div></td>`:""}</tr>`).join("")}</tbody></table></div>`}
 
-function renderBranch(){let b=db.branches.find(x=>x.id===session.branchId);landing.classList.add("hidden");app.classList.remove("hidden");app.innerHTML=`${bar(b.name+" Branch Portal")}<main class="main"><div class="topline"><div><span class="eyebrow">PRIVATE BRANCH</span><h1 style="margin:8px 0">Staff Directory</h1><p style="color:var(--muted)">Only your branch records are accessible.</p></div></div><div class="branchQuickActions"><div class="branchQuickText"><span class="branchQuickIcon">👥</span><div><b>Staff Management</b><small>Add a new staff member to your branch directory</small></div></div><button class="btn primary branchAddBtn" type="button" onclick="openStaff()">＋ Add Staff</button></div><div class="stats"><div class="stat"><small>Active staff</small><b>${db.staff.filter(s=>s.branchId===b.id&&s.status==="Active").length}</b></div><div class="stat"><small>Branch code</small><b>${b.code||"—"}</b></div><div class="stat"><small>Region</small><b style="font-size:15px">${esc(b.region)}</b></div><div class="stat"><small>Access</small><b>Private</b></div></div><div class="toolbar"><input id="bs" placeholder="Search staff / ID / designation…" oninput="refreshBranch()"><button class="btn" onclick="downloadCSV(session.branchId)">Download CSV</button></div><div id="bt"></div></main>`;refreshBranch()}
+function renderBranch(){let b=db.branches.find(x=>x.id===session.branchId);landing.classList.add("hidden");app.classList.remove("hidden");app.innerHTML=`${bar(b.name+" Branch Portal")}<main class="main"><div class="topline"><div><span class="eyebrow">PRIVATE BRANCH</span><h1 style="margin:8px 0">Staff Directory</h1><p style="color:var(--muted)">Only your branch records are accessible.</p></div><button class="btn primary" onclick="openStaff()">+ Add Staff</button></div><div class="stats"><div class="stat"><small>Active staff</small><b>${db.staff.filter(s=>s.branchId===b.id&&s.status==="Active").length}</b></div><div class="stat"><small>Branch code</small><b>${b.code||"—"}</b></div><div class="stat"><small>Region</small><b style="font-size:15px">${esc(b.region)}</b></div><div class="stat"><small>Access</small><b>Private</b></div></div><div class="toolbar"><input id="bs" placeholder="Search staff / ID / designation…" oninput="refreshBranch()"><button class="btn" onclick="downloadCSV(session.branchId)">Download CSV</button></div><div id="bt"></div></main>`;refreshBranch()}
 function refreshBranch(){let q=(document.getElementById("bs")?.value||"").toLowerCase(),id=session.branchId;let r=db.staff.filter(s=>s.branchId===id&&s.status==="Active"&&[s.nameEn,s.nameBn,s.employeeId,s.designation].join(" ").toLowerCase().includes(q));bt.innerHTML=table(r,{actions:true})}
 
 function renderAdmin(){landing.classList.add("hidden");app.classList.remove("hidden");app.innerHTML=`${bar("Central Admin Control")}<main class="main"><div class="topline"><div><span class="eyebrow">MASTER ADMIN</span><h1 style="margin:8px 0">Staff Control Center</h1><p style="color:var(--muted)">Full access: staff, branches, approvals, histories, fields and reports.</p></div><div class="actions"><button class="btn primary" onclick="openStaff()">+ Add Staff</button><button class="btn" onclick="openBranch()">+ New Branch</button><button class="btn" onclick="openField()">+ Add Field</button></div></div><div class="stats"><div class="stat"><small>Branches</small><b>${db.branches.length}</b></div><div class="stat"><small>Active</small><b>${db.staff.filter(s=>s.status==="Active").length}</b></div><div class="stat"><small>Resigned</small><b>${db.staff.filter(s=>s.status==="Resigned").length}</b></div><div class="stat"><small>Pending Transfers</small><b>${db.transferRequests.filter(x=>x.status==="Pending").length}</b></div></div>
@@ -239,152 +239,7 @@ function downloadCSV(branchId){let rows=db.staff.filter(s=>(s.status==='Active'|
   const oldRenderAdmin=window.renderAdmin; window.renderAdmin=function(){oldRenderAdmin();setTimeout(()=>{const tabs=document.querySelectorAll('.tab');const exists=[...tabs].some(t=>t.textContent.includes('Custom Fields'));if(!exists){const host=document.querySelector('.tabs');if(host){const b=document.createElement('button');b.className='tab';b.textContent='Custom Fields';b.onclick=function(){adminTab(this,'fields')};host.appendChild(b)}}},0)};
 })();
 </script>
-<script>
-(function(){
-  'use strict';
-  const E=(typeof esc==='function')?esc:(v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])));
-
-  // Designation master is exported as window.tmssDesignations(). The old v4 form
-  // accidentally called the private designs() function from another closure.
-  function designationList(){
-    try{
-      if(typeof window.tmssDesignations==='function'){
-        const a=window.tmssDesignations();
-        if(Array.isArray(a)&&a.length)return a;
-      }
-    }catch(e){}
-    return ['SBM','DSBM','BM','ABM','SS','DSS','FS','AFS','AYA'].map((name,i)=>({name,rank:i+1}));
-  }
-
-  // Stable staff form. One visible date text box + one calendar button + hidden ISO input.
-  window.staffForm=function(s={},allowBranch=true){
-    const branchId=s.branchId||((session?.role==='branch')?session.branchId:(db.branches[0]?.id||''));
-    const list=designationList();
-    const exists=list.some(d=>String(d.name).toLowerCase()===String(s.designation||'').trim().toLowerCase());
-    const selected=exists?String(s.designation||''):'__custom__';
-    const req=id=>{try{return typeof isReq==='function'?(isReq(id)?' *':''):''}catch(e){}return ''};
-    const showDate=v=>{const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?m[3]+'-'+m[2]+'-'+m[1]:''};
-    const date=(id,label,v)=>`<div class="field"><label>${E(label)}</label><div class="tmssDateField"><input id="${id}_display" class="tmssDateText" type="text" value="${E(showDate(v))}" placeholder="DD-MM-YYYY" inputmode="numeric" autocomplete="off"><button type="button" class="tmssDateBtn" data-for="${id}" title="Choose date">📅</button><input id="${id}" class="tmssDateNative" data-bd-date="1" type="date" value="${E(v||'')}"></div></div>`;
-    return `<div class="notice">Name must be exactly as per NID card. Enter the name in both English and Bangla. Address fields must be completed in Bangla.</div><div class="grid">
-      <div class="field"><label>Name — English (As per NID card)${req('nameEn')}</label><input id="f_en" value="${E(s.nameEn||'')}"></div>
-      <div class="field"><label>নাম — বাংলা (NID অনুযায়ী)${req('nameBn')}</label><input id="f_bn" value="${E(s.nameBn||'')}"></div>
-      <div class="field"><label>Personal Phone Only${req('phone')}</label><input id="f_phone" value="${E(s.phone||'')}"><div class="hint">Personal mobile only; no official number.</div></div>
-      <div class="field"><label>Employee ID${req('employeeId')}</label><input id="f_emp" value="${E(s.employeeId||s.staffId||'')}"></div>
-      <div class="field"><label>Designation${req('designation')}</label><select id="f_des" onchange="toggleCustomDesignation()">${list.map(d=>`<option value="${E(d.name)}" ${String(d.name).toLowerCase()===String(s.designation||'').trim().toLowerCase()?'selected':''}>${E(d.name)}</option>`).join('')}<option value="__custom__" ${selected==='__custom__'?'selected':''}>+ New / Custom Designation</option></select><div id="customDesBox" style="display:${selected==='__custom__'?'block':'none'};margin-top:6px"><input id="f_custom_des" value="${exists?'':E(s.designation||'')}" placeholder="Type new designation"><select id="f_custom_pos" style="margin-top:6px"><option value="top">Highest — above SBM</option><option value="after">Place after selected designation</option><option value="bottom">Lowest — below all</option></select><select id="f_custom_after" style="margin-top:6px;display:none">${list.map(d=>`<option value="${E(d.name)}">After ${E(d.name)}</option>`).join('')}</select></div></div>
-      <div class="field"><label>Grade${req('grade')}</label><input id="f_grade" value="${E(s.grade||'')}"></div>
-      <div class="field"><label>Department${req('department')}</label><input id="f_dept" value="${E(s.department||'')}"></div>
-      <div class="field"><label>Project${req('project')}</label><input id="f_project" value="${E(s.project||'')}"></div>
-      ${date('f_tmss','Joining date (TMSS)'+req('tmssJoin'),s.tmssJoin)}
-      ${date('f_branchdate','Joining Date (Branch)'+req('branchJoin'),s.branchJoin)}
-      <div class="field"><label>Domain name${req('domain')}</label><input value="Op-05" disabled></div>
-      <div class="field"><label>Zone${req('zone')}</label><input value="Ctg North" disabled></div>
-      <div class="field"><label>Region name${req('region')}</label><select id="f_region" disabled>${REGIONS.map(x=>`<option ${x===region(branchId)?'selected':''}>${E(x)}</option>`).join('')}</select></div>
-      <div class="field"><label>Branch${req('branch')}</label><select id="f_branchsel" ${session?.role==='branch'?'disabled':''} onchange="syncRegion()">${db.branches.map(b=>`<option value="${E(b.id)}" ${b.id===branchId?'selected':''}>${E(b.name)}${b.code?` (${E(b.code)})`:''}</option>`).join('')}</select></div>
-      <div class="field"><label>Village (বাংলায়)${req('village')}</label><input id="f_village" value="${E(s.village||'')}"></div>
-      <div class="field"><label>Post (বাংলায়)${req('post')}</label><input id="f_post" value="${E(s.post||'')}"></div>
-      <div class="field"><label>Thana / Upazila (বাংলায়)${req('thana')}</label><input id="f_thana" value="${E(s.thana||s.upazila||'')}"></div>
-      <div class="field"><label>District (বাংলায়)${req('district')}</label><input id="f_dist" value="${E(s.district||'')}"></div>
-      ${(db.customFields||[]).map(c=>`<div class="field"><label>${E(c.label)}${c.required?' *':''}</label>${c.type==='select'?`<select id="cf_${E(c.id)}"><option value="">Select</option>${(c.options||[]).map(o=>`<option value="${E(o)}" ${s.custom?.[c.id]===o?'selected':''}>${E(o)}</option>`).join('')}</select>`:`<input id="cf_${E(c.id)}" value="${E(s.custom?.[c.id]||'')}">`}</div>`).join('')}
-    </div><div id="formErr" class="err"></div><div class="modalActions"><button class="btn" type="button" onclick="closeTemp()">Cancel</button><button class="btn primary" type="button" onclick="saveStaff()">Save Staff</button></div>`;
-  };
-
-  function bindFinalDates(root){
-    (root||document).querySelectorAll('.tmssDateField').forEach(w=>{
-      const n=w.querySelector('.tmssDateNative'),t=w.querySelector('.tmssDateText'),b=w.querySelector('.tmssDateBtn');
-      if(!n||!t||!b||t.dataset.tmssBound==='1')return;
-      t.dataset.tmssBound='1';n.style.position='absolute';n.style.width='1px';n.style.height='1px';n.style.opacity='0';n.style.pointerEvents='none';n.tabIndex=-1;
-      const sync=()=>{const m=String(n.value||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);t.value=m?m[3]+'-'+m[2]+'-'+m[1]:''};
-      const picker=()=>{try{if(n.showPicker)n.showPicker();else n.click()}catch(e){try{n.click()}catch(_) {}}};
-      b.onclick=picker;t.onclick=picker;n.onchange=sync;
-      t.oninput=()=>{let r=t.value.replace(/\D/g,'').slice(0,8);if(r.length>4)r=r.slice(0,2)+'-'+r.slice(2,4)+'-'+r.slice(4);else if(r.length>2)r=r.slice(0,2)+'-'+r.slice(2);t.value=r;const m=r.match(/^(\d{2})-(\d{2})-(\d{4})$/);if(m)n.value=m[3]+'-'+m[2]+'-'+m[1]};
-      t.onblur=()=>{if(!t.value.trim()){n.value='';t.setCustomValidity('');return}const m=t.value.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);if(!m){t.setCustomValidity('Use DD-MM-YYYY');return}const d=new Date(+m[3],+m[2]-1,+m[1]);if(d.getFullYear()!=+m[3]||d.getMonth()!=+m[2]-1||d.getDate()!=+m[1]){t.setCustomValidity('Use DD-MM-YYYY');return}t.setCustomValidity('');n.value=m[3]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[1]).padStart(2,'0');sync()};
-      sync();
-    });
-  }
-  window.openStaff=function(id=''){editingId=id;const s=db.staff.find(x=>x.id===id)||{};modal(id?'Edit Staff':'Add New Staff',window.staffForm(s));setTimeout(()=>{try{toggleCustomDesignation()}catch(e){};bindFinalDates(document)},0)};
-  window.tmssBindFinalDates=bindFinalDates;
-
-  // Main Options/Notice/etc. must never fall back to All Staff because of a missing renderer.
-  function typeOfTab(text){const x=String(text||'').replace(/\s+/g,' ').trim().toLowerCase();if(x.includes('all staff'))return'staff';if(x.includes('resign'))return'resign';if(x.includes('transfer'))return'transfer';if(x.includes('pending'))return'pending';if(x.includes('branches'))return'branches';if(x.includes('custom fields'))return'fields';if(x.includes('designation'))return'designations';if(x.includes('notice'))return'notice';if(x.includes('main options'))return'modules';if(x.includes('view only access'))return'access';if(x.includes('login history'))return'logins';if(x.includes('chat'))return'chat';return''}
-  function ensureAdminTabs(){
-    const tabs=document.querySelector('.tabs');if(!tabs)return;
-    const need=[['staff','All Staff'],['resign','Resign History'],['transfer','Transfer History'],['pending','Pending Approvals'],['branches','Branches & Access'],['fields','Custom Fields'],['designations','Designation Order'],['notice','Notice Board'],['modules','Main Options'],['access','View Only Access'],['logins','Login History'],['chat','💬 Chat']];
-    const have={};[...tabs.querySelectorAll('.tab')].forEach(b=>{const typ=b.dataset.tmssType||typeOfTab(b.textContent);if(typ){b.dataset.tmssType=typ;have[typ]=b;b.onclick=function(e){if(e)e.preventDefault();window.adminTab(this,typ);return false}}});
-    need.forEach(([typ,label])=>{if(have[typ])return;const b=document.createElement('button');b.type='button';b.className='tab';b.dataset.tmssType=typ;b.innerHTML=label+(typ==='pending'?'<span class="badge" id="pendingApprovalBadge"></span>':'')+(typ==='chat'?'<span class="tmssChatBadge" hidden></span>':'');b.onclick=function(e){if(e)e.preventDefault();window.adminTab(this,typ);return false};tabs.appendChild(b)});
-    tabs.style.maxWidth='100%';tabs.style.overflowX='auto';tabs.style.overflowY='hidden';tabs.style.flexWrap='nowrap';
-    ensureChatBadgeElements();
-  }
-  const baseAdminTab=window.adminTab;
-  window.adminTab=function(el,type){const typ=type||typeOfTab(el?.textContent);if(['notice','modules','access','chat','designations','logins'].includes(typ)){document.querySelectorAll('.tabs .tab').forEach(x=>x.classList.remove('active'));if(el)el.classList.add('active');const c=document.getElementById('adminContent');if(!c)return false;if(typ==='notice')c.innerHTML=typeof noticePanel==='function'?noticePanel():'<div class="card">Notice Board unavailable.</div>';else if(typ==='modules')c.innerHTML=typeof modulePanel==='function'?modulePanel():'<div class="card">Main Options unavailable.</div>';else if(typ==='access')c.innerHTML=typeof viewerAccessPanel==='function'?viewerAccessPanel():'<div class="card">View Only Access unavailable.</div>';else if(typ==='chat')c.innerHTML=window.chatPanel?window.chatPanel('admin'):'<div class="card">Chat unavailable.</div>';else if(typ==='designations')c.innerHTML=typeof designationPanel==='function'?designationPanel():'<div class="card">Designation Order unavailable.</div>';else if(typ==='logins')c.innerHTML=typeof loginHistoryPanel==='function'?loginHistoryPanel():'<div class="card">Login History unavailable.</div>';if(typ==='chat')setTimeout(()=>{try{window.initChat('admin')}catch(e){};paintChatBadges()},20);return false}return baseAdminTab.apply(this,[el,typ])};
-  const oldRenderAdmin=window.renderAdmin;window.renderAdmin=function(){oldRenderAdmin.apply(this,arguments);setTimeout(ensureAdminTabs,0);setTimeout(ensureChatBadgeElements,40)};
-
-  // Chat notifications. Badge is attached to the actual top Chat option/button.
-  function ensureChatBadgeElements(){
-    document.querySelectorAll('.tab').forEach(b=>{if(typeOfTab(b.textContent)==='chat'&&!b.querySelector('.tmssChatBadge')){const s=document.createElement('span');s.className='tmssChatBadge';s.hidden=true;b.appendChild(s)}});
-    if(session?.role==='branch'){const main=document.querySelector('.main');if(main)[...main.querySelectorAll('button')].filter(b=>/chat/i.test(b.textContent)).forEach(b=>{if(!b.querySelector('.tmssChatBadge')){const s=document.createElement('span');s.className='tmssChatBadge';s.hidden=true;b.appendChild(s)}})}
-  }
-  function refreshBadges(){try{if(typeof paintChatBadges==='function')paintChatBadges()}catch(e){}ensureChatBadgeElements()}
-  const oldOpenChat=window.openChat;window.openChat=function(){const r=oldOpenChat?oldOpenChat.apply(this,arguments):null;setTimeout(()=>{try{window.initChat(session?.role)}catch(e){};refreshBadges()},30);return r};
-
-  // Explicitly cloud-sync Main Options creation and submissions.
-  if(typeof window.saveModule==='function'){const old=window.saveModule;window.saveModule=function(){const r=old.apply(this,arguments);setTimeout(()=>{try{window.tmssCloudSyncConfig&&window.tmssCloudSyncConfig()}catch(e){}},150);return r}}
-  if(typeof window.submitModuleEntry==='function'){const old=window.submitModuleEntry;window.submitModuleEntry=function(id){const r=old.apply(this,arguments);setTimeout(()=>{try{window.tmssCloudSyncConfig&&window.tmssCloudSyncConfig()}catch(e){}},250);return r}}
-
-  // Stable notice: only update when text/state changes; never remove/recreate every timer tick.
-  function stableNotice(){
-    const main=document.querySelector('.main');if(!main)return;
-    const bars=[...main.querySelectorAll('.tmssNoticeBar')];bars.slice(1).forEach(x=>x.remove());main.querySelectorAll('.noticeBoard').forEach(x=>x.remove());
-    const enabled=session?.role==='branch'&&db.notice?.enabled&&String(db.notice.text||'').trim();let bar=main.querySelector('.tmssNoticeBar');
-    if(!enabled){if(bar)bar.remove();return}
-    if(!bar){bar=document.createElement('div');bar.className='tmssNoticeBar';const top=main.querySelector('.topline');main.insertBefore(bar,top||main.firstChild)}
-    if(bar.dataset.text!==String(db.notice.text)){bar.dataset.text=String(db.notice.text);bar.innerHTML='<div class="tmssNoticeTrack"><span>📢 '+E(db.notice.text)+'</span></div>'}
-  }
-  window.tmssFixNotice=stableNotice;
-  const oldBranch=window.renderBranch;window.renderBranch=function(){oldBranch.apply(this,arguments);setTimeout(()=>{stableNotice();ensureChatBadgeElements();bindFinalDates(document)},30)};
-
-  // Realtime chat refresh + unread badges without touching other app state.
-  window.addEventListener('storage',e=>{if(e.key==='tmss_chat_reads_v1'||e.key==='tmss_chat_v1')refreshBadges()});
-  setTimeout(()=>{ensureAdminTabs();stableNotice();ensureChatBadgeElements();bindFinalDates(document);refreshBadges()},100);
-})();
-
-</script>
-<script>
-/* FINAL v8 — only Chat Seen notification + Branch Staff Add placement. */
-(function(){
-  function currentMe(){return session?.role==='admin'?'ADMIN':session?.branchId||''}
-  function readStore(){try{return JSON.parse(localStorage.getItem('tmss_chat_reads_v1')||'{}')}catch(e){return{}}}
-  function msgStamp(x){const t=Date.parse(x?.at||'');return Number.isFinite(t)?t:0}
-  function forceSeen(peer){
-    if(!peer)return;
-    try{
-      const msgs=typeof chatMessagesV4!=='undefined'?chatMessagesV4:[];
-      const meId=currentMe();
-      const incoming=msgs.filter(x=>x.to===meId&&x.from===peer).map(msgStamp).filter(Boolean);
-      const reads=readStore();
-      if(incoming.length) reads[meId+'|'+peer]=Math.max.apply(null,incoming);
-      localStorage.setItem('tmss_chat_reads_v1',JSON.stringify(reads));
-      if(typeof paintChatBadges==='function')paintChatBadges();
-    }catch(e){}
-  }
-  const oldSelect=window.selectChat;
-  window.selectChat=function(id){
-    const r=oldSelect?oldSelect.apply(this,arguments):null;
-    setTimeout(function(){forceSeen(id||'')},120);
-    return r;
-  };
-  const oldInit=window.initChat;
-  window.initChat=function(){
-    const r=oldInit?oldInit.apply(this,arguments):null;
-    setTimeout(function(){
-      const peer=typeof chatPeerV4!=='undefined'?chatPeerV4:'';
-      if(peer)forceSeen(peer);
-    },180);
-    return r;
-  };
-})();
-</script>
 </body>\n<style>
-.branchQuickActions{margin:0 0 16px;padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,#ffffff,#f8fbff);display:flex;align-items:center;justify-content:space-between;gap:14px;box-shadow:0 5px 18px rgba(35,72,120,.07)}.branchQuickText{display:flex;align-items:center;gap:12px;min-width:0}.branchQuickText b{display:block;font-size:14px}.branchQuickText small{display:block;color:var(--muted);font-size:11px;margin-top:3px}.branchQuickIcon{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:#eef5ff;font-size:20px;flex:0 0 38px}.branchAddBtn{min-width:135px;white-space:nowrap}@media(max-width:650px){.branchQuickActions{align-items:stretch;flex-direction:column}.branchAddBtn{width:100%}}
 /* Final targeted UI fixes */
 .tmssNoticeBar{width:100%;height:46px;overflow:hidden;position:relative;background:#fff8df;border:1px solid #efd98d;border-radius:12px;margin:0 0 16px;display:flex;align-items:center;box-sizing:border-box;}
 .tmssNoticeTrack{display:block;white-space:nowrap;position:absolute;left:100%;animation:tmssNoticeRTL 18s linear infinite;font-size:13px;font-weight:800;color:#705814;will-change:transform}
@@ -1269,6 +1124,7 @@ function saveBranch(id){
     window.renderAdmin=function(){const r=_renderAdmin.apply(this,arguments);setTimeout(refresh,20);return r;};
   }
   window.addEventListener('storage',function(e){if(e.key==='tmss_db_v2')refresh();});
+  setInterval(function(){if(document.getElementById('pendingApprovalBadge'))refresh();},1000);
   setTimeout(refresh,50);
 })();
 </script>
@@ -1300,23 +1156,152 @@ function saveBranch(id){
 })();
 </script>
 \n<script>
-/* TMSS legacy Firebase bridge disabled. centralStateV2 is the ONLY shared state. */
+/*
+ TMSS CLOUD SYNC — preserves the existing UI/business logic and moves shared data
+ from browser-only localStorage to Firebase Firestore so 21 branch PCs + Admin can
+ use the same live database.
+
+ Firebase Web App config is already configured. Enable Anonymous Authentication + Firestore in Firebase Console before testing.
+*/
 (function(){
-  const cfg=window.TMSS_FIREBASE_CONFIG||{
-    apiKey:"AIzaSyAkosG1bjn35H7Ji10LrQbUeXoroivPvw",
-    authDomain:"ctg-north-staff.firebaseapp.com",
-    projectId:"ctg-north-staff",
-    storageBucket:"ctg-north-staff.firebasestorage.app",
-    messagingSenderId:"87936835698",
-    appId:"1:87936835698:web:d6601915c19ccdaf41a2eb"
+  const TMSS_FIREBASE_CONFIG = window.TMSS_FIREBASE_CONFIG || {
+    apiKey: "AIzaSyAkosG1bjn35H7Ji10LrQbUBeXoroivPvw",
+    authDomain: "ctg-north-staff.firebaseapp.com",
+    projectId: "ctg-north-staff",
+    storageBucket: "ctg-north-staff.firebasestorage.app",
+    messagingSenderId: "87936835698",
+    appId: "1:87936835698:web:d6601915c19ccdaf41a2eb"
   };
+  const configured=TMSS_FIREBASE_CONFIG.apiKey && !String(TMSS_FIREBASE_CONFIG.apiKey).startsWith('PASTE_') && TMSS_FIREBASE_CONFIG.projectId && !String(TMSS_FIREBASE_CONFIG.projectId).startsWith('PASTE_');
+  if(!configured){
+    console.warn('TMSS Cloud Sync is not configured. Add Firebase web config to enable multi-PC sync.');
+    window.tmssCloud={enabled:false,status:'Not configured'};
+    return;
+  }
   try{
-    if(window.firebase){
-      if(!firebase.apps.length) firebase.initializeApp(cfg);
-      window.tmssCloud={enabled:true,status:'Connecting…'};
-      firebase.auth().signInAnonymously().then(()=>{window.tmssCloud.status='Cloud connected';document.dispatchEvent(new CustomEvent('tmss-cloud-status',{detail:'Cloud connected'}));}).catch(e=>{console.error('TMSS Firebase auth:',e);window.tmssCloud.status='Cloud login failed';});
+    if(!firebase.apps.length) firebase.initializeApp(TMSS_FIREBASE_CONFIG);
+    const auth=firebase.auth(), fs=firebase.firestore();
+    const stateRef=fs.collection('tmss').doc('centralState');
+    const chatRef=fs.collection('tmss').doc('centralChat');
+    const clientId=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random());
+    let suppress=false, applyingRemote=false, started=false, lastStateStamp=0, lastChatStamp=0, uploadTimer=null, chatTimer=null;
+    window.tmssCloud={enabled:true,status:'Connecting…',clientId};
+
+    function markStatus(text){window.tmssCloud.status=text;document.dispatchEvent(new CustomEvent('tmss-cloud-status',{detail:text}));}
+    function cloneDb(){try{return JSON.parse(JSON.stringify(window.db||db));}catch(e){return null}}
+    function uploadState(){
+      const payload=cloneDb(); if(!payload)return;
+      const stamp=Date.now(); lastStateStamp=Math.max(lastStateStamp,stamp);
+      stateRef.set({payload,stamp,source:clientId,updatedAt:firebase.firestore.FieldValue.serverTimestamp()})
+        .then(()=>markStatus('Cloud synced'))
+        .catch(e=>markStatus('Cloud sync error: '+(e.message||e)));
     }
-  }catch(e){console.error('TMSS Firebase init:',e);window.tmssCloud={enabled:false,status:'Firebase error'};}
+    function scheduleStateUpload(){
+      if(suppress)return;
+      clearTimeout(uploadTimer); uploadTimer=setTimeout(uploadState,250);
+    }
+    function applyState(payload,stamp){
+      if(!payload || applyingRemote || stamp<=lastStateStamp)return;
+      applyingRemote=true; lastStateStamp=stamp; suppress=true;
+      try{
+        const current=db||{}; const cfgKeys=['branches','fieldRules','customFields','designations','notice','extraModules','viewerAccess'];
+        const merged=payload||{}; cfgKeys.forEach(function(k){if(current[k]!==undefined)merged[k]=current[k];});
+        window.db=merged; db=merged;
+        localStorage.setItem('tmss_db_v2',JSON.stringify(merged));
+        suppress=false;
+        if(typeof session!=='undefined' && session){
+          if(session.role==='admin' && typeof renderAdmin==='function')renderAdmin();
+          else if(session.role==='viewer' && typeof renderViewer==='function')renderViewer();
+          else if(session.role==='branch' && typeof renderBranch==='function')renderBranch();
+        }
+      }catch(e){console.error(e)}
+      suppress=false; applyingRemote=false;
+    }
+    const configRef=fs.collection('tmss').doc('appConfig');
+    let configStarted=false, configDirty=false, lastConfigStamp=0, configUploadTimer=null;
+    function cloneConfig(){
+      const d=window.db||db;
+      return {branches:Array.isArray(d.branches)?d.branches:[],fieldRules:Array.isArray(d.fieldRules)?d.fieldRules:[],customFields:Array.isArray(d.customFields)?d.customFields:[],designations:Array.isArray(d.designations)?d.designations:[],notice:d.notice||{enabled:false,text:''},extraModules:Array.isArray(d.extraModules)?d.extraModules:[],viewerAccess:d.viewerAccess||null,viewerAccess:d.viewerAccess||null};
+    }
+    function uploadConfig(){
+      if(!configStarted||!configDirty)return;
+      const payload=cloneConfig(),stamp=Date.now(); lastConfigStamp=Math.max(lastConfigStamp,stamp); configDirty=false;
+      configRef.set({payload,stamp,source:clientId,updatedAt:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{configDirty=true});
+    }
+    function scheduleConfigUpload(){clearTimeout(configUploadTimer);configUploadTimer=setTimeout(uploadConfig,200);}
+    function applyConfig(payload,stamp){
+      if(!payload||stamp<=lastConfigStamp)return;
+      lastConfigStamp=stamp; suppress=true;
+      try{
+        if(Array.isArray(payload.branches))db.branches=payload.branches;
+        if(Array.isArray(payload.fieldRules))db.fieldRules=payload.fieldRules;
+        if(Array.isArray(payload.customFields))db.customFields=payload.customFields;
+        if(Array.isArray(payload.designations))db.designations=payload.designations;
+        if(payload.notice)db.notice=payload.notice;
+        if(Array.isArray(payload.extraModules))db.extraModules=payload.extraModules; if(payload.viewerAccess)db.viewerAccess=payload.viewerAccess;
+        nativeSet.call(localStorage,'tmss_db_v2',JSON.stringify(db));
+        if(session){if(session.role==='admin'&&typeof renderAdmin==='function')renderAdmin();else if(session.role==='branch'&&typeof renderBranch==='function')renderBranch();else if(session.role==='viewer'&&typeof renderViewer==='function')renderViewer();}
+      }catch(e){console.error(e)} finally{suppress=false;}
+    }
+    window.tmssCloudSyncConfig=function(){configDirty=true;scheduleConfigUpload()};
+    window.tmssCloudPullConfig=function(){configRef.get().then(s=>{if(s.exists){const d=s.data()||{};applyConfig(d.payload,Number(d.stamp||0))}}).catch(()=>{})};
+
+    function initialState(){
+      stateRef.get().then(snap=>{
+        if(snap.exists){
+          const d=snap.data()||{}; applyState(d.payload,Number(d.stamp||0)); markStatus('Cloud connected');
+        }else{
+          uploadState(); markStatus('Cloud initialized from this browser');
+        }
+        started=true;
+      }).catch(e=>{started=true;markStatus('Cloud connection failed: '+(e.message||e))});
+    }
+
+    function uploadChat(){
+      try{
+        const raw=localStorage.getItem('tmss_chat_v1'); if(!raw)return;
+        const messages=JSON.parse(raw); const stamp=Date.now(); lastChatStamp=Math.max(lastChatStamp,stamp);
+        chatRef.set({messages,stamp,source:clientId,updatedAt:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{});
+      }catch(e){}
+    }
+    function scheduleChatUpload(){clearTimeout(chatTimer);chatTimer=setTimeout(uploadChat,250)}
+    function applyChat(messages,stamp){
+      if(!Array.isArray(messages)||stamp<=lastChatStamp)return;
+      lastChatStamp=stamp; suppress=true;
+      try{localStorage.setItem('tmss_chat_v1',JSON.stringify(messages));window.dispatchEvent(new StorageEvent('storage',{key:'tmss_chat_v1',newValue:JSON.stringify(messages)}));}catch(e){}
+      suppress=false;
+    }
+
+    // Intercept ONLY the two existing shared localStorage keys. All other localStorage
+    // behavior (login/session/etc.) remains unchanged.
+    const nativeSet=Storage.prototype.setItem;
+    Storage.prototype.setItem=function(key,value){
+      nativeSet.call(this,key,value);
+      if(suppress)return;
+      if(key==='tmss_db_v2' && started)scheduleStateUpload();
+      if(key==='tmss_chat_v1' && started)scheduleChatUpload();
+    };
+
+    auth.signInAnonymously().then(()=>{
+      markStatus('Cloud connected');
+      initialState();
+      configRef.get().then(s=>{if(s.exists){const d=s.data()||{};applyConfig(d.payload,Number(d.stamp||0));}else{configDirty=true;scheduleConfigUpload();}configStarted=true;}).catch(()=>{configStarted=true});
+      chatRef.get().then(s=>{if(s.exists){const d=s.data()||{};applyChat(d.messages,Number(d.stamp||0))}}).catch(()=>{});
+      setInterval(()=>{
+        stateRef.get().then(s=>{if(!s.exists)return;const d=s.data()||{};if(Number(d.stamp||0)>lastStateStamp)applyState(d.payload,Number(d.stamp||0))}).catch(()=>{});
+      },2500);
+      setInterval(()=>{
+        configRef.get().then(s=>{if(!s.exists)return;const d=s.data()||{};if(Number(d.stamp||0)>lastConfigStamp)applyConfig(d.payload,Number(d.stamp||0))}).catch(()=>{});
+      },2500);
+      setInterval(()=>{
+        chatRef.get().then(s=>{if(!s.exists)return;const d=s.data()||{};if(Number(d.stamp||0)>lastChatStamp)applyChat(d.messages,Number(d.stamp||0))}).catch(()=>{});
+      },2500);
+    }).catch(e=>markStatus('Cloud login failed: '+(e.message||e)));
+
+    window.addEventListener('beforeunload',()=>{try{uploadState();uploadChat()}catch(e){}});
+  }catch(e){
+    console.error(e); window.tmssCloud={enabled:false,status:'Firebase error'};
+  }
 })();
 </script>\n
 <script>
@@ -1399,7 +1384,7 @@ function saveBranch(id){
   const oldRefreshHistory=window.refreshHistory; if(typeof oldRefreshHistory==='function')window.refreshHistory=function(){const r=oldRefreshHistory.apply(this,arguments);setTimeout(()=>formatIsoTextNodes(document.getElementById('history')||document.body),10);return r};
 
   // Date inputs: keep internal ISO for Firebase/data, but display DD-MM-YYYY everywhere.
-  function enhanceDates(root){(root||document).querySelectorAll('input[type="date"]:not([data-tmss-final-date]):not([data-bd-date])').forEach(native=>{native.setAttribute('data-tmss-final-date','1');const w=document.createElement('div');w.className='bd-date-wrap';native.parentNode.insertBefore(w,native);w.appendChild(native);native.style.pointerEvents='none';const t=document.createElement('input');t.type='text';t.className='bd-date-text';t.placeholder='DD-MM-YYYY';t.inputMode='numeric';t.value=bd(native.value);w.insertBefore(t,native);t.addEventListener('click',()=>{try{if(native.showPicker)native.showPicker();else native.focus()}catch(e){native.focus()}});t.addEventListener('input',()=>{let r=t.value.replace(/\D/g,'').slice(0,8);if(r.length>4)r=r.slice(0,2)+'-'+r.slice(2,4)+'-'+r.slice(4);else if(r.length>2)r=r.slice(0,2)+'-'+r.slice(2);t.value=r;const m=r.match(/^(\d{2})-(\d{2})-(\d{4})$/);if(m){const iso=`${m[3]}-${m[2]}-${m[1]}`;native.value=iso;native.dispatchEvent(new Event('change',{bubbles:true}));}});native.addEventListener('change',()=>{t.value=bd(native.value)});});}
+  function enhanceDates(root){(root||document).querySelectorAll('input[type="date"]:not([data-tmss-final-date])').forEach(native=>{native.setAttribute('data-tmss-final-date','1');const w=document.createElement('div');w.className='bd-date-wrap';native.parentNode.insertBefore(w,native);w.appendChild(native);native.style.pointerEvents='none';const t=document.createElement('input');t.type='text';t.className='bd-date-text';t.placeholder='DD-MM-YYYY';t.inputMode='numeric';t.value=bd(native.value);w.insertBefore(t,native);t.addEventListener('click',()=>{try{if(native.showPicker)native.showPicker();else native.focus()}catch(e){native.focus()}});t.addEventListener('input',()=>{let r=t.value.replace(/\D/g,'').slice(0,8);if(r.length>4)r=r.slice(0,2)+'-'+r.slice(2,4)+'-'+r.slice(4);else if(r.length>2)r=r.slice(0,2)+'-'+r.slice(2);t.value=r;const m=r.match(/^(\d{2})-(\d{2})-(\d{4})$/);if(m){const iso=`${m[3]}-${m[2]}-${m[1]}`;native.value=iso;native.dispatchEvent(new Event('change',{bubbles:true}));}});native.addEventListener('change',()=>{t.value=bd(native.value)});});}
   new MutationObserver(()=>enhanceDates(document)).observe(document.body,{childList:true,subtree:true}); enhanceDates(document);
 
   // Module branch forms: support text/date/number/dropdown fields created by Admin.
@@ -1416,473 +1401,5 @@ function saveBranch(id){
     .bd-date-wrap{position:relative;width:100%}.bd-date-wrap .bd-date-text{width:100%;box-sizing:border-box}.bd-date-wrap input.bd-date-native{position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:none}
     .tmssModules{margin-top:16px}
   `;document.head.appendChild(style);
-})();
-</script>
-
-<style>
-/* TMSS v4 — compact forms + stable controls. Existing business logic is preserved. */
-@media(min-width:901px){
-  .modal{width:min(1080px,96vw)!important;max-height:90vh!important;overflow:hidden!important;padding:20px!important}
-  .modal .grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:7px 10px!important}
-  .modal .field{margin:5px 0!important}
-  .modal .field label{font-size:11px!important;margin-bottom:4px!important}
-  .modal .field input,.modal .field select{padding:8px 9px!important;font-size:12px!important;height:36px!important;box-sizing:border-box!important}
-  .modal .notice{padding:8px 10px!important;margin-bottom:8px!important;font-size:11px!important}
-  .modal .hint{font-size:10px!important;margin-top:2px!important}
-  .modal .modalActions{margin-top:8px!important}
-}
-.tmssDateField{display:flex!important;gap:5px!important;align-items:stretch!important}
-.tmssDateField .tmssDateText{flex:1!important;min-width:0!important}
-.tmssDateField .tmssDateBtn{width:38px!important;min-width:38px!important;padding:0!important;border:1px solid #dce3ee!important;border-radius:9px!important;background:#fff!important;cursor:pointer!important;font-size:17px!important}
-.tmssDateNative{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important}
-.tmssEyeBtn{font-weight:800!important;background:#eef7ff!important;color:#1d5c8f!important;border:1px solid #cfe5f6!important}
-.tmssStaffTable .actions{display:flex!important;gap:5px!important;flex-wrap:wrap!important;align-items:center!important}
-.tmssStaffTable td.actionCell{white-space:normal!important}
-.tmssChatBadge,.tmssContactBadge{display:inline-grid!important;place-items:center!important;min-width:18px!important;height:18px!important;padding:0 5px!important;border-radius:999px!important;background:#e53935!important;color:#fff!important;font-size:10px!important;font-weight:900!important;margin-left:5px!important;vertical-align:middle!important}
-.tmssChatBadge[hidden],.tmssContactBadge[hidden]{display:none!important}
-.tmssChatUserLine{display:flex;align-items:center;justify-content:space-between;gap:5px}
-</style>
-<script>
-/* TMSS v4 FINAL TARGETED FIXES
-   - Does not replace the existing app/data model.
-   - Restores all existing Admin tabs including Main Options/Notice/View Only Access.
-   - Uses Firestore as the authoritative shared chat store.
-   - Uses one visible DD-MM-YYYY field with a calendar button and a hidden ISO value.
-*/
-(function(){
-  const escx=(typeof esc==='function')?esc:(v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])));
-  const fmt=v=>{const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?m[3]+'-'+m[2]+'-'+m[1]:String(v||'')};
-  const iso=v=>{const m=String(v||'').trim().match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);if(!m)return '';const d=m[1].padStart(2,'0'),mo=m[2].padStart(2,'0'),y=m[3];const dt=new Date(+y,+mo-1,+d);return dt.getFullYear()==+y&&dt.getMonth()==+mo-1&&dt.getDate()==+d?`${y}-${mo}-${d}`:''};
-  function dateField(id,label,value){
-    return `<div class="field"><label>${escx(label)}</label><div class="tmssDateField"><input id="${id}_display" class="tmssDateText" type="text" value="${escx(fmt(value))}" placeholder="DD-MM-YYYY" inputmode="numeric" autocomplete="off"><button type="button" class="tmssDateBtn" data-for="${id}" title="Choose date">📅</button><input id="${id}" class="tmssDateNative" data-bd-date="1" type="date" value="${escx(value||'')}"></div></div>`;
-  }
-  function bindDates(root){
-    (root||document).querySelectorAll('.tmssDateField').forEach(w=>{
-      const b=w.querySelector('.tmssDateBtn'),n=w.querySelector('.tmssDateNative'),t=w.querySelector('.tmssDateText');if(!b||!n||!t||t.dataset.bound)return;
-      t.dataset.bound='1';
-      const sync=()=>{t.value=fmt(n.value)};
-      t.addEventListener('input',()=>{let r=t.value.replace(/\D/g,'').slice(0,8);if(r.length>4)r=r.slice(0,2)+'-'+r.slice(2,4)+'-'+r.slice(4);else if(r.length>2)r=r.slice(0,2)+'-'+r.slice(2);t.value=r;const x=iso(r);if(x)n.value=x;});
-      t.addEventListener('blur',()=>{if(!t.value.trim()){n.value='';t.setCustomValidity('');return}const x=iso(t.value);if(!x)t.setCustomValidity('Use DD-MM-YYYY');else{t.setCustomValidity('');n.value=x;t.value=fmt(x)}});
-      n.addEventListener('change',sync);
-      b.addEventListener('click',()=>{try{if(n.showPicker)n.showPicker();else n.click()}catch(e){try{n.click()}catch(_){}}});
-    });
-  }
-  const mo=new MutationObserver(()=>bindDates(document));if(document.body)mo.observe(document.body,{childList:true,subtree:true});
-
-  // Compact, single-screen Staff form. The existing saveStaff() continues to consume f_tmss/f_branchdate.
-  const originalStaffForm=window.staffForm;
-  window.staffForm=function(s={},allowBranch=true){
-    const branchId=s.branchId||((session?.role==='branch')?session.branchId:(db.branches[0]?.id||''));
-    const list=(typeof window.tmssDesignations==='function'?window.tmssDesignations():[]);
-    const exists=list.some(d=>String(d.name).toLowerCase()===String(s.designation||'').trim().toLowerCase());
-    const selected=exists?String(s.designation||''):'__custom__';
-    const req=id=>typeof isReq==='function'?(isReq(id)?' *':''):'';
-    return `<div class="notice">Name must be exactly as per NID card. Enter the name in both English and Bangla. Address fields must be completed in Bangla.</div><div class="grid">
-      <div class="field"><label>Name — English (As per NID card)${req('nameEn')}</label><input id="f_en" value="${escx(s.nameEn||'')}"></div>
-      <div class="field"><label>নাম — বাংলা (NID অনুযায়ী)${req('nameBn')}</label><input id="f_bn" value="${escx(s.nameBn||'')}"></div>
-      <div class="field"><label>Personal Phone Only${req('phone')}</label><input id="f_phone" value="${escx(s.phone||'')}"><div class="hint">Personal mobile only; no official number.</div></div>
-      <div class="field"><label>Employee ID${req('employeeId')}</label><input id="f_emp" value="${escx(s.employeeId||s.staffId||'')}"></div>
-      <div class="field"><label>Designation${req('designation')}</label><select id="f_des" onchange="toggleCustomDesignation()">${list.map(d=>`<option value="${escx(d.name)}" ${String(d.name).toLowerCase()===String(s.designation||'').trim().toLowerCase()?'selected':''}>${escx(d.name)}</option>`).join('')}<option value="__custom__" ${selected==='__custom__'?'selected':''}>+ New / Custom Designation</option></select><div id="customDesBox" style="display:${selected==='__custom__'?'block':'none'};margin-top:5px"><input id="f_custom_des" value="${exists?'':escx(s.designation||'')}" placeholder="Type new designation"><select id="f_custom_pos" style="margin-top:5px"><option value="top">Highest — above SBM</option><option value="after">Place after selected designation</option><option value="bottom">Lowest — below all</option></select><select id="f_custom_after" style="margin-top:5px;display:none">${list.map(d=>`<option value="${escx(d.name)}">After ${escx(d.name)}</option>`).join('')}</select></div></div>
-      <div class="field"><label>Grade${req('grade')}</label><input id="f_grade" value="${escx(s.grade||'')}"></div>
-      <div class="field"><label>Department${req('department')}</label><input id="f_dept" value="${escx(s.department||'')}"></div>
-      <div class="field"><label>Project${req('project')}</label><input id="f_project" value="${escx(s.project||'')}"></div>
-      ${dateField('f_tmss','Joining date (TMSS)'+req('tmssJoin'),s.tmssJoin)}
-      ${dateField('f_branchdate','Joining Date (Branch)'+req('branchJoin'),s.branchJoin)}
-      <div class="field"><label>Domain name${req('domain')}</label><input value="Op-05" disabled></div>
-      <div class="field"><label>Zone${req('zone')}</label><input value="Ctg North" disabled></div>
-      <div class="field"><label>Region name${req('region')}</label><select id="f_region" disabled>${REGIONS.map(x=>`<option ${x===region(branchId)?'selected':''}>${escx(x)}</option>`).join('')}</select></div>
-      <div class="field"><label>Branch${req('branch')}</label><select id="f_branchsel" ${session?.role==='branch'?'disabled':''} onchange="syncRegion()">${db.branches.map(b=>`<option value="${escx(b.id)}" ${b.id===branchId?'selected':''}>${escx(b.name)}${b.code?` (${escx(b.code)})`:''}</option>`).join('')}</select></div>
-      <div class="field"><label>Village (বাংলায়)${req('village')}</label><input id="f_village" value="${escx(s.village||'')}"></div>
-      <div class="field"><label>Post (বাংলায়)${req('post')}</label><input id="f_post" value="${escx(s.post||'')}"></div>
-      <div class="field"><label>Thana / Upazila (বাংলায়)${req('thana')}</label><input id="f_thana" value="${escx(s.thana||s.upazila||'')}"></div>
-      <div class="field"><label>District (বাংলায়)${req('district')}</label><input id="f_dist" value="${escx(s.district||'')}"></div>
-      ${(db.customFields||[]).map(c=>`<div class="field"><label>${escx(c.label)}${c.required?' *':''}</label>${c.type==='select'?`<select id="cf_${escx(c.id)}"><option value="">Select</option>${(c.options||[]).map(o=>`<option value="${escx(o)}" ${s.custom?.[c.id]===o?'selected':''}>${escx(o)}</option>`).join('')}</select>`:`<input id="cf_${escx(c.id)}" value="${escx(s.custom?.[c.id]||'')}">`}</div>`).join('')}
-    </div><div id="formErr" class="err"></div><div class="modalActions"><button class="btn" onclick="closeTemp()">Cancel</button><button class="btn primary" onclick="saveStaff()">Save Staff</button></div>`;
-  };
-  window.openStaff=function(id=''){editingId=id;const s=db.staff.find(x=>x.id===id)||{};modal(id?'Edit Staff':'Add New Staff',window.staffForm(s));setTimeout(()=>{if(typeof toggleCustomDesignation==='function')toggleCustomDesignation();bindDates(document)},0)};
-
-  // Resignation: same fields, one visible date box per date.
-  window.openResign=function(id){
-    if(typeof hasPending==='function'&&hasPending(id,'resign')){modal('Request Already Sent','<div class="notice">✓ This staff member\'s resignation request has already been sent and is waiting for Admin approval.</div><div class="modalActions"><button class="btn" onclick="closeTemp()">Close</button></div>');return;}
-    modal('Staff Resign Request',`<div class="notice">This is an approval request. The staff remains active until Admin approves it.</div><div class="grid">${dateField('rd','Staff Resign Date *','')}${dateField('re','Resign Effective Date *','')}<div class="field"><label>Reason *</label><input id="rr" placeholder="Enter resignation reason"></div></div><div id="reErr" class="err"></div><div class="modalActions"><button class="btn" onclick="closeTemp()">Cancel</button><button class="btn red" onclick="sendResign('${id}')">Send Resign Request</button></div>`);setTimeout(()=>bindDates(document),0);
-  };
-
-  // Transfer: one visible date box. Out-of-zone remains transfer only.
-  window.requestTransfer=function(id){
-    if(typeof hasPending==='function'&&hasPending(id,'transfer')){modal('Request Already Sent','<div class="notice">✓ This staff member\'s transfer request has already been sent and is waiting for Admin approval.</div><div class="modalActions"><button class="btn" onclick="closeTemp()">Close</button></div>');return;}
-    const s=db.staff.find(x=>x.id===id);if(!s)return;
-    modal('Transfer Request',`<div class="notice">Branch transfers require Admin approval. The current branch remains active until approval.</div><div class="grid"><div class="field"><label>Transfer type</label><select id="tt" onchange="toggleOut()"><option value="branch">Within CTG North Zone</option><option value="out">Out of Zone</option></select></div><div id="inzone" style="display:contents"><div class="field"><label>Destination branch *</label><select id="tb">${db.branches.filter(b=>b.id!==s.branchId).map(b=>`<option value="${escx(b.id)}">${escx(b.name)} — ${escx(b.region)}</option>`).join('')}</select></div>${dateField('tj','Next branch Joining Date *','')}</div><div class="field"><label>Transfer Order Sarok No. *</label><input id="sarok"></div></div><div id="trErr" class="err"></div><div class="modalActions"><button class="btn" onclick="closeTemp()">Cancel</button><button class="btn primary" onclick="submitTransfer('${id}')">Submit Transfer</button></div>`);setTimeout(()=>bindDates(document),0);
-  };
-
-  // Main Options forms also use the same single date control when a module field is date type.
-  window.openModuleEntry=function(id){
-    const m=(db.extraModules||[]).find(x=>x.id===id);if(!m)return;
-    modal(m.name,`<div class="notice">Branch: ${session?.role==='branch'?escx(bname(session.branchId)):'Admin'}</div><div class="grid">${(m.fields||[]).map(f=>f.type==='date'?dateField('mf_'+f.id,f.label+(f.required?' *':''),''): `<div class="field"><label>${escx(f.label)}${f.required?' *':''}</label>${f.type==='select'?`<select id="mf_${escx(f.id)}"><option value="">Select</option>${(f.options||[]).map(o=>`<option value="${escx(o)}">${escx(o)}</option>`).join('')}</select>`:`<input id="mf_${escx(f.id)}" type="${f.type==='number'?'number':'text'}">`}</div>`).join('')}</div><div id="mfErr" class="err"></div><div class="modalActions"><button class="btn" onclick="closeTemp()">Cancel</button><button class="btn primary" onclick="submitModuleEntry('${id}')">Submit Form</button></div>`);setTimeout(()=>bindDates(document),0);
-  };
-
-  // Staff list: add the requested eye/view control without removing Edit/Transfer/Resign.
-  window.tmssViewStaff=function(id){
-    const s=db.staff.find(x=>x.id===id);if(!s)return;
-    const b=db.branches.find(x=>x.id===s.branchId);
-    modal('Staff Information',`<div class="grid"><div class="field"><label>Employee ID</label><input value="${escx(s.employeeId||'')}" readonly></div><div class="field"><label>Name — English</label><input value="${escx(s.nameEn||'')}" readonly></div><div class="field"><label>নাম — বাংলা</label><input value="${escx(s.nameBn||'')}" readonly></div><div class="field"><label>Designation</label><input value="${escx(s.designation||'')}" readonly></div><div class="field"><label>Grade</label><input value="${escx(s.grade||'')}" readonly></div><div class="field"><label>Domain</label><input value="Op-05" readonly></div><div class="field"><label>Department</label><input value="${escx(s.department||'')}" readonly></div><div class="field"><label>Project</label><input value="${escx(s.project||'')}" readonly></div><div class="field"><label>Zone</label><input value="Ctg North" readonly></div><div class="field"><label>Region</label><input value="${escx(s.region||b?.region||'')}" readonly></div><div class="field"><label>Branch</label><input value="${escx((b?.name||'')+(b?.code?' ('+b.code+')':''))}" readonly></div><div class="field"><label>Joining date (TMSS)</label><input value="${escx(fmt(s.tmssJoin))}" readonly></div><div class="field"><label>Joining Date (Branch)</label><input value="${escx(fmt(s.branchJoin))}" readonly></div><div class="field"><label>Personal Phone</label><input value="${escx(s.phone||'')}" readonly></div><div class="field"><label>Village</label><input value="${escx(s.village||'')}" readonly></div><div class="field"><label>Post</label><input value="${escx(s.post||'')}" readonly></div><div class="field"><label>Thana / Upazila</label><input value="${escx(s.thana||s.upazila||'')}" readonly></div><div class="field"><label>District</label><input value="${escx(s.district||'')}" readonly></div></div><div class="modalActions"><button class="btn" onclick="closeTemp()">Close</button></div>`);
-  };
-  const baseTable=window.table;
-  window.table=function(rows,opts={}){
-    if(!rows?.length)return '<div class="card" style="text-align:center;color:var(--muted)">No records found.</div>';
-    const list=[...rows].sort((a,b)=>(typeof designRank==='function'?designRank(a.designation)-designRank(b.designation):0)||String(a.nameEn||'').localeCompare(String(b.nameEn||'')));
-    const can=!!opts.actions;
-    return `<div class="tablewrap staffAligned"><table class="table tmssStaffTable"><thead><tr><th>SL</th><th>Employee ID</th><th>Name</th><th>Designation</th><th>Grade</th><th>Zone</th><th>Region</th><th>Branch</th><th>Joining Date (TMSS)</th><th>Joining Date (Branch)</th><th>Address</th><th>Personal Phone</th><th>View${can?' / Actions':''}</th></tr></thead><tbody>${list.map((s,i)=>`<tr><td>${i+1}</td><td>${escx(s.employeeId||'—')}</td><td><b>${escx(s.nameEn||'—')}</b><br><small>${escx(s.nameBn||'—')}</small>${session?.role==='branch'&&typeof branchPendingLabel==='function'?(branchPendingLabel(s.id)?'<br>'+branchPendingLabel(s.id):''):''}</td><td><b>${escx(s.designation||'—')}</b></td><td>${escx(s.grade||'—')}</td><td>Op-05</td><td>${escx(region(s.branchId)||s.region||'—')}</td><td>${escx((db.branches.find(b=>b.id===s.branchId)?.name||'—')+(db.branches.find(b=>b.id===s.branchId)?.code?' ('+db.branches.find(b=>b.id===s.branchId).code+')':''))}${s.status!=='Active'?`<br><span class="pill red">${escx(s.status)}</span>`:''}</td><td>${escx(fmt(s.tmssJoin))}</td><td>${escx(fmt(s.branchJoin))}</td><td class="addressCell"><div>গ্রাম: ${escx(s.village||'—')}</div><div>ডাকঘর: ${escx(s.post||'—')}</div><div>থানা/উপজেলা: ${escx(s.thana||s.upazila||'—')}</div><div>জেলা: ${escx(s.district||'—')}</div></td><td class="phoneCell">${escx(s.phone||'—')}</td><td class="actionCell"><div class="actions"><button class="smallBtn tmssEyeBtn" type="button" onclick="tmssViewStaff('${escx(s.id)}')">👁️ View</button>${can?`<button class="smallBtn" onclick="openStaff('${escx(s.id)}')">✏️ Edit</button>${s.status==='Active'?`<button class="smallBtn" onclick="requestTransfer('${escx(s.id)}')">Transfer</button><button class="smallBtn red" onclick="openResign('${escx(s.id)}')">Resign</button>`:''}${session?.role==='admin'&&s.status==='Active'?`<button class="smallBtn" onclick="adminTransfer('${escx(s.id)}')">Admin Transfer</button>`:''}`:''}</div></td></tr>`).join('')}</tbody></table></div>`;
-  };
-
-  // ---------- Notice: remove every legacy notice and render exactly one ticker. ----------
-  function oneNotice(){
-    const main=document.querySelector('.main');if(!main)return;
-    document.querySelectorAll('.noticeBoard,.tmssNoticeBar').forEach(x=>x.remove());
-    if(session?.role!=='branch'||!db.notice?.enabled||!String(db.notice.text||'').trim())return;
-    const n=document.createElement('div');n.className='tmssNoticeBar';n.innerHTML='<div class="tmssNoticeTrack"><span>📢 '+escx(db.notice.text)+'</span></div>';
-    const top=main.querySelector('.topline');main.insertBefore(n,top||main.firstChild);
-  }
-  window.tmssFixNotice=oneNotice;
-
-  // ---------- Admin tabs: keep every existing tab + ensure Main Options and View Only Access. ----------
-  const priorAdminTab=window.adminTab;
-  window.adminTab=function(el,type){
-    if(type==='notice'||type==='modules'||type==='access'||type==='chat'){
-      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));if(el)el.classList.add('active');
-      const c=document.getElementById('adminContent');if(!c)return;
-      if(type==='notice')c.innerHTML=typeof noticePanel==='function'?noticePanel():'<div class="card">Notice Board unavailable.</div>';
-      else if(type==='modules')c.innerHTML=typeof modulePanel==='function'?modulePanel():'<div class="card">Main Options unavailable.</div>';
-      else if(type==='access')c.innerHTML=typeof viewerAccessPanel==='function'?viewerAccessPanel():'<div class="card">View Only Access unavailable.</div>';
-      else c.innerHTML=window.chatPanel?window.chatPanel('admin'):'<div class="card">Chat unavailable.</div>';
-      if(type==='chat')setTimeout(()=>initChat?.('admin'),0);
-      return;
-    }
-    return priorAdminTab.apply(this,arguments);
-  };
-
-  function ensureAdminTabs(){
-    const tabs=document.querySelector('.tabs');if(!tabs)return;
-    const add=(type,label)=>{if([...tabs.querySelectorAll('.tab')].some(x=>x.dataset.tmssType===type||x.textContent.trim().startsWith(label)))return;const b=document.createElement('button');b.className='tab';b.dataset.tmssType=type;b.innerHTML=label+(type==='chat'?'<span class="tmssChatBadge" hidden></span>':'');b.onclick=()=>window.adminTab(b,type);tabs.appendChild(b)};
-    add('notice','Notice Board');add('modules','Main Options');add('access','View Only Access');add('chat','💬 Chat');
-    paintChatBadges();
-  }
-  const priorRenderAdmin=window.renderAdmin;
-  window.renderAdmin=function(){priorRenderAdmin.apply(this,arguments);setTimeout(ensureAdminTabs,20);setTimeout(paintChatBadges,80)};
-
-  // ---------- Branch render: preserve the existing toolbar/modules, then fix only notice/code/chat badge. ----------
-  const priorRenderBranch=window.renderBranch;
-  window.renderBranch=function(){priorRenderBranch.apply(this,arguments);setTimeout(()=>{oneNotice();paintBranchCode();ensureBranchChatButton();paintChatBadges()},30)};
-  function paintBranchCode(){if(session?.role!=='branch')return;const b=db.branches.find(x=>x.id===session.branchId);if(!b)return;const text=String(b.name||'')+(b.code?' ('+b.code+')':'');document.querySelectorAll('.main .topline .eyebrow').forEach(x=>x.textContent=text);document.querySelectorAll('.main .stat').forEach(st=>{const sm=st.querySelector('small'),bb=st.querySelector('b');if(sm&&bb&&sm.textContent.trim()==='Branch code')bb.textContent=b.code||'—';});}
-  function ensureBranchChatButton(){const main=document.querySelector('.main');if(!main||session?.role!=='branch')return;let btn=[...main.querySelectorAll('button')].find(x=>x.textContent.includes('Chat'));if(!btn){const bar=main.querySelector('.toolbar');if(bar){btn=document.createElement('button');btn.className='btn';btn.onclick=()=>openChat();btn.innerHTML='💬 Chat <span class="tmssChatBadge" hidden></span>';bar.appendChild(btn)}}else if(!btn.querySelector('.tmssChatBadge')){btn.innerHTML='💬 Chat <span class="tmssChatBadge" hidden></span>';btn.onclick=()=>openChat()}paintChatBadges();}
-
-  // ---------- Branch credential save: preserve code/username/password and immediately sync config. ----------
-  const priorSaveBranch=window.saveBranch;
-  if(typeof priorSaveBranch==='function')window.saveBranch=function(){const r=priorSaveBranch.apply(this,arguments);setTimeout(()=>{try{window.tmssCloudSyncConfig&&window.tmssCloudSyncConfig()}catch(e){};paintBranchCode()},350);return r};
-
-  // ---------- View Only credentials: keep Admin control and persist to appConfig. ----------
-  function ensureViewerAccess(){if(db.viewerAccess){VIEWER.username=db.viewerAccess.username||VIEWER.username;VIEWER.password=db.viewerAccess.password||VIEWER.password}}
-  ensureViewerAccess();
-  window.viewerAccessPanel=function(){ensureViewerAccess();return `<div class="card tmssAccessCard"><h3 style="margin-top:0">View Only Access</h3><p style="color:var(--muted);font-size:12px">Admin-only control. Change the View Only login username and password here.</p><div class="grid"><div class="field"><label>View Only Username *</label><input id="viewerUser" value="${escx(VIEWER.username)}" autocomplete="off"></div><div class="field"><label>View Only Password *</label><input id="viewerPass" value="${escx(VIEWER.password)}" autocomplete="new-password"></div></div><div id="viewerAccessErr" class="err"></div><div class="modalActions"><button class="btn primary" onclick="saveViewerAccess()">Save View Only Access</button></div></div>`};
-  window.saveViewerAccess=function(){const u=(document.getElementById('viewerUser')?.value||'').trim(),p=document.getElementById('viewerPass')?.value||'';const er=document.getElementById('viewerAccessErr');if(!u||!p){if(er)er.textContent='Username and password are required.';return}VIEWER.username=u;VIEWER.password=p;db.viewerAccess={username:u,password:p};save();try{window.tmssCloudSyncConfig&&window.tmssCloudSyncConfig()}catch(e){};toast('View Only access updated.');const tab=[...document.querySelectorAll('.tab')].find(x=>x.dataset.tmssType==='access'||x.textContent.includes('View Only Access'));window.adminTab(tab,'access')};
-
-  // ---------- Chat: Firestore arrayUnion + realtime snapshot + unread notifications. ----------
-  const CHATKEY='tmss_chat_v1';
-  let chatPeerV4='';let chatMessagesV4=[];let chatUnsubV4=null;
-  function me(){return session?.role==='admin'?'ADMIN':session?.branchId||''}
-  function localMsgs(){try{return JSON.parse(localStorage.getItem(CHATKEY)||'[]')}catch(e){return[]}}
-  function fsReady(){return window.firebase&&firebase.apps&&firebase.apps.length}
-  async function chatRefV4(){if(!fsReady())return null;const a=firebase.auth();if(!a.currentUser){try{await a.signInAnonymously()}catch(e){} }return firebase.firestore().collection('tmss').doc('centralChat')}
-  async function loadReads(){try{return JSON.parse(localStorage.getItem('tmss_chat_reads_v1')||'{}')}catch(e){return{}}}
-  function msgTime(x){const t=Date.parse(x?.at||'');return Number.isFinite(t)?t:0}
-  function unreadFor(peer){const reads=loadReads();const stamp=Number(reads[me()+'|'+peer]||0);return chatMessagesV4.filter(x=>x.to===me()&&x.from===peer&&msgTime(x)>stamp).length}
-  function paintChatBadges(){
-    const reads=loadReads();
-    const total=chatMessagesV4.filter(x=>x.to===me()&&msgTime(x)>Number(reads[me()+'|'+x.from]||0)).length;
-    document.querySelectorAll('.tmssChatBadge').forEach(b=>{b.textContent=total?String(total):'';b.hidden=!total});
-    document.querySelectorAll('[data-chat-user]').forEach(b=>{const peer=b.getAttribute('data-chat-user');let badge=b.querySelector('.tmssContactBadge');const n=unreadFor(peer);if(!badge){badge=document.createElement('span');badge.className='tmssContactBadge';b.appendChild(badge)}badge.textContent=n?String(n):'';badge.hidden=!n});
-  }
-  function markRead(peer){
-    if(!peer)return;
-    const received=chatMessagesV4.filter(x=>x.to===me()&&x.from===peer).map(msgTime).filter(Boolean);
-    const latest=received.length?Math.max.apply(null,received):Date.now();
-    const reads=loadReads();
-    reads[me()+'|'+peer]=latest;
-    localStorage.setItem('tmss_chat_reads_v1',JSON.stringify(reads));
-    paintChatBadges();
-  }
-  function renderChatMessages(){const box=document.getElementById('chatMessages');if(!box)return;const arr=chatMessagesV4.filter(x=>(x.from===me()&&x.to===chatPeerV4)||(x.from===chatPeerV4&&x.to===me()));box.innerHTML=arr.map(x=>`<div class="chatMsg ${x.from===me()?'mine':'theirs'}"><div>${escx(x.text)}</div><div class="chatMeta">${new Date(x.at).toLocaleString()}</div></div>`).join('')||'<div style="text-align:center;color:#8a96aa;font-size:12px;margin-top:120px">No messages yet.</div>';box.scrollTop=box.scrollHeight;paintChatBadges()}
-  function attachChatRealtime(){if(chatUnsubV4)try{chatUnsubV4()}catch(e){};if(!fsReady())return;try{chatUnsubV4=firebase.firestore().collection('tmss').doc('centralChat').onSnapshot(s=>{const d=s.data()||{};chatMessagesV4=Array.isArray(d.messages)?d.messages:[];try{localStorage.setItem(CHATKEY,JSON.stringify(chatMessagesV4))}catch(e){};renderChatMessages();paintChatBadges()})}catch(e){chatMessagesV4=localMsgs();renderChatMessages()}}
-  window.chatPanel=function(role){const meId=me();const users=[{id:'ADMIN',name:'Admin Panel'}].concat((db.branches||[]).map(b=>({id:b.id,name:b.name}))).filter(u=>u.id!==meId);return `<div class="chatWrap"><div class="chatUsers"><b style="font-size:12px">Contacts</b><div style="margin-top:8px">${users.map((u,i)=>`<button class="chatUser ${i===0?'active':''}" data-chat-user="${escx(u.id)}" onclick="selectChat('${escx(u.id)}')"><span class="tmssChatUserLine"><span>${escx(u.name)}</span><span class="tmssContactBadge" hidden></span></span></button>`).join('')}</div></div><div class="chatBox"><div class="chatHead" id="chatHead">${escx(users[0]?.name||'Select contact')}</div><div class="chatMessages" id="chatMessages"></div><div class="chatComposer"><input id="chatInput" placeholder="Type message…"><button type="button" class="btn primary" id="chatSendBtn" onclick="sendChatMessage()">Send</button></div></div></div>`}
-  window.openChat=function(){modal('Live Chat',window.chatPanel(session.role));setTimeout(()=>window.initChat(session.role),20)};
-  window.initChat=function(){const first=document.querySelector('[data-chat-user]');chatPeerV4=first?.getAttribute('data-chat-user')||'';attachChatRealtime();if(chatPeerV4)markRead(chatPeerV4);renderChatMessages();const inp=document.getElementById('chatInput');if(inp){inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();window.sendChatMessage()}};inp.focus()}paintChatBadges()};
-  window.selectChat=function(id){chatPeerV4=id||'';document.querySelectorAll('[data-chat-user]').forEach(x=>x.classList.toggle('active',x.getAttribute('data-chat-user')===chatPeerV4));const b=db.branches.find(x=>x.id===chatPeerV4);const h=document.getElementById('chatHead');if(h)h.textContent=chatPeerV4==='ADMIN'?'Admin Panel':b?.name||chatPeerV4;markRead(chatPeerV4);renderChatMessages();document.getElementById('chatInput')?.focus()};
-  window.refreshChat=renderChatMessages;
-  window.sendChatMessage=async function(){const input=document.getElementById('chatInput');const text=(input?.value||'').trim();if(!text||!chatPeerV4)return;const msg={id:crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random(),from:me(),to:chatPeerV4,text,at:new Date().toISOString()};try{const ref=await chatRefV4();if(ref){await ref.set({messages:firebase.firestore.FieldValue.arrayUnion(msg),stamp:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});chatMessagesV4=[...chatMessagesV4,msg];}else{chatMessagesV4=[...localMsgs(),msg];localStorage.setItem(CHATKEY,JSON.stringify(chatMessagesV4))}if(input)input.value='';renderChatMessages();paintChatBadges()}catch(e){console.error(e);alert('Message could not be sent. Please try again.')}};
-
-  // Start realtime chat once Firebase is ready, without disturbing the existing login/data sync.
-  setTimeout(()=>{if(fsReady())attachChatRealtime();paintChatBadges()},1200);
-  window.addEventListener('storage',e=>{if(e.key===CHATKEY){chatMessagesV4=localMsgs();renderChatMessages();paintChatBadges()}if(e.key==='tmss_chat_reads_v1')paintChatBadges()});
-})();
-<!-- v7 targeted fixes: restore designation master in final Staff form + reliably clear chat notifications when conversation is viewed -->
-</script>
-
-<style>
-/* v9 — clean branch staff actions + bulk admin deletion */
-.adminBulkBar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:0 0 12px;padding:11px 13px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 6px 18px rgba(35,72,120,.05)}
-.adminBulkBar .bulkInfo{font-size:12px;font-weight:800;color:var(--ink);margin-right:auto}.adminBulkBar .bulkDanger{background:#fff0f1;color:#b52d35}.rowSelect{width:16px;height:16px;cursor:pointer}
-.branchStaffActions{margin:14px 0 16px;padding:16px 18px;border:1px solid #dfe7f4;border-radius:18px;background:linear-gradient(135deg,#ffffff,#f7faff);display:flex;align-items:center;justify-content:space-between;gap:16px;box-shadow:0 8px 24px rgba(36,87,255,.07)}
-.branchStaffActions .bsCopy{display:flex;align-items:center;gap:12px}.branchStaffActions .bsIcon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:#edf3ff;font-size:21px}.branchStaffActions b{display:block;font-size:14px}.branchStaffActions small{display:block;color:var(--muted);font-size:11px;margin-top:3px}.branchStaffActions .btn{min-width:142px;white-space:nowrap}
-@media(max-width:650px){.branchStaffActions{flex-direction:column;align-items:stretch}.branchStaffActions .btn{width:100%}.adminBulkBar .bulkInfo{width:100%}}
-</style>
-<script>
-/* TMSS v13 — Firebase connection hardening.
-   Fixes: auth race, delete reappearing after refresh, Admin/Branch live state,
-   and branch records being overwritten by an old cloud snapshot during startup.
-   centralStateV2 remains the single shared application state.
-*/
-(function(){
-  'use strict';
-  const DOC='centralStateV2';
-  let ready=false, applying=false, timer=null, unsub=null, lastStamp=0, lastHash='', pendingLocalSave=false;
-  const fs=()=>window.firebase&&firebase.apps&&firebase.apps.length?firebase.firestore():null;
-  const clone=()=>{try{return JSON.parse(JSON.stringify(window.db||db))}catch(e){return null}};
-  const nativeSet=Storage.prototype.setItem;
-
-  function markError(e){console.error('TMSS Firebase:',e)}
-
-  async function ensureAuth(){
-    if(!window.firebase||!firebase.apps||!firebase.apps.length) throw new Error('Firebase app is not initialized');
-    const auth=firebase.auth();
-    if(auth.currentUser) return auth.currentUser;
-    return await auth.signInAnonymously().then(r=>r.user||auth.currentUser);
-  }
-
-  async function cloudWrite(){
-    const f=fs(), payload=clone();
-    if(!f||!payload||!ready||applying)return false;
-    const stamp=Math.max(Date.now(),lastStamp+1);
-    lastStamp=stamp;
-    lastHash=JSON.stringify(payload);
-    try{
-      await f.collection('tmss').doc(DOC).set({
-        payload,stamp,
-        updatedAt:firebase.firestore.FieldValue.serverTimestamp()
-      },{merge:true});
-      return true;
-    }catch(e){markError(e);return false;}
-  }
-
-  function schedule(){
-    if(applying)return;
-    clearTimeout(timer);
-    if(!ready){ pendingLocalSave=true; return; }
-    timer=setTimeout(()=>cloudWrite(),120);
-  }
-
-  function applyRemote(payload,stamp,force){
-    if(!payload||!stamp)return;
-    if(!force&&stamp<=lastStamp)return;
-    const hash=JSON.stringify(payload);
-    if(!force&&hash===lastHash){lastStamp=Math.max(lastStamp,stamp);return;}
-    applying=true;
-    lastStamp=stamp;
-    lastHash=hash;
-    try{
-      window.db=payload;
-      db=payload;
-      nativeSet.call(localStorage,'tmss_db_v2',hash);
-      if(!session)return;
-      if(session.role==='admin'&&typeof window.renderAdmin==='function')window.renderAdmin();
-      else if(session.role==='branch'&&typeof window.renderBranch==='function')window.renderBranch();
-      else if(session.role==='viewer'&&typeof window.renderViewer==='function')window.renderViewer();
-    }catch(e){markError(e)}
-    finally{applying=false;}
-  }
-
-  const oldSave=window.save;
-  window.save=function(){
-    const r=oldSave?oldSave.apply(this,arguments):nativeSet.call(localStorage,'tmss_db_v2',JSON.stringify(db));
-    if(!applying){ pendingLocalSave=true; schedule(); }
-    return r;
-  };
-  window.tmssFirebaseSyncNow=function(){return cloudWrite()};
-  window.tmssFirebaseReady=()=>ready;
-
-  async function start(){
-    const f=fs();
-    if(!f)return;
-    try{
-      // IMPORTANT: Firestore must not be read/written before Anonymous Auth is ready.
-      await ensureAuth();
-      const ref=f.collection('tmss').doc(DOC);
-      const snap=await ref.get();
-      if(snap.exists){
-        const d=snap.data()||{};
-        const payload=d.payload;
-        const stamp=Number(d.stamp||0);
-        ready=true;
-        if(pendingLocalSave){
-          // A real user action happened before cloud initialization finished;
-          // preserve that local action instead of silently replacing it.
-          await cloudWrite();
-          pendingLocalSave=false;
-        }else{
-          applyRemote(payload,stamp,true);
-        }
-      }else{
-        ready=true;
-        await cloudWrite();
-        pendingLocalSave=false;
-      }
-
-      if(unsub)try{unsub()}catch(e){}
-      unsub=ref.onSnapshot(s=>{
-        const d=s.data()||{},st=Number(d.stamp||0);
-        if(st>lastStamp)applyRemote(d.payload,st,false);
-      },markError);
-    }catch(e){
-      markError(e);
-      // Keep local mode usable if Firebase is temporarily unavailable.
-      ready=false;
-    }
-  }
-
-  (function wait(){
-    if(fs())start();
-    else setTimeout(wait,300);
-  })();
-})();
-</script>
-<script>
-/* v9 — Main Options submissions are visible in Admin and sync through the same source. */
-(function(){
-  function cloud(){try{window.tmssFirebaseSyncNow&&window.tmssFirebaseSyncNow()}catch(e){}}
-  ['saveStaff','sendResign','submitTransfer','approveResign','rejectResign','approveTransfer','rejectTransfer','applyAdminTransfer','deleteHistory','saveNotice','saveModule','submitModuleEntry','deleteModule','saveField','deleteField','saveBranch','removeBranch','setStandardRequired','setCustomFieldRequired','addMasterDesignation','removeMasterDesignation','saveViewerAccess'].forEach(function(name){
-    const old=window[name]; if(typeof old!=='function')return;
-    window[name]=function(){const r=old.apply(this,arguments);setTimeout(cloud,120);return r};
-  });
-
-  // Ensure the Admin Main Options panel has an obvious submission count.
-  const oldModulePanel=window.modulePanel;
-  if(typeof oldModulePanel==='function')window.modulePanel=function(){
-    const out=oldModulePanel.apply(this,arguments);
-    try{
-      return out.replace(/<small>\((\d+) field\(s\)[^<]*<\/small>/g,'<small>$1 field(s)</small>');
-    }catch(e){return out}
-  };
-})();
-</script>
-<script>
-/* v9 — Admin staff deletion: single, select-many, select-all visible records. */
-(function(){
-  function ids(){return [...document.querySelectorAll('.adminStaffSelect:checked')].map(x=>x.value)}
-  function removeIds(list){
-    if(session?.role!=='admin'||!list.length)return;
-    if(!confirm('Permanently delete '+list.length+' selected staff record(s)? This cannot be undone.'))return;
-    const set=new Set(list);
-    db.staff=(db.staff||[]).filter(s=>!set.has(s.id));
-    db.resignRequests=(db.resignRequests||[]).filter(x=>!set.has(x.staffId));
-    db.transferRequests=(db.transferRequests||[]).filter(x=>!set.has(x.staffId));
-    db.resignHistory=(db.resignHistory||[]).filter(x=>!set.has(x.staffId));
-    db.movements=(db.movements||[]).filter(x=>!set.has(x.staffId));
-    save();toast(list.length===1?'Staff deleted.':list.length+' staff records deleted.');renderAdmin();
-  }
-  window.tmssDeleteSelectedStaff=function(){removeIds(ids())};
-  window.tmssDeleteOneStaff=function(id){removeIds([id])};
-  window.tmssToggleAllStaff=function(on){document.querySelectorAll('.adminStaffSelect').forEach(x=>x.checked=!!on);const c=document.getElementById('tmssSelectedCount');if(c)c.textContent=ids().length+' selected'};
-  window.tmssRefreshSelectedCount=function(){const c=document.getElementById('tmssSelectedCount');if(c)c.textContent=ids().length+' selected'};
-
-  const oldRefresh=window.refreshAdmin;
-  window.refreshAdmin=function(){
-    const r=oldRefresh.apply(this,arguments);setTimeout(function(){
-      const host=document.getElementById('at');if(!host)return;
-      const table=host.querySelector('table');if(!table)return;
-      if(!table.querySelector('thead .adminSelectHead')){const th=document.createElement('th');th.className='adminSelectHead';th.innerHTML='<input class="rowSelect" type="checkbox" title="Select all visible staff" onchange="tmssToggleAllStaff(this.checked)">';table.querySelector('thead tr').insertBefore(th,table.querySelector('thead tr').firstElementChild)}
-      table.querySelectorAll('tbody tr').forEach(function(tr){
-        if(tr.querySelector('.adminStaffSelect'))return;
-        const id=(tr.querySelector('button[onclick*="openStaff("]')?.getAttribute('onclick')||'').match(/openStaff\('([^']+)'/i)?.[1];
-        if(!id)return;
-        const td=document.createElement('td');td.innerHTML='<input class="rowSelect adminStaffSelect" type="checkbox" value="'+id+'" onchange="tmssRefreshSelectedCount()">';tr.insertBefore(td,tr.firstElementChild);
-      });
-      if(!document.getElementById('tmssAdminBulkBar')){
-        const bar=document.createElement('div');bar.id='tmssAdminBulkBar';bar.className='adminBulkBar';bar.innerHTML='<span id="tmssSelectedCount" class="bulkInfo">0 selected</span><button class="btn" type="button" onclick="tmssToggleAllStaff(true)">Select all visible</button><button class="btn bulkDanger" type="button" onclick="tmssDeleteSelectedStaff()">🗑 Delete selected</button>';
-        host.insertBefore(bar,host.firstChild);
-      }
-    },20);return r;
-  };
-})();
-</script>
-
-
-<script>
-/* v9 — chat reliability: one Firestore document per message, realtime query, explicit Seen. */
-(function(){
-  'use strict';
-  const COL='tmssChatMessagesV2';
-  let peer='',unsub=null,msgs=[];
-  const readKey=()=> 'tmss_chat_seen_v2_'+(session?.role==='admin'?'ADMIN':session?.branchId||'');
-  const me2=()=>session?.role==='admin'?'ADMIN':session?.branchId||'';
-  const reads=()=>{try{return JSON.parse(localStorage.getItem(readKey())||'{}')}catch(e){return{}}};
-  const saveReads=x=>localStorage.setItem(readKey(),JSON.stringify(x));
-  const stamp=m=>Date.parse(m.at||'')||0;
-  function unreadFor(p){const r=reads();return msgs.filter(m=>m.to===me2()&&m.from===p&&stamp(m)>Number(r[p]||0)).length}
-  function paint(){
-    const total=msgs.filter(m=>m.to===me2()&&stamp(m)>Number(reads()[m.from]||0)).length;
-    document.querySelectorAll('.tmssChatBadge').forEach(x=>{x.textContent=total?String(total):'';x.hidden=!total});
-    document.querySelectorAll('[data-chat-user]').forEach(b=>{const p=b.getAttribute('data-chat-user');let x=b.querySelector('.tmssContactBadge');if(!x){x=document.createElement('span');x.className='tmssContactBadge';b.appendChild(x)}const n=unreadFor(p);x.textContent=n?String(n):'';x.hidden=!n});
-  }
-  function seen(p){if(!p)return;const inc=msgs.filter(m=>m.to===me2()&&m.from===p).map(stamp).filter(Boolean);if(!inc.length)return;const r=reads();r[p]=Math.max(Number(r[p]||0),Math.max(...inc));saveReads(r);paint()}
-  function render(){const box=document.getElementById('chatMessages');if(!box)return;const a=msgs.filter(m=>(m.from===me2()&&m.to===peer)||(m.from===peer&&m.to===me2())).sort((x,y)=>stamp(x)-stamp(y));box.innerHTML=a.map(m=>`<div class="chatMsg ${m.from===me2()?'mine':'theirs'}"><div>${esc(m.text)}</div><div class="chatMeta">${new Date(m.at).toLocaleString()}</div></div>`).join('')||'<div style="text-align:center;color:#8a96aa;font-size:12px;margin-top:120px">No messages yet.</div>';box.scrollTop=box.scrollHeight;paint()}
-  function subscribe(){if(unsub)try{unsub()}catch(e){};if(!firebase?.apps?.length)return;try{unsub=firebase.firestore().collection(COL).onSnapshot(s=>{msgs=s.docs.map(d=>d.data());render();paint()})}catch(e){console.error(e)}}
-  window.chatPanel=function(){const users=[{id:'ADMIN',name:'Admin Panel'}].concat((db.branches||[]).map(b=>({id:b.id,name:b.name}))).filter(u=>u.id!==me2());return `<div class="chatWrap"><div class="chatUsers"><b style="font-size:12px">Contacts</b><div style="margin-top:8px">${users.map((u,i)=>`<button class="chatUser ${i===0?'active':''}" data-chat-user="${esc(u.id)}" onclick="selectChat('${esc(u.id)}')"><span class="tmssChatUserLine"><span>${esc(u.name)}</span><span class="tmssContactBadge" hidden></span></span></button>`).join('')}</div></div><div class="chatBox"><div class="chatHead" id="chatHead">${esc(users[0]?.name||'Select contact')}</div><div class="chatMessages" id="chatMessages"></div><div class="chatComposer"><input id="chatInput" placeholder="Type message…"><button type="button" class="btn primary" onclick="sendChatMessage()">Send</button></div></div></div>`}
-  window.openChat=function(){modal('Live Chat',window.chatPanel(session?.role));setTimeout(()=>window.initChat(),20)};
-  window.initChat=function(){const first=document.querySelector('[data-chat-user]');peer=first?.getAttribute('data-chat-user')||'';subscribe();if(peer)seen(peer);render();const i=document.getElementById('chatInput');if(i)i.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();window.sendChatMessage()}};paint()};
-  window.selectChat=function(id){peer=id||'';document.querySelectorAll('[data-chat-user]').forEach(x=>x.classList.toggle('active',x.getAttribute('data-chat-user')===peer));const b=(db.branches||[]).find(x=>x.id===peer),h=document.getElementById('chatHead');if(h)h.textContent=peer==='ADMIN'?'Admin Panel':b?.name||peer;render();seen(peer);document.getElementById('chatInput')?.focus()};
-  window.sendChatMessage=async function(){const i=document.getElementById('chatInput'),text=(i?.value||'').trim();if(!text||!peer)return;try{const msg={id:crypto.randomUUID(),from:me2(),to:peer,text,at:new Date().toISOString()};await firebase.firestore().collection(COL).doc(msg.id).set(msg);if(i)i.value='';}catch(e){console.error(e);alert('Message could not be sent. Please try again.')}};
-  window.tmssChatSeen=function(){seen(peer)};
-  setTimeout(()=>{if(firebase?.apps?.length){subscribe();paint()}},1800);
-  window.addEventListener('storage',e=>{if(e.key&&e.key.startsWith('tmss_chat_seen_v2_'))paint()});
-})();
-</script>
-
-<script>
-/* v9 — final Admin All Staff renderer: selectable rows + single delete + bulk delete. */
-(function(){
-  const old=window.refreshAdmin;if(typeof old!=='function')return;
-  window.refreshAdmin=function(){
-    old.apply(this,arguments);
-    setTimeout(()=>{
-      const host=document.getElementById('at');if(!host)return;
-      const t=host.querySelector('table');if(!t)return;
-      const h=t.querySelector('thead tr');if(h&&!h.querySelector('.v9sel')){const th=document.createElement('th');th.className='v9sel';th.innerHTML='<input class="rowSelect" type="checkbox" onchange="tmssToggleAllStaff(this.checked)" title="Select all">';h.insertBefore(th,h.firstElementChild)}
-      t.querySelectorAll('tbody tr').forEach(tr=>{if(tr.querySelector('.adminStaffSelect'))return;const b=tr.querySelector('button[onclick*="openStaff("]');const m=b?.getAttribute('onclick')?.match(/openStaff\('([^']+)'/);if(!m)return;const td=document.createElement('td');td.innerHTML='<input class="rowSelect adminStaffSelect" type="checkbox" value="'+m[1]+'" onchange="tmssRefreshSelectedCount()">';tr.insertBefore(td,tr.firstElementChild)});
-      let bar=document.getElementById('tmssAdminBulkBar');if(!bar){bar=document.createElement('div');bar.id='tmssAdminBulkBar';bar.className='adminBulkBar';bar.innerHTML='<span id="tmssSelectedCount" class="bulkInfo">0 selected</span><button class="btn" onclick="tmssToggleAllStaff(true)">Select all visible</button><button class="btn bulkDanger" onclick="tmssDeleteSelectedStaff()">🗑 Delete selected</button>';host.insertBefore(bar,host.firstChild)}
-    },30);
-  };
-})();
-</script>
-
-
-<style>
-/* v12 — branch staff table: fixed, unambiguous column order */
-.branchStaffTable{table-layout:fixed;min-width:1380px!important}.branchStaffTable th:nth-child(1),.branchStaffTable td:nth-child(1){width:45px}.branchStaffTable th:nth-child(2),.branchStaffTable td:nth-child(2){width:110px}.branchStaffTable th:nth-child(3),.branchStaffTable td:nth-child(3){width:190px}.branchStaffTable th:nth-child(4),.branchStaffTable td:nth-child(4){width:105px}.branchStaffTable th:nth-child(5),.branchStaffTable td:nth-child(5){width:65px}.branchStaffTable th:nth-child(6),.branchStaffTable td:nth-child(6){width:80px}.branchStaffTable th:nth-child(7),.branchStaffTable td:nth-child(7){width:145px}.branchStaffTable th:nth-child(8),.branchStaffTable td:nth-child(8){width:150px}.branchStaffTable th:nth-child(9),.branchStaffTable td:nth-child(9){width:125px}.branchStaffTable th:nth-child(10),.branchStaffTable td:nth-child(10){width:125px}.branchStaffTable th:nth-child(11),.branchStaffTable td:nth-child(11){width:220px}.branchStaffTable th:nth-child(12),.branchStaffTable td:nth-child(12){width:120px}.branchStaffTable th:nth-child(13),.branchStaffTable td:nth-child(13){width:220px}.branchStaffTable td{overflow-wrap:anywhere}
-</style>
-<script>
-/* v12 — branch list is explicitly rendered in the requested order. */
-(function(){
-  window.refreshBranch=function(){
-    const q=(document.getElementById('bs')?.value||'').trim().toLowerCase(), bid=session?.branchId;
-    const rows=(db.staff||[]).filter(s=>s.branchId===bid&&s.status==='Active'&&[s.nameEn,s.nameBn,s.employeeId,s.designation].join(' ').toLowerCase().includes(q));
-    rows.sort((a,b)=>(typeof designRank==='function'?designRank(a.designation)-designRank(b.designation):0)||String(a.nameEn||'').localeCompare(String(b.nameEn||'')));
-    const target=document.getElementById('bt'); if(!target)return;
-    if(!rows.length){target.innerHTML='<div class="card" style="text-align:center;color:var(--muted)">No records found.</div>';return;}
-    const E=window.esc||((x)=>String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])));
-    target.innerHTML=`<div class="tablewrap"><table class="table branchStaffTable"><thead><tr><th>SL</th><th>Employee ID</th><th>Name</th><th>Designation</th><th>Grade</th><th>Zone</th><th>Region</th><th>Branch</th><th>Joining Date (TMSS)</th><th>Joining Date (Branch)</th><th>Address</th><th>Personal Phone</th><th>Actions</th></tr></thead><tbody>${rows.map((s,i)=>{
-      const b=(db.branches||[]).find(x=>x.id===s.branchId);
-      const address=`<div>গ্রাম: ${E(s.village||'—')}</div><div>ডাকঘর: ${E(s.post||'—')}</div><div>থানা/উপজেলা: ${E(s.thana||s.upazila||'—')}</div><div>জেলা: ${E(s.district||'—')}</div>`;
-      const pending=typeof branchPendingLabel==='function'?branchPendingLabel(s.id):'';
-      return `<tr><td>${i+1}</td><td>${E(s.employeeId||'—')}</td><td><b>${E(s.nameEn||'—')}</b><br><small>${E(s.nameBn||'—')}</small>${pending?'<br>'+pending:''}</td><td><b>${E(s.designation||'—')}</b></td><td>${E(s.grade||'—')}</td><td>Op-05</td><td>${E(region(s.branchId)||s.region||'—')}</td><td>${E((b?.name||'—')+(b?.code?' ('+b.code+')':''))}</td><td>${E(fmt(s.tmssJoin))}</td><td>${E(fmt(s.branchJoin))}</td><td>${address}</td><td>${E(s.phone||'—')}</td><td><div class="actions"><button class="smallBtn tmssEyeBtn" type="button" onclick="tmssViewStaff('${E(s.id)}')">👁️ View</button><button class="smallBtn" type="button" onclick="openStaff('${E(s.id)}')">✏️ Edit</button><button class="smallBtn" type="button" onclick="requestTransfer('${E(s.id)}')">Transfer</button><button class="smallBtn red" type="button" onclick="openResign('${E(s.id)}')">Resign</button></div></td></tr>`;
-    }).join('')}</tbody></table></div>`;
-  };
 })();
 </script>
